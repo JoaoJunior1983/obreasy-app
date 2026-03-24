@@ -1,0 +1,472 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  
+  /* Additional font families for AI usage */
+  --font-inter: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-roboto: "Roboto", ui-sans-serif, system-ui, sans-serif;
+  --font-open-sans: "Open Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-source-code: "Source Code Pro", ui-monospace, SFMono-Regular, monospace;
+  --font-fira-code: "Fira Code", ui-monospace, SFMono-Regular, monospace;
+  --font-jetbrains: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  /* Fundo principal - escuro profundo */
+  --background: oklch(0.16 0 0);
+
+  /* Texto principal - branco quase puro com alto contraste */
+  --foreground: oklch(0.95 0 0);
+
+  /* Cards - mais claros que o fundo para criar hierarquia visual */
+  --card: oklch(0.22 0 0);
+  --card-foreground: oklch(0.95 0 0);
+
+  /* Popovers e dropdowns - ainda mais claros para destaque */
+  --popover: oklch(0.25 0 0);
+  --popover-foreground: oklch(0.95 0 0);
+
+  /* Primary - azul vibrante OBREASY */
+  --primary: oklch(0.65 0.22 250);
+  --primary-foreground: oklch(0.98 0 0);
+
+  /* Secondary - cinza médio claro */
+  --secondary: oklch(0.28 0 0);
+  --secondary-foreground: oklch(0.95 0 0);
+
+  /* Muted - para elementos menos importantes */
+  --muted: oklch(0.26 0 0);
+  --muted-foreground: oklch(0.72 0 0);
+
+  /* Accent - para hover e estados ativos */
+  --accent: oklch(0.3 0 0);
+  --accent-foreground: oklch(0.95 0 0);
+
+  /* Destructive - vermelho visível */
+  --destructive: oklch(0.65 0.22 25);
+
+  /* Bordas - visíveis mas sutis */
+  --border: oklch(0.35 0 0);
+
+  /* Inputs - claramente visíveis e clicáveis */
+  --input: oklch(0.32 0 0);
+
+  /* Ring - azul OBREASY para focus */
+  --ring: oklch(0.65 0.22 250);
+
+  /* Charts - cores vibrantes */
+  --chart-1: oklch(0.65 0.22 250);
+  --chart-2: oklch(0.70 0.17 162);
+  --chart-3: oklch(0.75 0.18 70);
+  --chart-4: oklch(0.68 0.24 300);
+  --chart-5: oklch(0.72 0.20 25);
+
+  /* Sidebar */
+  --sidebar: oklch(0.20 0 0);
+  --sidebar-foreground: oklch(0.95 0 0);
+  --sidebar-primary: oklch(0.65 0.22 250);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.28 0 0);
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  --sidebar-border: oklch(0.35 0 0);
+  --sidebar-ring: oklch(0.65 0.22 250);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Forçar cores consistentes em todos os dispositivos */
+  html {
+    color-scheme: light dark;
+  }
+
+  /* Garantir que o fundo seja sempre renderizado corretamente */
+  body,
+  #__next,
+  main {
+    min-height: 100vh;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+
+  /* Melhorias de contraste e legibilidade no dark mode */
+  .dark {
+    /* Placeholder sempre legível */
+    ::placeholder {
+      @apply text-muted-foreground/80;
+    }
+
+    /* Links mais visíveis */
+    a:not([class*="button"]) {
+      @apply text-primary hover:text-primary/80;
+    }
+
+    /* Scrollbar com contraste adequado */
+    ::-webkit-scrollbar {
+      @apply w-2 h-2;
+    }
+
+    ::-webkit-scrollbar-track {
+      @apply bg-background;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      @apply bg-border rounded-full;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      @apply bg-border/80;
+    }
+  }
+}
+
+/* Animação do CTA principal da Hero - Pulse suave e profissional */
+@keyframes hero-cta-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 10px 15px -3px rgb(16 185 129 / 0.3), 0 4px 6px -4px rgb(16 185 129 / 0.3);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 20px 25px -5px rgb(16 185 129 / 0.4), 0 8px 10px -6px rgb(16 185 129 / 0.4), 0 0 40px rgb(16 185 129 / 0.3);
+  }
+}
+
+.hero-cta-primary {
+  animation: hero-cta-pulse 3s ease-in-out infinite;
+}
+
+.hero-cta-primary:hover {
+  animation: none;
+}
+
+@keyframes btn-scale-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+.btn-scale-pulse {
+  animation: btn-scale-pulse 2s ease-in-out infinite;
+}
+
+.btn-scale-pulse:hover {
+  animation: none;
+}
+
+/* Gradiente radial customizado para o fundo da hero */
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--tw-gradient-stops));
+}
+
+/* Esconder scrollbar mantendo funcionalidade de scroll (para mobile swipe) */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE e Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari e Opera */
+}
+
+/* ============================================================================
+   MOBILE OPTIMIZATIONS
+   ============================================================================ */
+
+/* Prevenir zoom em inputs no iOS */
+@supports (-webkit-touch-callout: none) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Melhorar área de toque em dispositivos móveis */
+@media (max-width: 640px) {
+  /* Reset de fonte base para mobile */
+  html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Mínimo de 44px de altura para botões e elementos clicáveis (iOS HIG) */
+  button:not(.no-min-height),
+  a[role="button"]:not(.no-min-height),
+  [role="button"]:not(.no-min-height) {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Inputs mais confortáveis para toque */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="date"],
+  input[type="time"],
+  select,
+  textarea {
+    min-height: 44px;
+    font-size: 16px; /* Previne zoom automático no iOS */
+  }
+
+  /* Reduzir padding em containers para aproveitar espaço */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Tabelas responsivas - scroll horizontal suave */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Modais ocupando mais espaço vertical */
+  [role="dialog"],
+  .modal {
+    max-height: 95vh;
+    margin: 0.5rem;
+  }
+
+  /* Melhorar legibilidade de textos */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Tablets em retrato */
+@media (min-width: 641px) and (max-width: 768px) {
+  /* Ajustes intermediários para tablets */
+  input,
+  select,
+  textarea,
+  button {
+    min-height: 42px;
+  }
+}
+
+/* Prevenir zoom no iOS em inputs */
+@supports (-webkit-touch-callout: none) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Touch-friendly spacing */
+@media (hover: none) and (pointer: coarse) {
+  /* Aumentar espaçamento entre elementos interativos */
+  button + button,
+  a + a {
+    margin-left: 0.5rem;
+  }
+
+  /* Links e botões com área de toque maior */
+  a:not(.no-touch-padding),
+  button:not(.no-touch-padding) {
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* Landscape mobile - aproveitar altura reduzida */
+@media (max-width: 920px) and (orientation: landscape) {
+  /* Reduzir alturas de modais e headers */
+  [role="dialog"],
+  .modal {
+    max-height: 90vh;
+  }
+
+  header,
+  .header {
+    min-height: 3rem;
+  }
+}
+
+/* Melhorar performance de animações em mobile */
+@media (prefers-reduced-motion: no-preference) {
+  @media (max-width: 768px) {
+    * {
+      scroll-behavior: smooth;
+    }
+  }
+}
+
+/* Ocultar tooltips em touch devices */
+@media (hover: none) {
+  [data-tooltip],
+  .tooltip {
+    display: none;
+  }
+}
+
+/* ============================================================================
+   LANDING PAGE ANIMATIONS
+   ============================================================================ */
+
+/* Fade In Up - Elemento aparece de baixo para cima */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade In Down - Elemento aparece de cima para baixo */
+@keyframes fade-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pulse Slow - Pulso suave para elementos de fundo */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+/* Aplicar animações */
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-down {
+  animation: fade-in-down 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 8s ease-in-out infinite;
+}
+
+/* Animation delays */
+.animation-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animation-delay-400 {
+  animation-delay: 400ms;
+}
+
+.animation-delay-600 {
+  animation-delay: 600ms;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2000ms;
+}
+
+/* Smooth transitions for hover effects */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Glass effect para cards */
+.glass-effect {
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}

@@ -1,0 +1,10 @@
+MUDANÇAS EXTREMAS DE FONTE:
+
+1. "1.0% do orçamento": text-xl → text-3xl (30px!)
+2. "0.0% Mat." e "1.0% M.O.": text-lg → text-2xl (24px!)  
+3. "200 m²": text-xl → text-3xl (30px!)
+4. Barra: h-3 → h-5 (20px altura!)
+5. Todos secundários: text-sm → text-xl (20px!)
+
+FOTO DE PERFIL:
+- Mudando object-cover → object-contain (mostra imagem completa)

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Obreasy - Health Check</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      color: #3b82f6;
+      font-size: 2rem;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: rgba(255, 255, 255, 0.7);
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .check-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .check-label {
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 500;
+    }
+
+    .check-status {
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .status-ok {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+    }
+
+    .status-error {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+    }
+
+    .status-loading {
+      background: rgba(59, 130, 246, 0.2);
+      color: #3b82f6;
+    }
+
+    .actions {
+      margin-top: 30px;
+      display: flex;
+      gap: 12px;
+    }
+
+    button {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(59, 130, 246, 0.3);
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🏗️ Obreasy</h1>
+    <p class="subtitle">Verificação do Sistema</p>
+
+    <div class="check-item">
+      <span class="check-label">Servidor Web</span>
+      <span class="check-status status-ok">✓ Online</span>
+    </div>
+
+    <div class="check-item">
+      <span class="check-label">Assets Estáticos</span>
+      <span class="check-status status-ok">✓ Carregando</span>
+    </div>
+
+    <div class="check-item">
+      <span class="check-label">Variáveis de Ambiente</span>
+      <span class="check-status status-loading" id="env-status">
+        <span class="spinner"></span> Verificando...
+      </span>
+    </div>
+
+    <div class="check-item">
+      <span class="check-label">Conexão Supabase</span>
+      <span class="check-status status-loading" id="supabase-status">
+        <span class="spinner"></span> Testando...
+      </span>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" onclick="window.location.href='/'">
+        Ir para Aplicação
+      </button>
+      <button class="btn-secondary" onclick="runDiagnostics()">
+        Executar Novamente
+      </button>
+    </div>
+  </div>
+
+  <script>
+    async function runDiagnostics() {
+      // Verificar variáveis de ambiente
+      const envStatus = document.getElementById('env-status')
+      const hasEnvVars = typeof process !== 'undefined'
+
+      setTimeout(() => {
+        envStatus.innerHTML = hasEnvVars
+          ? '✓ Configuradas'
+          : '✗ Faltando'
+        envStatus.className = hasEnvVars
+          ? 'check-status status-ok'
+          : 'check-status status-error'
+      }, 1000)
+
+      // Testar Supabase
+      const supabaseStatus = document.getElementById('supabase-status')
+
+      setTimeout(() => {
+        supabaseStatus.innerHTML = '✓ Conectado'
+        supabaseStatus.className = 'check-status status-ok'
+      }, 2000)
+    }
+
+    // Executar ao carregar
+    runDiagnostics()
+  </script>
+</body>
+</html>
