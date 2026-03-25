@@ -1033,13 +1033,22 @@ function ProfissionalDetalhePageContent() {
               <p className="text-xs text-gray-500">{profissional.funcao}{obra ? ` · ${obra.nome}` : ""}</p>
             </div>
           </div>
-          <button
-            onClick={() => setIsEditing(!isEditing)}
-            className="flex items-center gap-1.5 h-8 px-3 bg-[#2a2d35] hover:bg-white/[0.13] active:scale-95 text-gray-300 text-xs font-medium rounded-lg border border-white/[0.08] transition-all duration-150"
-          >
-            <Edit className="w-3 h-3" />
-            {isEditing ? "Cancelar" : "Editar"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => router.push("/dashboard/profissionais/novo")}
+              className="flex items-center gap-1.5 h-8 px-3 bg-[#0B3064] hover:bg-[#0e3d7a] active:scale-95 text-white text-xs font-medium rounded-lg border border-white/[0.08] transition-all duration-150"
+            >
+              <Plus className="w-3 h-3" />
+              Novo
+            </button>
+            <button
+              onClick={() => setIsEditing(!isEditing)}
+              className="flex items-center gap-1.5 h-8 px-3 bg-[#2a2d35] hover:bg-white/[0.13] active:scale-95 text-gray-300 text-xs font-medium rounded-lg border border-white/[0.08] transition-all duration-150"
+            >
+              <Edit className="w-3 h-3" />
+              {isEditing ? "Cancelar" : "Editar"}
+            </button>
+          </div>
         </div>
 
         <div className="space-y-3">

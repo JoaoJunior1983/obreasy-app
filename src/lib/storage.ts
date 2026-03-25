@@ -454,30 +454,34 @@ export async function calcularMetricasObraFromSupabase(obraId: string) {
 
     const obra = obraData as any
 
-    // Carregar despesas (ainda no localStorage - será migrado depois)
-    // Filtrar profissionalId: esses são cópias de pagamentos já contados abaixo
-    const despesas = getDespesasByObra(obraId)
-    const totalDespesas = despesas
-      .filter(d => !d.profissionalId && !(d as any).professionalId)
-      .reduce((acc, d) => acc + (d.valor ?? 0), 0)
-
-    // Carregar pagamentos do Supabase (pagamentos a profissionais)
+    let totalDespesas = 0
     let totalPagamentos = 0
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        const { data: pagamentosData } = await supabase
-          .from("pagamentos")
-          .select("valor")
-          .eq("obra_id", obraId)
-          .eq("user_id", user.id)
+        const [despesasRes, pagamentosRes] = await Promise.all([
+          supabase
+            .from("despesas")
+            .select("valor")
+            .eq("obra_id", obraId)
+            .eq("user_id", user.id)
+            .is("profissional_id", null),
+          supabase
+            .from("pagamentos")
+            .select("valor")
+            .eq("obra_id", obraId)
+            .eq("user_id", user.id),
+        ])
 
-        if (pagamentosData && pagamentosData.length > 0) {
-          totalPagamentos = pagamentosData.reduce((acc: number, p: any) => acc + (parseFloat(p.valor) || 0), 0)
+        if (despesasRes.data && despesasRes.data.length > 0) {
+          totalDespesas = despesasRes.data.reduce((acc: number, d: any) => acc + (parseFloat(d.valor) || 0), 0)
+        }
+        if (pagamentosRes.data && pagamentosRes.data.length > 0) {
+          totalPagamentos = pagamentosRes.data.reduce((acc: number, p: any) => acc + (parseFloat(p.valor) || 0), 0)
         }
       }
-    } catch (pagError) {
-      console.error("Erro ao carregar pagamentos:", pagError)
+    } catch (err) {
+      console.error("Erro ao carregar despesas/pagamentos:", err)
     }
 
     const totalGasto = totalDespesas + totalPagamentos

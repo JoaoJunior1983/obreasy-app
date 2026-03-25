@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { type Obra, type Despesa, type Profissional } from "@/lib/storage"
 
-type TipoRelatorio = "geral" | "periodo" | "material" | "mao_obra_total" | "mao_obra_profissional"
+type TipoRelatorio = "geral" | "periodo" | "material" | "mao_obra_total" | "mao_obra_profissional" | "recebimentos"
 
 function ImprimirRelatorioContent() {
   const searchParams = useSearchParams()
@@ -19,6 +19,7 @@ function ImprimirRelatorioContent() {
   const [pagamentos, setPagamentos] = useState<{ id: string; valor: number; data: string; profissional_id: string; descricao?: string }[]>([])
   const [profissionais, setProfissionais] = useState<Profissional[]>([])
   const [recebimentos, setRecebimentos] = useState<{ id: string; valor: number; data: string; formaPagamento: string; observacao: string | null; comprovanteUrl: string | null; clienteNome: string }[]>([])
+  const [valorContratadoClientes, setValorContratadoClientes] = useState(0)
   const [loading, setLoading] = useState(true)
   const [printTriggered, setPrintTriggered] = useState(false)
 
@@ -54,7 +55,18 @@ function ImprimirRelatorioContent() {
           return
         }
 
-        // Converter para formato esperado
+        // Buscar valor contratado da tabela clientes
+        let totalContrato = 0
+        const { data: clientesData } = await supabase
+          .from("clientes")
+          .select("contrato_valor")
+          .eq("obra_id", obraId)
+          .eq("user_id", user.id)
+        if (clientesData && clientesData.length > 0) {
+          totalContrato = clientesData.reduce((acc: number, c: any) => acc + (parseFloat(c.contrato_valor) || 0), 0)
+        }
+        setValorContratadoClientes(totalContrato)
+
         const obraEncontrada = {
           id: dbObra.id,
           userId: dbObra.user_id,
@@ -64,7 +76,7 @@ function ImprimirRelatorioContent() {
           area: dbObra.area,
           localizacao: dbObra.localizacao,
           orcamento: dbObra.orcamento,
-          valorContratado: dbObra.valor_contratado || null,
+          valorContratado: totalContrato || dbObra.valor_contratado || null,
           dataInicio: dbObra.data_inicio || null,
           dataTermino: dbObra.data_termino || null,
           criadaEm: dbObra.criada_em,
@@ -352,6 +364,8 @@ function ImprimirRelatorioContent() {
         return profissionalId
           ? `Relatório de Mão de Obra - ${getProfissionalNome(profissionalId)}`
           : "Relatório de Mão de Obra por Profissional"
+      case "recebimentos":
+        return "Relatório de Recebimentos do Cliente"
       default:
         return "Relatório"
     }
@@ -472,43 +486,134 @@ function ImprimirRelatorioContent() {
           </div>
         )}
 
+        {/* ── RECEBIMENTOS DO CLIENTE (tipo dedicado) ── */}
+        {tipo === "recebimentos" && (() => {
+          const totalRecebido = recebimentos.reduce((acc, r) => acc + r.valor, 0)
+          const valorContratado = valorContratadoClientes || obra.valorContratado || 0
+          const saldoAReceber = valorContratado > 0 ? valorContratado - totalRecebido : 0
+          return (
+            <>
+              <div className="mb-4 sm:mb-8 page-break-inside-avoid">
+                <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-2 sm:mb-4">Resumo Financeiro</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                  <div className="border-2 border-gray-800 rounded-lg p-3 sm:p-4">
+                    <p className="text-xs sm:text-sm text-gray-700 mb-1">Valor Contratado</p>
+                    <p className="text-base sm:text-2xl font-bold text-gray-900">
+                      {valorContratado > 0 ? formatarMoeda(valorContratado) : "Não definido"}
+                    </p>
+                  </div>
+                  <div className="border-2 border-green-600 rounded-lg p-3 sm:p-4">
+                    <p className="text-xs sm:text-sm text-gray-700 mb-1">Total Recebido</p>
+                    <p className="text-base sm:text-2xl font-bold text-green-700">{formatarMoeda(totalRecebido)}</p>
+                  </div>
+                  <div className="border-2 border-blue-600 rounded-lg p-3 sm:p-4">
+                    <p className="text-xs sm:text-sm text-gray-700 mb-1">Saldo a Receber</p>
+                    <p className="text-base sm:text-2xl font-bold text-blue-700">
+                      {valorContratado > 0 ? formatarMoeda(saldoAReceber) : "—"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {recebimentos.length > 0 && (
+                <div className="mb-4 sm:mb-8 page-break-inside-avoid">
+                  <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-2 sm:mb-4">
+                    Histórico de Recebimentos ({recebimentos.length})
+                  </h2>
+                  <div className="border-2 border-green-600 rounded-lg overflow-hidden overflow-x-auto">
+                    <table className="w-full table-fixed min-w-[340px]">
+                      <thead className="bg-green-100">
+                        <tr>
+                          <th className="px-1.5 py-1.5 text-left text-[9px] font-bold text-gray-900 border-b-2 border-green-600 w-[14%]">Data</th>
+                          <th className="px-1.5 py-1.5 text-left text-[9px] font-bold text-gray-900 border-b-2 border-green-600 w-[22%]">Cliente</th>
+                          <th className="px-1.5 py-1.5 text-right text-[9px] font-bold text-gray-900 border-b-2 border-green-600 w-[26%]">Valor</th>
+                          <th className="px-1.5 py-1.5 text-left text-[9px] font-bold text-gray-900 border-b-2 border-green-600 w-[16%]">Forma Pgto</th>
+                          <th className="px-1.5 py-1.5 text-left text-[9px] font-bold text-gray-900 border-b-2 border-green-600 w-[22%]">Observação</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {recebimentos.map((rec, index) => (
+                          <tr key={rec.id} className={index % 2 === 0 ? "bg-white" : "bg-green-50"}>
+                            <td className="px-1.5 py-1.5 text-[9px] text-gray-900 border-b border-gray-300 whitespace-nowrap">
+                              {rec.data ? formatarData(rec.data) : "-"}
+                            </td>
+                            <td className="px-1.5 py-1.5 text-[9px] text-gray-900 border-b border-gray-300 break-words">
+                              {rec.clienteNome}
+                            </td>
+                            <td className="px-1.5 py-1.5 text-[9px] text-green-700 text-right font-bold border-b border-gray-300 whitespace-nowrap">
+                              {formatarMoeda(rec.valor)}
+                            </td>
+                            <td className="px-1.5 py-1.5 text-[9px] text-gray-700 border-b border-gray-300 break-words">
+                              {rec.formaPagamento || "-"}
+                            </td>
+                            <td className="px-1.5 py-1.5 text-[9px] text-gray-700 border-b border-gray-300 break-words">
+                              {rec.observacao || "-"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot className="bg-green-100">
+                        <tr>
+                          <td colSpan={2} className="px-2 py-2 text-[10px] sm:text-sm font-bold text-gray-900 text-right border-t-2 border-green-600">
+                            Total Recebido:
+                          </td>
+                          <td className="px-2 py-2 text-[10px] sm:text-sm font-bold text-green-700 text-right border-t-2 border-green-600 whitespace-nowrap">
+                            {formatarMoeda(totalRecebido)}
+                          </td>
+                          <td colSpan={2} className="border-t-2 border-green-600" />
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {recebimentos.length === 0 && (
+                <div className="mb-8 p-6 border-2 border-gray-300 rounded-lg text-center">
+                  <p className="text-gray-600">Nenhum recebimento registrado.</p>
+                </div>
+              )}
+            </>
+          )
+        })()}
+
         {/* Lista de despesas */}
-        {despesasFiltradas.length > 0 && (
+        {tipo !== "recebimentos" && despesasFiltradas.length > 0 && (
           <div className="mb-4 sm:mb-8">
             <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-2 sm:mb-4">
               Despesas Detalhadas ({despesasFiltradas.length})
             </h2>
-            <div className="border-2 border-gray-800 rounded-lg overflow-hidden">
-              <table className="w-full table-fixed">
+            <div className="border-2 border-gray-800 rounded-lg overflow-hidden overflow-x-auto">
+              <table className="w-full table-fixed min-w-[340px]">
                 <thead className="bg-gray-200">
                   <tr>
-                    <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-900 border-b-2 border-gray-800 w-[12%]">Data</th>
-                    <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-900 border-b-2 border-gray-800 w-[30%]">Descrição</th>
-                    <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-900 border-b-2 border-gray-800 w-[18%]">Categoria</th>
+                    <th className="px-1.5 py-1.5 text-left text-[9px] font-bold text-gray-900 border-b-2 border-gray-800 w-[14%]">Data</th>
+                    <th className="px-1.5 py-1.5 text-left text-[9px] font-bold text-gray-900 border-b-2 border-gray-800 w-[28%]">Descrição</th>
+                    <th className="px-1.5 py-1.5 text-left text-[9px] font-bold text-gray-900 border-b-2 border-gray-800 w-[16%]">Categoria</th>
                     {(tipo === "mao_obra_total" || tipo === "geral") && (
-                      <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-900 border-b-2 border-gray-800 w-[22%]">Profissional</th>
+                      <th className="px-1.5 py-1.5 text-left text-[9px] font-bold text-gray-900 border-b-2 border-gray-800 w-[18%]">Profissional</th>
                     )}
-                    <th className="px-2 py-2 text-right text-[10px] font-bold text-gray-900 border-b-2 border-gray-800 w-[18%]">Valor</th>
+                    <th className="px-1.5 py-1.5 text-right text-[9px] font-bold text-gray-900 border-b-2 border-gray-800 w-[24%]">Valor</th>
                   </tr>
                 </thead>
                 <tbody>
                   {despesasFiltradas.map((despesa, index) => (
                     <tr key={despesa.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                      <td className="px-2 py-1.5 text-[9px] text-gray-900 border-b border-gray-300 whitespace-nowrap">
+                      <td className="px-1.5 py-1.5 text-[9px] text-gray-900 border-b border-gray-300 whitespace-nowrap">
                         {despesa.data ? formatarData(despesa.data) : "-"}
                       </td>
-                      <td className="px-2 py-1.5 text-[9px] text-gray-900 border-b border-gray-300 break-words">
+                      <td className="px-1.5 py-1.5 text-[9px] text-gray-900 border-b border-gray-300 break-words">
                         {despesa.descricao || "Sem descrição"}
                       </td>
-                      <td className="px-2 py-1.5 text-[9px] text-gray-700 border-b border-gray-300 break-words">
+                      <td className="px-1.5 py-1.5 text-[9px] text-gray-700 border-b border-gray-300 break-words">
                         {despesa.category || despesa.categoria || despesa.tipo || "-"}
                       </td>
                       {(tipo === "mao_obra_total" || tipo === "geral") && (
-                        <td className="px-2 py-1.5 text-[9px] text-gray-700 border-b border-gray-300 break-words">
+                        <td className="px-1.5 py-1.5 text-[9px] text-gray-700 border-b border-gray-300 break-words">
                           {despesa.profissionalId ? getProfissionalNome(despesa.profissionalId) : "-"}
                         </td>
                       )}
-                      <td className="px-2 py-1.5 text-[9px] text-gray-900 text-right font-bold border-b border-gray-300 break-words">
+                      <td className="px-1.5 py-1.5 text-[9px] text-gray-900 text-right font-bold border-b border-gray-300 whitespace-nowrap">
                         {formatarMoeda(despesa.valor)}
                       </td>
                     </tr>
@@ -516,10 +621,10 @@ function ImprimirRelatorioContent() {
                 </tbody>
                 <tfoot className="bg-gray-200">
                   <tr>
-                    <td colSpan={(tipo === "mao_obra_total" || tipo === "geral") ? 4 : 3} className="px-4 py-3 text-sm font-bold text-gray-900 text-right border-t-2 border-gray-800">
+                    <td colSpan={(tipo === "mao_obra_total" || tipo === "geral") ? 4 : 3} className="px-2 py-2 text-[10px] sm:text-sm font-bold text-gray-900 text-right border-t-2 border-gray-800">
                       Subtotal Despesas:
                     </td>
-                    <td className="px-4 py-3 text-sm font-bold text-gray-900 text-right border-t-2 border-gray-800">
+                    <td className="px-2 py-2 text-[10px] sm:text-sm font-bold text-gray-900 text-right border-t-2 border-gray-800 whitespace-nowrap">
                       {formatarMoeda(despesasFiltradas.reduce((acc, d) => acc + (d.valor ?? 0), 0))}
                     </td>
                   </tr>
@@ -535,37 +640,36 @@ function ImprimirRelatorioContent() {
           if (tipo === "mao_obra_profissional") {
             pagamentosFiltrados = filtrarPagamentosPorProfissional(pagamentosFiltrados)
           }
-          // Só mostrar pagamentos em relatórios que incluem mão de obra
-          const mostrarPagamentos = tipo !== "material" && pagamentosFiltrados.length > 0
+          const mostrarPagamentos = tipo !== "material" && tipo !== "recebimentos" && pagamentosFiltrados.length > 0
 
           return mostrarPagamentos ? (
             <div className="mb-8 page-break-inside-avoid">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
+              <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-2 sm:mb-4">
                 Pagamentos a Profissionais ({pagamentosFiltrados.length})
               </h2>
-              <div className="border-2 border-blue-600 rounded-lg overflow-hidden">
-                <table className="w-full table-fixed">
+              <div className="border-2 border-blue-600 rounded-lg overflow-hidden overflow-x-auto">
+                <table className="w-full table-fixed min-w-[340px]">
                   <thead className="bg-blue-100">
                     <tr>
-                      <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-900 border-b-2 border-blue-600 w-[15%]">Data</th>
-                      <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-900 border-b-2 border-blue-600 w-[35%]">Descrição</th>
-                      <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-900 border-b-2 border-blue-600 w-[30%]">Profissional</th>
-                      <th className="px-2 py-2 text-right text-[10px] font-bold text-gray-900 border-b-2 border-blue-600 w-[20%]">Valor</th>
+                      <th className="px-1.5 py-1.5 text-left text-[9px] font-bold text-gray-900 border-b-2 border-blue-600 w-[14%]">Data</th>
+                      <th className="px-1.5 py-1.5 text-left text-[9px] font-bold text-gray-900 border-b-2 border-blue-600 w-[30%]">Descrição</th>
+                      <th className="px-1.5 py-1.5 text-left text-[9px] font-bold text-gray-900 border-b-2 border-blue-600 w-[30%]">Profissional</th>
+                      <th className="px-1.5 py-1.5 text-right text-[9px] font-bold text-gray-900 border-b-2 border-blue-600 w-[26%]">Valor</th>
                     </tr>
                   </thead>
                   <tbody>
                     {pagamentosFiltrados.map((pagamento, index) => (
                       <tr key={pagamento.id} className={index % 2 === 0 ? "bg-white" : "bg-blue-50"}>
-                        <td className="px-2 py-1.5 text-[9px] text-gray-900 border-b border-gray-300 whitespace-nowrap">
+                        <td className="px-1.5 py-1.5 text-[9px] text-gray-900 border-b border-gray-300 whitespace-nowrap">
                           {pagamento.data ? formatarData(pagamento.data) : "-"}
                         </td>
-                        <td className="px-2 py-1.5 text-[9px] text-gray-900 border-b border-gray-300 break-words">
+                        <td className="px-1.5 py-1.5 text-[9px] text-gray-900 border-b border-gray-300 break-words">
                           {pagamento.descricao || "Pagamento"}
                         </td>
-                        <td className="px-2 py-1.5 text-[9px] text-gray-700 border-b border-gray-300 break-words">
+                        <td className="px-1.5 py-1.5 text-[9px] text-gray-700 border-b border-gray-300 break-words">
                           {getProfissionalNome(pagamento.profissional_id)}
                         </td>
-                        <td className="px-2 py-1.5 text-[9px] text-blue-700 text-right font-bold border-b border-gray-300 break-words">
+                        <td className="px-1.5 py-1.5 text-[9px] text-blue-700 text-right font-bold border-b border-gray-300 whitespace-nowrap">
                           {formatarMoeda(pagamento.valor)}
                         </td>
                       </tr>
@@ -573,10 +677,10 @@ function ImprimirRelatorioContent() {
                   </tbody>
                   <tfoot className="bg-blue-100">
                     <tr>
-                      <td colSpan={3} className="px-4 py-3 text-sm font-bold text-gray-900 text-right border-t-2 border-blue-600">
+                      <td colSpan={3} className="px-2 py-2 text-[10px] sm:text-sm font-bold text-gray-900 text-right border-t-2 border-blue-600">
                         Subtotal Pagamentos:
                       </td>
-                      <td className="px-4 py-3 text-sm font-bold text-blue-700 text-right border-t-2 border-blue-600">
+                      <td className="px-2 py-2 text-[10px] sm:text-sm font-bold text-blue-700 text-right border-t-2 border-blue-600 whitespace-nowrap">
                         {formatarMoeda(pagamentosFiltrados.reduce((acc, p) => acc + p.valor, 0))}
                       </td>
                     </tr>
@@ -589,8 +693,8 @@ function ImprimirRelatorioContent() {
 
         {/* Relatório agrupado por profissional - quando nenhum profissional específico foi selecionado */}
         {tipo === "mao_obra_profissional" && !profissionalId && profissionais.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
+          <div className="mb-4 sm:mb-8">
+            <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-2 sm:mb-4">
               Detalhamento por Profissional
             </h2>
             {profissionais.map((prof) => {
@@ -607,73 +711,70 @@ function ImprimirRelatorioContent() {
               if (totalProf === 0) return null
 
               return (
-                <div key={prof.id} className="mb-6 border-2 border-blue-600 rounded-lg overflow-hidden overflow-x-auto page-break-inside-avoid">
-                  {/* Cabeçalho do profissional */}
-                  <div className="bg-blue-100 border-b-2 border-blue-600 p-4">
-                    <h3 className="text-lg font-bold text-gray-900">
+                <div key={prof.id} className="mb-4 sm:mb-6 border-2 border-blue-600 rounded-lg overflow-hidden page-break-inside-avoid">
+                  <div className="bg-blue-100 border-b-2 border-blue-600 p-2.5 sm:p-4">
+                    <h3 className="text-sm sm:text-lg font-bold text-gray-900">
                       {prof.nome} - {prof.funcao}
                     </h3>
-                    <p className="text-sm text-gray-700 mt-1">
+                    <p className="text-xs sm:text-sm text-gray-700 mt-0.5 sm:mt-1">
                       Total gasto: <span className="font-bold text-blue-700">{formatarMoeda(totalProf)}</span>
                     </p>
                   </div>
 
-                  {/* Despesas do profissional */}
                   {despesasProfissional.length > 0 && (
-                    <div className="p-4 bg-white">
-                      <p className="text-sm font-semibold text-gray-700 mb-2">Despesas</p>
-                      <table className="w-full text-sm min-w-[400px]">
+                    <div className="p-2 sm:p-4 bg-white">
+                      <p className="text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Despesas</p>
+                      <table className="w-full">
                         <thead className="bg-gray-200">
                           <tr>
-                            <th className="px-3 py-2 text-left text-xs font-bold text-gray-900 border-b-2 border-gray-800">Data</th>
-                            <th className="px-3 py-2 text-left text-xs font-bold text-gray-900 border-b-2 border-gray-800">Descrição</th>
-                            <th className="px-3 py-2 text-right text-xs font-bold text-gray-900 border-b-2 border-gray-800">Valor</th>
+                            <th className="px-1.5 py-1.5 text-left text-[9px] sm:text-xs font-bold text-gray-900 border-b-2 border-gray-800">Data</th>
+                            <th className="px-1.5 py-1.5 text-left text-[9px] sm:text-xs font-bold text-gray-900 border-b-2 border-gray-800">Descrição</th>
+                            <th className="px-1.5 py-1.5 text-right text-[9px] sm:text-xs font-bold text-gray-900 border-b-2 border-gray-800">Valor</th>
                           </tr>
                         </thead>
                         <tbody>
                           {despesasProfissional.map((desp, idx) => (
                             <tr key={desp.id} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                              <td className="px-3 py-2 text-gray-900 border-b border-gray-300">{desp.data ? formatarData(desp.data) : "-"}</td>
-                              <td className="px-3 py-2 text-gray-900 border-b border-gray-300">{desp.descricao || "Sem descrição"}</td>
-                              <td className="px-3 py-2 text-right font-bold text-gray-900 border-b border-gray-300">{formatarMoeda(desp.valor)}</td>
+                              <td className="px-1.5 py-1.5 text-[9px] sm:text-sm text-gray-900 border-b border-gray-300 whitespace-nowrap">{desp.data ? formatarData(desp.data) : "-"}</td>
+                              <td className="px-1.5 py-1.5 text-[9px] sm:text-sm text-gray-900 border-b border-gray-300 break-words">{desp.descricao || "Sem descrição"}</td>
+                              <td className="px-1.5 py-1.5 text-[9px] sm:text-sm text-right font-bold text-gray-900 border-b border-gray-300 whitespace-nowrap">{formatarMoeda(desp.valor)}</td>
                             </tr>
                           ))}
                         </tbody>
                         <tfoot className="bg-gray-200">
                           <tr>
-                            <td colSpan={2} className="px-3 py-2 text-xs font-bold text-gray-900 text-right border-t-2 border-gray-800">Subtotal:</td>
-                            <td className="px-3 py-2 text-right text-sm font-bold text-gray-900 border-t-2 border-gray-800">{formatarMoeda(totalDespesasProf)}</td>
+                            <td colSpan={2} className="px-1.5 py-1.5 text-[9px] sm:text-xs font-bold text-gray-900 text-right border-t-2 border-gray-800">Subtotal:</td>
+                            <td className="px-1.5 py-1.5 text-right text-[10px] sm:text-sm font-bold text-gray-900 border-t-2 border-gray-800 whitespace-nowrap">{formatarMoeda(totalDespesasProf)}</td>
                           </tr>
                         </tfoot>
                       </table>
                     </div>
                   )}
 
-                  {/* Pagamentos do profissional */}
                   {pagamentosProfissional.length > 0 && (
-                    <div className="p-4 bg-blue-50 border-t-2 border-blue-300">
-                      <p className="text-sm font-semibold text-gray-700 mb-2">Pagamentos</p>
-                      <table className="w-full text-sm min-w-[400px]">
+                    <div className="p-2 sm:p-4 bg-blue-50 border-t-2 border-blue-300">
+                      <p className="text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Pagamentos</p>
+                      <table className="w-full">
                         <thead className="bg-blue-100">
                           <tr>
-                            <th className="px-3 py-2 text-left text-xs font-bold text-gray-900 border-b-2 border-blue-600">Data</th>
-                            <th className="px-3 py-2 text-left text-xs font-bold text-gray-900 border-b-2 border-blue-600">Descrição</th>
-                            <th className="px-3 py-2 text-right text-xs font-bold text-gray-900 border-b-2 border-blue-600">Valor</th>
+                            <th className="px-1.5 py-1.5 text-left text-[9px] sm:text-xs font-bold text-gray-900 border-b-2 border-blue-600">Data</th>
+                            <th className="px-1.5 py-1.5 text-left text-[9px] sm:text-xs font-bold text-gray-900 border-b-2 border-blue-600">Descrição</th>
+                            <th className="px-1.5 py-1.5 text-right text-[9px] sm:text-xs font-bold text-gray-900 border-b-2 border-blue-600">Valor</th>
                           </tr>
                         </thead>
                         <tbody>
                           {pagamentosProfissional.map((pag, idx) => (
                             <tr key={pag.id} className={idx % 2 === 0 ? "bg-white" : "bg-blue-50"}>
-                              <td className="px-3 py-2 text-gray-900 border-b border-gray-300">{pag.data ? formatarData(pag.data) : "-"}</td>
-                              <td className="px-3 py-2 text-gray-900 border-b border-gray-300">{pag.descricao || "Pagamento"}</td>
-                              <td className="px-3 py-2 text-right font-bold text-blue-700 border-b border-gray-300">{formatarMoeda(pag.valor)}</td>
+                              <td className="px-1.5 py-1.5 text-[9px] sm:text-sm text-gray-900 border-b border-gray-300 whitespace-nowrap">{pag.data ? formatarData(pag.data) : "-"}</td>
+                              <td className="px-1.5 py-1.5 text-[9px] sm:text-sm text-gray-900 border-b border-gray-300 break-words">{pag.descricao || "Pagamento"}</td>
+                              <td className="px-1.5 py-1.5 text-[9px] sm:text-sm text-right font-bold text-blue-700 border-b border-gray-300 whitespace-nowrap">{formatarMoeda(pag.valor)}</td>
                             </tr>
                           ))}
                         </tbody>
                         <tfoot className="bg-blue-100">
                           <tr>
-                            <td colSpan={2} className="px-3 py-2 text-xs font-bold text-gray-900 text-right border-t-2 border-blue-600">Subtotal:</td>
-                            <td className="px-3 py-2 text-right text-sm font-bold text-blue-700 border-t-2 border-blue-600">{formatarMoeda(totalPagamentosProf)}</td>
+                            <td colSpan={2} className="px-1.5 py-1.5 text-[9px] sm:text-xs font-bold text-gray-900 text-right border-t-2 border-blue-600">Subtotal:</td>
+                            <td className="px-1.5 py-1.5 text-right text-[10px] sm:text-sm font-bold text-blue-700 border-t-2 border-blue-600 whitespace-nowrap">{formatarMoeda(totalPagamentosProf)}</td>
                           </tr>
                         </tfoot>
                       </table>
@@ -686,12 +787,12 @@ function ImprimirRelatorioContent() {
         )}
 
         {/* Total Geral (Despesas + Pagamentos) */}
-        {(despesasFiltradas.length > 0 || pagamentos.length > 0) && (
-          <div className="mb-8 page-break-inside-avoid">
-            <div className="bg-green-100 border-4 border-green-600 rounded-lg p-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-3xl font-bold text-gray-900">TOTAL GERAL GASTO</h2>
-                <p className="text-4xl font-bold text-green-700">{formatarMoeda(totalGasto)}</p>
+        {tipo !== "recebimentos" && (despesasFiltradas.length > 0 || pagamentos.length > 0) && (
+          <div className="mb-4 sm:mb-8 page-break-inside-avoid">
+            <div className="bg-green-100 border-2 sm:border-4 border-green-600 rounded-lg p-3 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4">
+                <h2 className="text-lg sm:text-3xl font-bold text-gray-900">TOTAL GERAL GASTO</h2>
+                <p className="text-xl sm:text-4xl font-bold text-green-700 whitespace-nowrap">{formatarMoeda(totalGasto)}</p>
               </div>
             </div>
           </div>
@@ -705,37 +806,37 @@ function ImprimirRelatorioContent() {
           if (recFiltrados.length === 0) return null
           const totalRec = recFiltrados.reduce((acc, r) => acc + r.valor, 0)
           return (
-            <div className="mb-8 page-break-inside-avoid">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
+            <div className="mb-4 sm:mb-8 page-break-inside-avoid">
+              <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-2 sm:mb-4">
                 Recebimentos dos Clientes ({recFiltrados.length})
               </h2>
-              <div className="border-2 border-green-600 rounded-lg overflow-hidden">
-                <table className="w-full table-fixed">
+              <div className="border-2 border-green-600 rounded-lg overflow-hidden overflow-x-auto">
+                <table className="w-full table-fixed min-w-[340px]">
                   <thead className="bg-green-100">
                     <tr>
-                      <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-900 border-b-2 border-green-600 w-[12%]">Data</th>
-                      <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-900 border-b-2 border-green-600 w-[25%]">Cliente</th>
-                      <th className="px-2 py-2 text-right text-[10px] font-bold text-gray-900 border-b-2 border-green-600 w-[15%]">Valor</th>
-                      <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-900 border-b-2 border-green-600 w-[18%]">Forma Pgto</th>
-                      <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-900 border-b-2 border-green-600 w-[30%]">Observação</th>
+                      <th className="px-1.5 py-1.5 text-left text-[9px] font-bold text-gray-900 border-b-2 border-green-600 w-[14%]">Data</th>
+                      <th className="px-1.5 py-1.5 text-left text-[9px] font-bold text-gray-900 border-b-2 border-green-600 w-[22%]">Cliente</th>
+                      <th className="px-1.5 py-1.5 text-right text-[9px] font-bold text-gray-900 border-b-2 border-green-600 w-[26%]">Valor</th>
+                      <th className="px-1.5 py-1.5 text-left text-[9px] font-bold text-gray-900 border-b-2 border-green-600 w-[16%]">Forma Pgto</th>
+                      <th className="px-1.5 py-1.5 text-left text-[9px] font-bold text-gray-900 border-b-2 border-green-600 w-[22%]">Observação</th>
                     </tr>
                   </thead>
                   <tbody>
                     {recFiltrados.map((rec, index) => (
                       <tr key={rec.id} className={index % 2 === 0 ? "bg-white" : "bg-green-50"}>
-                        <td className="px-2 py-1.5 text-[9px] text-gray-900 border-b border-gray-300 whitespace-nowrap">
+                        <td className="px-1.5 py-1.5 text-[9px] text-gray-900 border-b border-gray-300 whitespace-nowrap">
                           {rec.data ? formatarData(rec.data) : "-"}
                         </td>
-                        <td className="px-2 py-1.5 text-[9px] text-gray-900 border-b border-gray-300 break-words">
+                        <td className="px-1.5 py-1.5 text-[9px] text-gray-900 border-b border-gray-300 break-words">
                           {rec.clienteNome}
                         </td>
-                        <td className="px-2 py-1.5 text-[9px] text-green-700 text-right font-bold border-b border-gray-300 whitespace-nowrap">
+                        <td className="px-1.5 py-1.5 text-[9px] text-green-700 text-right font-bold border-b border-gray-300 whitespace-nowrap">
                           {formatarMoeda(rec.valor)}
                         </td>
-                        <td className="px-2 py-1.5 text-[9px] text-gray-700 border-b border-gray-300 break-words">
+                        <td className="px-1.5 py-1.5 text-[9px] text-gray-700 border-b border-gray-300 break-words">
                           {rec.formaPagamento || "-"}
                         </td>
-                        <td className="px-2 py-1.5 text-[9px] text-gray-700 border-b border-gray-300 break-words">
+                        <td className="px-1.5 py-1.5 text-[9px] text-gray-700 border-b border-gray-300 break-words">
                           {rec.observacao || "-"}
                         </td>
                       </tr>
@@ -743,10 +844,10 @@ function ImprimirRelatorioContent() {
                   </tbody>
                   <tfoot className="bg-green-100">
                     <tr>
-                      <td colSpan={2} className="px-4 py-3 text-sm font-bold text-gray-900 text-right border-t-2 border-green-600">
+                      <td colSpan={2} className="px-2 py-2 text-[10px] sm:text-sm font-bold text-gray-900 text-right border-t-2 border-green-600">
                         Total Recebido:
                       </td>
-                      <td className="px-4 py-3 text-sm font-bold text-green-700 text-right border-t-2 border-green-600">
+                      <td className="px-2 py-2 text-[10px] sm:text-sm font-bold text-green-700 text-right border-t-2 border-green-600 whitespace-nowrap">
                         {formatarMoeda(totalRec)}
                       </td>
                       <td colSpan={2} className="border-t-2 border-green-600" />
@@ -760,17 +861,17 @@ function ImprimirRelatorioContent() {
 
         {/* Profissionais - apenas para relatório geral */}
         {tipo === "geral" && profissionais.length > 0 && (
-          <div className="mb-8 page-break-inside-avoid">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
+          <div className="mb-4 sm:mb-8 page-break-inside-avoid">
+            <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-2 sm:mb-4">
               Profissionais Cadastrados ({profissionais.length})
             </h2>
-            <div className="border-2 border-gray-800 rounded-lg overflow-hidden">
-              <table className="w-full table-fixed">
+            <div className="border-2 border-gray-800 rounded-lg overflow-hidden overflow-x-auto">
+              <table className="w-full table-fixed min-w-[280px]">
                 <thead className="bg-gray-200">
                   <tr>
-                    <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-900 border-b-2 border-gray-800 w-[40%]">Nome</th>
-                    <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-900 border-b-2 border-gray-800 w-[30%]">Função</th>
-                    <th className="px-2 py-2 text-right text-[10px] font-bold text-gray-900 border-b-2 border-gray-800 w-[30%]">Valor Previsto</th>
+                    <th className="px-1.5 py-1.5 text-left text-[9px] font-bold text-gray-900 border-b-2 border-gray-800 w-[38%]">Nome</th>
+                    <th className="px-1.5 py-1.5 text-left text-[9px] font-bold text-gray-900 border-b-2 border-gray-800 w-[28%]">Função</th>
+                    <th className="px-1.5 py-1.5 text-right text-[9px] font-bold text-gray-900 border-b-2 border-gray-800 w-[34%]">Valor Previsto</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -778,9 +879,9 @@ function ImprimirRelatorioContent() {
                     const valorPrevisto = prof.valorPrevisto || prof.contrato?.valorPrevisto || prof.contrato?.valorTotalPrevisto || 0
                     return (
                       <tr key={prof.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                        <td className="px-2 py-1.5 text-[9px] text-gray-900 border-b border-gray-300 break-words">{prof.nome}</td>
-                        <td className="px-2 py-1.5 text-[9px] text-gray-700 border-b border-gray-300 break-words">{prof.funcao}</td>
-                        <td className="px-2 py-1.5 text-[9px] text-gray-900 text-right font-bold border-b border-gray-300 break-words">
+                        <td className="px-1.5 py-1.5 text-[9px] text-gray-900 border-b border-gray-300 break-words">{prof.nome}</td>
+                        <td className="px-1.5 py-1.5 text-[9px] text-gray-700 border-b border-gray-300 break-words">{prof.funcao}</td>
+                        <td className="px-1.5 py-1.5 text-[9px] text-gray-900 text-right font-bold border-b border-gray-300 whitespace-nowrap">
                           {formatarMoeda(valorPrevisto)}
                         </td>
                       </tr>

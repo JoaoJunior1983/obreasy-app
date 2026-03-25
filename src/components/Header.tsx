@@ -252,13 +252,13 @@ export default function Header() {
           <div className="relative">
             <button
               onClick={handleLogoClick}
-              className="relative flex items-center gap-3 bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.10] rounded-xl px-2 py-1 active:scale-95 transition-all duration-150"
+              className="relative flex items-center bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.10] rounded-lg px-1.5 py-1 active:scale-95 transition-all duration-150"
               aria-label="Voltar para lista de obras"
             >
               <img
                 src="https://k6hrqrxuu8obbfwn.public.blob.vercel-storage.com/temp/f350fbaf-266c-404d-8471-e0e89b5a6eda.jpg"
                 alt="Obreasy"
-                className="h-12 w-auto"
+                className="h-9 w-auto rounded-md"
               />
             </button>
             {onboardingStep === 0 && (

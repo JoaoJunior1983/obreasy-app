@@ -76,7 +76,17 @@ function RelatorioPreviewPageContent() {
 
         console.log("[PREVIEW] Obra carregada:", dbObra.nome)
 
-        // Converter para formato esperado
+        // Buscar valor contratado da tabela clientes (fonte correta)
+        let valorContratadoClientes = 0
+        const { data: clientesData } = await supabase
+          .from("clientes")
+          .select("contrato_valor")
+          .eq("obra_id", obraId)
+          .eq("user_id", user.id)
+        if (clientesData && clientesData.length > 0) {
+          valorContratadoClientes = clientesData.reduce((acc: number, c: any) => acc + (parseFloat(c.contrato_valor) || 0), 0)
+        }
+
         const obraEncontrada = {
           id: dbObra.id,
           userId: dbObra.user_id,
@@ -86,7 +96,7 @@ function RelatorioPreviewPageContent() {
           area: dbObra.area,
           localizacao: dbObra.localizacao,
           orcamento: dbObra.orcamento,
-          valorContratado: dbObra.valor_contratado || null,
+          valorContratado: valorContratadoClientes || dbObra.valor_contratado || null,
           dataInicio: dbObra.data_inicio || null,
           dataTermino: dbObra.data_termino || null,
           criadaEm: dbObra.criada_em,

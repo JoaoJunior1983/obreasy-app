@@ -176,16 +176,16 @@ export default function EscolhaRelatorioPage() {
                       <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wide mb-1.5 mt-2">Data inicial</p>
                       <div className="overflow-hidden rounded-lg border border-white/[0.08] bg-[#2a2d35]">
                         <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)}
-                          className="w-full h-9 px-3 bg-transparent text-sm text-white focus:outline-none appearance-none"
-                          style={{ WebkitAppearance: 'none', fontSize: '13px', lineHeight: '36px', minWidth: 0 }} />
+                          className="w-full h-8 px-2 bg-transparent text-xs text-white focus:outline-none appearance-none"
+                          style={{ WebkitAppearance: 'none', fontSize: '12px', lineHeight: '32px', minWidth: 0 }} />
                       </div>
                     </div>
                     <div>
                       <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wide mb-1.5 mt-2">Data final</p>
                       <div className="overflow-hidden rounded-lg border border-white/[0.08] bg-[#2a2d35]">
                         <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)}
-                          className="w-full h-9 px-3 bg-transparent text-sm text-white focus:outline-none appearance-none"
-                          style={{ WebkitAppearance: 'none', fontSize: '13px', lineHeight: '36px', minWidth: 0 }} />
+                          className="w-full h-8 px-2 bg-transparent text-xs text-white focus:outline-none appearance-none"
+                          style={{ WebkitAppearance: 'none', fontSize: '12px', lineHeight: '32px', minWidth: 0 }} />
                       </div>
                     </div>
                   </div>
