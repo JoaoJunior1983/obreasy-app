@@ -125,17 +125,17 @@ function ImprimirRelatorioContent() {
         // Carregar pagamentos do Supabase
         const { data: pagamentosData } = await supabase
           .from("pagamentos")
-          .select("id, valor, data_pagamento, profissional_id, observacao")
+          .select("id, valor, data, profissional_id, observacao")
           .eq("obra_id", obraId)
           .eq("user_id", user.id)
-          .order("data_pagamento", { ascending: false })
+          .order("data", { ascending: false })
 
         if (pagamentosData && pagamentosData.length > 0) {
           console.log("[DEBUG] Pagamentos carregados:", pagamentosData.length)
           setPagamentos(pagamentosData.map((p: any) => ({
             id: p.id,
             valor: parseFloat(p.valor) || 0,
-            data: p.data_pagamento,
+            data: p.data,
             profissional_id: p.profissional_id,
             descricao: p.observacao || undefined
           })))
@@ -385,11 +385,7 @@ function ImprimirRelatorioContent() {
   const despesasFiltradas = filtrarDespesasPorTipo(filtrarDespesasPorPeriodo(despesas))
 
   const handleFechar = () => {
-    window.close()
-    // Se window.close() não funcionar (navegador bloqueia), usar history.back()
-    setTimeout(() => {
-      window.history.back()
-    }, 100)
+    window.history.back()
   }
 
   return (

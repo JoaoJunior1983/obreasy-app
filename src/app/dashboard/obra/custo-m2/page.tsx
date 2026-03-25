@@ -117,7 +117,7 @@ export default function CustoM2Page() {
           id: p.id,
           obraId: p.obra_id,
           valor: parseFloat(p.valor) || 0,
-          data: p.data_pagamento,
+          data: p.data,
           category: "mao_obra",
           categoria: "mao_obra",
           profissionalId: p.profissional_id,

@@ -173,10 +173,10 @@ function RelatorioPreviewPageContent() {
 
         const { data: pagamentosData, error: pagError } = await supabase
           .from("pagamentos")
-          .select("id, valor, data_pagamento, profissional_id")
+          .select("id, valor, data, profissional_id")
           .eq("obra_id", obraId)
           .eq("user_id", user.id)
-          .order("data_pagamento", { ascending: false })
+          .order("data", { ascending: false })
 
         console.log("[PREVIEW] 🔍 DEBUG - Supabase Error:", pagError)
         console.log("[PREVIEW] 🔍 DEBUG - Dados retornados:", pagamentosData)
@@ -185,11 +185,11 @@ function RelatorioPreviewPageContent() {
         if (pagamentosData && pagamentosData.length > 0) {
           console.log("[PREVIEW] Pagamentos carregados:", pagamentosData.length)
           const pagamentosProcessados = pagamentosData.map(p => {
-            console.log("[PREVIEW] 🔍 Processando pagamento:", p.id, "data_pagamento:", p.data_pagamento)
+            console.log("[PREVIEW] 🔍 Processando pagamento:", p.id, "data:", p.data)
             return {
               id: p.id,
               valor: parseFloat(p.valor) || 0,
-              data: p.data_pagamento,
+              data: p.data,
               profissional_id: p.profissional_id
             }
           })
