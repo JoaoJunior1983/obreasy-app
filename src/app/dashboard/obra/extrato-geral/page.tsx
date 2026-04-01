@@ -393,7 +393,7 @@ export default function ExtratoGeralPage() {
                 setSortOrder(order)
               }}
               className="bg-transparent text-[11px] text-gray-300 focus:outline-none cursor-pointer"
-              style={{ minHeight: 0, appearance: 'none', WebkitAppearance: 'none' }}
+              style={{ minHeight: 0, appearance: 'none', WebkitAppearance: 'none', colorScheme: 'dark' }}
             >
               <option value="data-desc" className="bg-[#1f2228]">Mais recente</option>
               <option value="data-asc" className="bg-[#1f2228]">Mais antigo</option>

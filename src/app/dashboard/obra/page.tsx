@@ -1748,9 +1748,19 @@ export default function DashboardObraPage() {
               <div className="space-y-1">
                 <label className="block text-[11px] text-gray-500 font-medium uppercase tracking-wide">Cliente *</label>
                 {clientesObra.length === 0 ? (
-                  <p className="text-xs text-yellow-400/80 bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-3 py-2">
-                    Nenhum cliente cadastrado nesta obra. Cadastre um cliente antes de registrar um recebimento.
-                  </p>
+                  <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-3 py-2.5 space-y-2">
+                    <p className="text-xs text-yellow-400/80">
+                      Nenhum cliente cadastrado nesta obra. Cadastre um cliente antes de registrar um recebimento.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => { setShowRecebimentoModal(false); router.push("/dashboard/clientes/novo") }}
+                      className="flex items-center gap-1.5 h-8 px-3 bg-[#0B3064] hover:bg-[#082551] active:scale-95 text-white text-xs font-semibold rounded-lg transition-all"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Cadastrar cliente
+                    </button>
+                  </div>
                 ) : (
                   <Select value={recebimentoFormData.clienteId} onValueChange={(value) => setRecebimentoFormData({ ...recebimentoFormData, clienteId: value })}>
                     <SelectTrigger className="w-full bg-[#2a2d35] border-white/[0.1] text-white h-10 text-base">
@@ -1854,7 +1864,7 @@ export default function DashboardObraPage() {
               </button>
               <button
                 onClick={handleSalvarRecebimento}
-                disabled={isSavingRecebimento}
+                disabled={isSavingRecebimento || clientesObra.length === 0}
                 className="flex-1 h-11 bg-[#0B3064] hover:bg-[#082551] disabled:opacity-40 text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
               >
                 {isSavingRecebimento ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Salvando...</> : "Salvar"}

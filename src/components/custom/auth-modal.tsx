@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { X, ArrowRight, Mail, Lock, User, CheckCircle2, AlertCircle, Building2, Phone, Loader2 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { shouldShowProfileSelection } from "@/lib/storage"
+import { trackEvent, updateLastActive, getLeadSource } from "@/lib/track-event"
 import { validatePassword, validatePasswordMatch } from "@/lib/password-validation"
 import ProfileSelectionModal from "./profile-selection-modal"
 
@@ -110,6 +111,9 @@ export default function AuthModal({ onClose, hasQuizData = false, quizData, onSu
           } catch {}
         }
 
+        trackEvent("login").catch(() => {})
+        updateLastActive().catch(() => {})
+
         setIsAuthenticating(true)
         const shouldShow = shouldShowProfileSelection()
 
@@ -160,6 +164,7 @@ export default function AuthModal({ onClose, hasQuizData = false, quizData, onSu
         if (!data.user) { setError("Erro ao criar conta. Tente novamente."); setIsLoading(false); return }
 
         const trialExpiraEm = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+        const leadSource = getLeadSource()
         try {
           await supabase.from('user_profiles').insert({
             id: data.user.id,
@@ -168,8 +173,13 @@ export default function AuthModal({ onClose, hasQuizData = false, quizData, onSu
             phone: formData.phone,
             plano: "trial",
             plano_expira_em: trialExpiraEm,
+            status: "trial",
+            lead_source: leadSource,
           } as any)
         } catch {}
+
+        trackEvent("signup", { lead_source: leadSource }).catch(() => {})
+        trackEvent("trial_start", { days: 7 }).catch(() => {})
 
         localStorage.setItem("user", JSON.stringify({
           name: `${formData.firstName} ${formData.lastName}`.trim(),

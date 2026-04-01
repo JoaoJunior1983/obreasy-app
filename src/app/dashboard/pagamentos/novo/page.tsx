@@ -277,7 +277,7 @@ export default function NovoPagamentoPage() {
       {budgetAlert && <BudgetAlertModal alert={budgetAlert} onConfirm={handleConfirmarPagamento} />}
       <BudgetMilestoneToast />
 
-      <div className="max-w-3xl mx-auto space-y-3">
+      <div className="max-w-lg mx-auto space-y-3">
 
         {/* Header */}
         <div className="flex items-center gap-2.5">
@@ -357,8 +357,8 @@ export default function NovoPagamentoPage() {
                         else setFormData({ ...formData, profissionalId: e.target.value })
                       }}
                       required
-                      className="w-full h-10 px-3 bg-transparent text-sm text-white focus:outline-none appearance-none"
-                      style={{ WebkitAppearance: 'none' }}
+                      className="w-full h-10 px-3 bg-[#2a2d35] text-sm text-white focus:outline-none appearance-none"
+                      style={{ WebkitAppearance: 'none', colorScheme: 'dark' }}
                     >
                       <option value="">Selecione um profissional</option>
                       {profissionais.map(p => (
@@ -409,8 +409,8 @@ export default function NovoPagamentoPage() {
                     <select
                       value={formData.formaPagamento}
                       onChange={(e) => setFormData({ ...formData, formaPagamento: e.target.value })}
-                      className="w-full h-10 px-3 bg-transparent text-sm text-white focus:outline-none appearance-none"
-                      style={{ WebkitAppearance: 'none' }}
+                      className="w-full h-10 px-3 bg-[#2a2d35] text-sm text-white focus:outline-none appearance-none"
+                      style={{ WebkitAppearance: 'none', colorScheme: 'dark' }}
                     >
                       {FORMAS_PAGAMENTO.map(f => <option key={f} value={f}>{f}</option>)}
                     </select>

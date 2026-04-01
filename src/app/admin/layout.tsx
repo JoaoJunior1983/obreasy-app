@@ -3,14 +3,16 @@
 import { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
-import { LayoutDashboard, Users, Gift, LogOut, Shield, Menu, X } from "lucide-react"
+import { LayoutDashboard, Users, Gift, LogOut, Shield, Menu, X, DollarSign, FileText } from "lucide-react"
 
-const ADMIN_EMAILS = ["cleyton@lasy.ai", "joaojrsilva@hotmail.com"]
+const ADMIN_EMAILS = ["cleyton@lasy.ai", "joaojrsilva@hotmail.com", "giovanni@lasy.ai"]
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/usuarios", label: "Usuários", icon: Users },
   { href: "/admin/trial", label: "Trials", icon: Gift },
+  { href: "/admin/receita", label: "Receita", icon: DollarSign },
+  { href: "/admin/relatorios", label: "Relatórios", icon: FileText },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

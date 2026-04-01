@@ -3,13 +3,15 @@ export type PlanoTipo = "essencial" | "profissional" | "trial"
 export const PLANOS = {
   essencial: {
     nome: "Essencial",
-    preco: 29,
+    preco: 29.9,
+    precoAnual: 304.8,
     limiteObras: 1,
     descricao: "Perfeito para uma obra",
   },
   profissional: {
     nome: "Profissional",
-    preco: 49,
+    preco: 49.9,
+    precoAnual: 509.0,
     limiteObras: Infinity,
     descricao: "Para múltiplas obras",
   },

@@ -634,6 +634,40 @@ function ImprimirRelatorioContent() {
           </div>
         )}
 
+        {/* Resumo do profissional (filtro individual) */}
+        {tipo === "mao_obra_profissional" && profissionalId && (() => {
+          const prof = profissionais.find(p => p.id === profissionalId)
+          if (!prof) return null
+          const valorContratado = prof.valorPrevisto || prof.contrato?.valorPrevisto || prof.contrato?.valorTotalPrevisto || 0
+          const pagamentosProf = pagamentos.filter(p => p.profissional_id === prof.id)
+          const despesasProf = despesas.filter(d => d.profissionalId === prof.id)
+          const totalPago = pagamentosProf.reduce((acc: number, p) => acc + p.valor, 0) + despesasProf.reduce((acc: number, d) => acc + (d.valor ?? 0), 0)
+          const saldoAPagar = valorContratado - totalPago
+          return (
+            <div className="mb-4 sm:mb-8 page-break-inside-avoid">
+              <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-2 sm:mb-4">Resumo do Profissional</h2>
+              <div className="border-2 border-gray-800 rounded-lg overflow-hidden">
+                <table className="w-full">
+                  <tbody>
+                    <tr className="bg-white">
+                      <td className="px-2 py-2 text-[10px] sm:text-sm text-gray-700 border-b border-gray-300">Valor Contratado</td>
+                      <td className="px-2 py-2 text-[10px] sm:text-sm text-right font-bold text-gray-900 border-b border-gray-300">{valorContratado > 0 ? formatarMoeda(valorContratado) : "Não definido"}</td>
+                    </tr>
+                    <tr className="bg-gray-50">
+                      <td className="px-2 py-2 text-[10px] sm:text-sm text-gray-700 border-b border-gray-300">Total Pago</td>
+                      <td className="px-2 py-2 text-[10px] sm:text-sm text-right font-bold text-green-700 border-b border-gray-300">{formatarMoeda(totalPago)}</td>
+                    </tr>
+                    <tr className="bg-white">
+                      <td className="px-2 py-2 text-[10px] sm:text-sm text-gray-700">Saldo a Pagar</td>
+                      <td className={`px-2 py-2 text-[10px] sm:text-sm text-right font-bold ${saldoAPagar >= 0 ? "text-blue-700" : "text-red-600"}`}>{valorContratado > 0 ? formatarMoeda(saldoAPagar) : "—"}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )
+        })()}
+
         {/* Lista de pagamentos a profissionais */}
         {(() => {
           let pagamentosFiltrados = filtrarPagamentosPorPeriodo(pagamentos)
@@ -706,9 +740,10 @@ function ImprimirRelatorioContent() {
               const totalDespesasProf = despesasProfissional.reduce((acc, d) => acc + (d.valor ?? 0), 0)
               const totalPagamentosProf = pagamentosProfissional.reduce((acc, p) => acc + p.valor, 0)
               const totalProf = totalDespesasProf + totalPagamentosProf
+              const valorContratado = prof.valorPrevisto || prof.contrato?.valorPrevisto || prof.contrato?.valorTotalPrevisto || 0
+              const saldoAPagar = valorContratado - totalProf
 
-              // Só mostrar se houver alguma movimentação
-              if (totalProf === 0) return null
+              if (totalProf === 0 && valorContratado === 0) return null
 
               return (
                 <div key={prof.id} className="mb-4 sm:mb-6 border-2 border-blue-600 rounded-lg overflow-hidden page-break-inside-avoid">
@@ -716,9 +751,17 @@ function ImprimirRelatorioContent() {
                     <h3 className="text-sm sm:text-lg font-bold text-gray-900">
                       {prof.nome} - {prof.funcao}
                     </h3>
-                    <p className="text-xs sm:text-sm text-gray-700 mt-0.5 sm:mt-1">
-                      Total gasto: <span className="font-bold text-blue-700">{formatarMoeda(totalProf)}</span>
-                    </p>
+                    <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1 sm:mt-1.5">
+                      <p className="text-[9px] sm:text-sm text-gray-700">
+                        Contratado: <span className="font-bold text-gray-900">{valorContratado > 0 ? formatarMoeda(valorContratado) : "—"}</span>
+                      </p>
+                      <p className="text-[9px] sm:text-sm text-gray-700">
+                        Pago: <span className="font-bold text-green-700">{formatarMoeda(totalProf)}</span>
+                      </p>
+                      <p className="text-[9px] sm:text-sm text-gray-700">
+                        Saldo: <span className={`font-bold ${saldoAPagar >= 0 ? "text-blue-700" : "text-red-600"}`}>{valorContratado > 0 ? formatarMoeda(saldoAPagar) : "—"}</span>
+                      </p>
+                    </div>
                   </div>
 
                   {despesasProfissional.length > 0 && (
@@ -866,23 +909,34 @@ function ImprimirRelatorioContent() {
               Profissionais Cadastrados ({profissionais.length})
             </h2>
             <div className="border-2 border-gray-800 rounded-lg overflow-hidden overflow-x-auto">
-              <table className="w-full table-fixed min-w-[280px]">
+              <table className="w-full table-fixed min-w-[340px]">
                 <thead className="bg-gray-200">
                   <tr>
-                    <th className="px-1.5 py-1.5 text-left text-[9px] font-bold text-gray-900 border-b-2 border-gray-800 w-[38%]">Nome</th>
-                    <th className="px-1.5 py-1.5 text-left text-[9px] font-bold text-gray-900 border-b-2 border-gray-800 w-[28%]">Função</th>
-                    <th className="px-1.5 py-1.5 text-right text-[9px] font-bold text-gray-900 border-b-2 border-gray-800 w-[34%]">Valor Previsto</th>
+                    <th className="px-1.5 py-1.5 text-left text-[9px] font-bold text-gray-900 border-b-2 border-gray-800 w-[28%]">Nome</th>
+                    <th className="px-1.5 py-1.5 text-left text-[9px] font-bold text-gray-900 border-b-2 border-gray-800 w-[18%]">Função</th>
+                    <th className="px-1.5 py-1.5 text-right text-[9px] font-bold text-gray-900 border-b-2 border-gray-800 w-[18%]">Contratado</th>
+                    <th className="px-1.5 py-1.5 text-right text-[9px] font-bold text-gray-900 border-b-2 border-gray-800 w-[18%]">Pago</th>
+                    <th className="px-1.5 py-1.5 text-right text-[9px] font-bold text-gray-900 border-b-2 border-gray-800 w-[18%]">Saldo</th>
                   </tr>
                 </thead>
                 <tbody>
                   {profissionais.map((prof, index) => {
                     const valorPrevisto = prof.valorPrevisto || prof.contrato?.valorPrevisto || prof.contrato?.valorTotalPrevisto || 0
+                    const pagamentosProf = pagamentos.filter(p => p.profissional_id === prof.id)
+                    const totalPago = pagamentosProf.reduce((acc: number, p) => acc + p.valor, 0)
+                    const saldo = valorPrevisto - totalPago
                     return (
                       <tr key={prof.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                         <td className="px-1.5 py-1.5 text-[9px] text-gray-900 border-b border-gray-300 break-words">{prof.nome}</td>
                         <td className="px-1.5 py-1.5 text-[9px] text-gray-700 border-b border-gray-300 break-words">{prof.funcao}</td>
                         <td className="px-1.5 py-1.5 text-[9px] text-gray-900 text-right font-bold border-b border-gray-300 whitespace-nowrap">
-                          {formatarMoeda(valorPrevisto)}
+                          {valorPrevisto > 0 ? formatarMoeda(valorPrevisto) : "—"}
+                        </td>
+                        <td className="px-1.5 py-1.5 text-[9px] text-green-700 text-right font-bold border-b border-gray-300 whitespace-nowrap">
+                          {formatarMoeda(totalPago)}
+                        </td>
+                        <td className={`px-1.5 py-1.5 text-[9px] text-right font-bold border-b border-gray-300 whitespace-nowrap ${saldo >= 0 ? "text-blue-700" : "text-red-600"}`}>
+                          {valorPrevisto > 0 ? formatarMoeda(saldo) : "—"}
                         </td>
                       </tr>
                     )

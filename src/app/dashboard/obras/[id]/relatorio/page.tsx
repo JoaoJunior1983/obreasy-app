@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { FileText, Calendar, Hammer, Users, FileBarChart, HandCoins } from "lucide-react"
 import { type Obra, type Profissional } from "@/lib/storage"
+import { trackFirstEvent, updateLastActive } from "@/lib/track-event"
 
 type TipoRelatorio = "geral" | "periodo" | "material" | "mao_obra_profissional" | "recebimentos"
 
@@ -110,6 +111,10 @@ export default function EscolhaRelatorioPage() {
       alert("Por favor, preencha as datas de início e fim para o relatório por período.")
       return
     }
+
+    trackFirstEvent("first_report", { tipo: tipoRelatorio, obra_id: obraId }).catch(() => {})
+    updateLastActive().catch(() => {})
+
     const urlParams = new URLSearchParams({
       tipo: tipoRelatorio,
       ...(tipoRelatorio === "periodo" && { dataInicio, dataFim }),
@@ -177,7 +182,7 @@ export default function EscolhaRelatorioPage() {
                       <div className="overflow-hidden rounded-lg border border-white/[0.08] bg-[#2a2d35]">
                         <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)}
                           className="w-full h-8 px-2 bg-transparent text-xs text-white focus:outline-none appearance-none"
-                          style={{ WebkitAppearance: 'none', fontSize: '12px', lineHeight: '32px', minWidth: 0 }} />
+                          style={{ WebkitAppearance: 'none', fontSize: '12px', lineHeight: '32px', minWidth: 0, colorScheme: 'dark' }} />
                       </div>
                     </div>
                     <div>
@@ -185,7 +190,7 @@ export default function EscolhaRelatorioPage() {
                       <div className="overflow-hidden rounded-lg border border-white/[0.08] bg-[#2a2d35]">
                         <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)}
                           className="w-full h-8 px-2 bg-transparent text-xs text-white focus:outline-none appearance-none"
-                          style={{ WebkitAppearance: 'none', fontSize: '12px', lineHeight: '32px', minWidth: 0 }} />
+                          style={{ WebkitAppearance: 'none', fontSize: '12px', lineHeight: '32px', minWidth: 0, colorScheme: 'dark' }} />
                       </div>
                     </div>
                   </div>
@@ -197,8 +202,8 @@ export default function EscolhaRelatorioPage() {
                     <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wide mb-1.5 mt-2">Profissional</p>
                     <div className="relative overflow-hidden rounded-lg border border-white/[0.08] bg-[#2a2d35]">
                       <select value={profissionalId} onChange={e => setProfissionalId(e.target.value)}
-                        className="w-full h-9 px-3 bg-transparent text-sm text-white focus:outline-none appearance-none"
-                        style={{ WebkitAppearance: 'none' }}>
+                        className="w-full h-9 px-3 bg-[#2a2d35] text-sm text-white focus:outline-none appearance-none"
+                        style={{ WebkitAppearance: 'none', colorScheme: 'dark' }}>
                         <option value="">Todos os profissionais</option>
                         <option value="all">Todos os profissionais</option>
                         {profissionais.map(prof => (

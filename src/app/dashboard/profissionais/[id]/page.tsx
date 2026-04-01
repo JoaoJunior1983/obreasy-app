@@ -1717,7 +1717,7 @@ function ProfissionalDetalhePageContent() {
                       value={novoPagamentoForm.data}
                       onChange={(e) => setNovoPagamentoForm({...novoPagamentoForm, data: e.target.value})}
                       className="w-full h-10 px-3 bg-transparent text-sm text-white focus:outline-none transition-colors appearance-none"
-                      style={{ WebkitAppearance: 'none', fontSize: '13px', lineHeight: '40px', minWidth: 0 }}
+                      style={{ WebkitAppearance: 'none', fontSize: '13px', lineHeight: '40px', minWidth: 0, colorScheme: 'dark' }}
                     />
                   </div>
                 </div>
@@ -1730,8 +1730,8 @@ function ProfissionalDetalhePageContent() {
                   <select
                     value={novoPagamentoForm.formaPagamento}
                     onChange={(e) => setNovoPagamentoForm({...novoPagamentoForm, formaPagamento: e.target.value})}
-                    className="w-full h-10 px-3 bg-transparent text-sm text-white focus:outline-none appearance-none"
-                    style={{ WebkitAppearance: 'none' }}
+                    className="w-full h-10 px-3 bg-[#2a2d35] text-sm text-white focus:outline-none appearance-none"
+                    style={{ WebkitAppearance: 'none', colorScheme: 'dark' }}
                   >
                     <option value="pix">Pix</option>
                     <option value="dinheiro">Dinheiro</option>
@@ -1832,7 +1832,7 @@ function ProfissionalDetalhePageContent() {
                       value={editarPagamentoForm.data}
                       onChange={(e) => setEditarPagamentoForm({...editarPagamentoForm, data: e.target.value})}
                       className="w-full h-10 px-3 bg-transparent text-sm text-white focus:outline-none focus:border-[#0B3064] transition-colors appearance-none"
-                      style={{ WebkitAppearance: 'none', fontSize: '13px', lineHeight: '40px', minWidth: 0 }}
+                      style={{ WebkitAppearance: 'none', fontSize: '13px', lineHeight: '40px', minWidth: 0, colorScheme: 'dark' }}
                     />
                   </div>
                 </div>
@@ -1845,8 +1845,8 @@ function ProfissionalDetalhePageContent() {
                   <select
                     value={editarPagamentoForm.formaPagamento}
                     onChange={(e) => setEditarPagamentoForm({...editarPagamentoForm, formaPagamento: e.target.value})}
-                    className="w-full h-10 px-3 bg-transparent text-sm text-white focus:outline-none appearance-none"
-                    style={{ WebkitAppearance: 'none' }}
+                    className="w-full h-10 px-3 bg-[#2a2d35] text-sm text-white focus:outline-none appearance-none"
+                    style={{ WebkitAppearance: 'none', colorScheme: 'dark' }}
                   >
                     <option value="pix">Pix</option>
                     <option value="dinheiro">Dinheiro</option>

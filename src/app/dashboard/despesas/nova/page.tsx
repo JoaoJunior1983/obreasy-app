@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { FileUpload } from "@/components/custom/FileUpload"
 import { BudgetAlertModal } from "@/components/custom/BudgetAlertModal"
 import { checkBudgetAfterTransaction } from "@/lib/budget-calculator"
+import { trackFirstEvent, updateLastActive } from "@/lib/track-event"
 import { type BudgetAlert } from "@/lib/budget-alerts"
 import { checkAndShowPercentualNotifications } from "@/lib/push-notifications"
 import { BudgetMilestoneToast } from "@/components/custom/BudgetMilestoneToast"
@@ -244,6 +245,9 @@ export default function NovaDespesaPage() {
       window.dispatchEvent(new CustomEvent("despesaSalva", {
         detail: { obraId: obraId }
       }))
+
+      trackFirstEvent("first_despesa", { obra_id: obraId }).catch(() => {})
+      updateLastActive().catch(() => {})
 
       // CRÍTICO: Recalcular avisos após criar despesa
       avisoAposCriarDespesa(obraId)

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Image from "next/image"
+import { trackFirstEvent, updateLastActive } from "@/lib/track-event"
 import { getUserProfile, saveClienteSupabase } from "@/lib/storage"
 import { getPlanoAtual, PLANOS, type PlanoTipo } from "@/lib/plan"
 
@@ -243,6 +244,9 @@ export default function CriarObraPage() {
       }
 
       console.log("✅ [CRIAR-OBRA] Obra criada com sucesso:", obraCriada)
+
+      trackFirstEvent("first_obra", { obra_id: obraCriada?.id }).catch(() => {})
+      updateLastActive().catch(() => {})
 
       // Salvar clientes na tabela clientes (perfil construtor)
       if (userProfile === "builder" && obraCriada) {

@@ -651,6 +651,27 @@ function RelatorioPreviewPageContent() {
             </>
           )}
 
+          {/* ── RESUMO DO PROFISSIONAL (filtro individual) ── */}
+          {tipo === "mao_obra_profissional" && profissionalId && (() => {
+            const prof = profissionais.find(p => p.id === profissionalId)
+            if (!prof) return null
+            const valorContratado = prof.valorPrevisto || prof.contrato?.valorPrevisto || prof.contrato?.valorTotalPrevisto || 0
+            const pagamentosProf = pagamentos.filter(p => p.profissional_id === prof.id)
+            const despesasProf = despesas.filter(d => d.profissionalId === prof.id)
+            const totalPago = pagamentosProf.reduce((acc: number, p) => acc + p.valor, 0) + despesasProf.reduce((acc: number, d) => acc + (d.valor ?? 0), 0)
+            const saldoAPagar = valorContratado - totalPago
+            return (
+              <>
+                <SectionTitle>Resumo do profissional</SectionTitle>
+                <RowCard rows={[
+                  { label: "Valor Contratado", value: valorContratado > 0 ? formatarMoeda(valorContratado) : "Não definido" },
+                  { label: "Total Pago", value: formatarMoeda(totalPago), valueClass: "text-emerald-400" },
+                  { label: "Saldo a Pagar", value: valorContratado > 0 ? formatarMoeda(saldoAPagar) : "—", valueClass: saldoAPagar >= 0 ? "text-[#7eaaee]" : "text-red-400" },
+                ]} />
+              </>
+            )
+          })()}
+
           {/* ── PAGAMENTOS A PROFISSIONAIS ── */}
           {(() => {
             let pagamentosFiltrados = filtrarPagamentosPorPeriodo(pagamentos)
@@ -685,15 +706,32 @@ function RelatorioPreviewPageContent() {
                 const totalDespesasProf = despesasProf.reduce((acc, d) => acc + (d.valor ?? 0), 0)
                 const totalPagamentosProf = pagamentosProf.reduce((acc, p) => acc + p.valor, 0)
                 const totalProf = totalDespesasProf + totalPagamentosProf
-                if (totalProf === 0) return null
+                const valorContratado = prof.valorPrevisto || prof.contrato?.valorPrevisto || prof.contrato?.valorTotalPrevisto || 0
+                const saldoAPagar = valorContratado - totalProf
+                if (totalProf === 0 && valorContratado === 0) return null
                 return (
                   <div key={prof.id} className="bg-[#1f2228]/80 border border-white/[0.08] rounded-xl overflow-hidden">
-                    <div className="flex items-center justify-between px-3 py-2.5 border-b border-white/[0.06] bg-[#0B3064]/10">
-                      <div>
-                        <p className="text-xs font-bold text-white">{prof.nome}</p>
-                        <p className="text-[10px] text-gray-500">{prof.funcao}</p>
+                    <div className="px-3 py-2.5 border-b border-white/[0.06] bg-[#0B3064]/10">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-bold text-white">{prof.nome}</p>
+                          <p className="text-[10px] text-gray-500">{prof.funcao}</p>
+                        </div>
                       </div>
-                      <span className="text-sm font-bold text-[#7eaaee]">{formatarMoeda(totalProf)}</span>
+                      <div className="grid grid-cols-3 gap-2 mt-2">
+                        <div>
+                          <p className="text-[9px] text-gray-500 uppercase tracking-wide">Contratado</p>
+                          <p className="text-[11px] font-bold text-gray-300">{valorContratado > 0 ? formatarMoeda(valorContratado) : "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] text-gray-500 uppercase tracking-wide">Pago</p>
+                          <p className="text-[11px] font-bold text-emerald-400">{formatarMoeda(totalProf)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] text-gray-500 uppercase tracking-wide">Saldo</p>
+                          <p className={`text-[11px] font-bold ${saldoAPagar >= 0 ? "text-[#7eaaee]" : "text-red-400"}`}>{valorContratado > 0 ? formatarMoeda(saldoAPagar) : "—"}</p>
+                        </div>
+                      </div>
                     </div>
                     {[...despesasProf.map(d => ({ label: d.descricao || "Sem descrição", sub: d.data ? formatarData(d.data) : undefined, value: formatarMoeda(d.valor) })),
                       ...pagamentosProf.map(p => ({ label: "Pagamento", sub: p.data ? formatarData(p.data) : undefined, value: formatarMoeda(p.valor) }))
@@ -739,13 +777,38 @@ function RelatorioPreviewPageContent() {
           {tipo === "geral" && profissionais.length > 0 && (
             <>
               <SectionTitle>Profissionais cadastrados ({profissionais.length})</SectionTitle>
-              <ListCard
-                emptyText=""
-                items={profissionais.map(prof => {
+              <div className="print-card bg-[#1f2228]/80 border border-white/[0.08] rounded-xl overflow-hidden">
+                {profissionais.map((prof, i) => {
                   const valorPrevisto = prof.valorPrevisto || prof.contrato?.valorPrevisto || prof.contrato?.valorTotalPrevisto || 0
-                  return { left: prof.nome, sub: prof.funcao, right: valorPrevisto > 0 ? formatarMoeda(valorPrevisto) : "—" }
+                  const pagamentosProf = pagamentos.filter(p => p.profissional_id === prof.id)
+                  const totalPago = pagamentosProf.reduce((acc, p) => acc + p.valor, 0)
+                  const saldoAPagar = valorPrevisto - totalPago
+                  return (
+                    <div key={prof.id} className={`px-3 py-2.5 ${i < profissionais.length - 1 ? "border-b border-white/[0.06]" : ""}`}>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="min-w-0 flex-1 pr-3">
+                          <p className="text-xs text-gray-200 font-semibold truncate">{prof.nome}</p>
+                          <p className="text-[10px] text-gray-500">{prof.funcao}</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 mt-1.5">
+                        <div>
+                          <p className="text-[9px] text-gray-500 uppercase tracking-wide">Contratado</p>
+                          <p className="text-[11px] font-bold text-gray-300">{valorPrevisto > 0 ? formatarMoeda(valorPrevisto) : "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] text-gray-500 uppercase tracking-wide">Pago</p>
+                          <p className="text-[11px] font-bold text-emerald-400">{formatarMoeda(totalPago)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] text-gray-500 uppercase tracking-wide">Saldo</p>
+                          <p className={`text-[11px] font-bold ${saldoAPagar >= 0 ? "text-[#7eaaee]" : "text-red-400"}`}>{valorPrevisto > 0 ? formatarMoeda(saldoAPagar) : "—"}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )
                 })}
-              />
+              </div>
             </>
           )}
 

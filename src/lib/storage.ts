@@ -8,6 +8,7 @@
  */
 
 import { avisoAposExcluirDespesa, avisoAposExcluirPagamento } from './alert-manager'
+import { trackEvent } from './track-event'
 
 /**
  * Validar se uma string é um UUID válido
@@ -590,12 +591,13 @@ export async function setUserProfile(profile: UserProfile): Promise<boolean> {
         } else {
           console.log('✅ setUserProfile - Salvo no Supabase:', updateData)
         }
+
+        trackEvent("profile_selected", { profile_type: profile }).catch(() => {})
       } else {
         console.error('❌ setUserProfile - authUser não encontrado')
       }
     } catch (supabaseError) {
       console.error("❌ setUserProfile - Erro ao salvar perfil no Supabase:", supabaseError)
-      // Continua mesmo se falhar no Supabase, pois já salvou no localStorage
     }
 
     return true

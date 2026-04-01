@@ -685,7 +685,7 @@ export default function ObrasPage() {
               value={ordem}
               onChange={e => setOrdem(e.target.value as any)}
               className="bg-transparent text-[11px] text-gray-300 focus:outline-none cursor-pointer"
-              style={{ minHeight: 0, appearance: 'none', WebkitAppearance: 'none' }}
+              style={{ minHeight: 0, appearance: 'none', WebkitAppearance: 'none', colorScheme: 'dark' }}
             >
               <option value="data" className="bg-[#1f2228]">Recente</option>
               <option value="nome" className="bg-[#1f2228]">Nome</option>
