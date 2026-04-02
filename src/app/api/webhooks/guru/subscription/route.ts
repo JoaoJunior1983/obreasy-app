@@ -11,7 +11,9 @@ export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as GuruSubscriptionWebhook
 
-    if (!body.api_token || body.api_token !== process.env.GURU_API_TOKEN) {
+    const expectedToken = process.env.GURU_API_TOKEN
+    if (!body.api_token || body.api_token !== expectedToken) {
+      console.error(`[Guru Webhook] Token mismatch — received: ${body.api_token?.slice(0, 8)}... | expected env set: ${!!expectedToken} | expected length: ${expectedToken?.length ?? 0}`)
       return NextResponse.json({ error: "Invalid api_token" }, { status: 401 })
     }
 
