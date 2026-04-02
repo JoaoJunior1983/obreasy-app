@@ -75,7 +75,7 @@ function makeSubscriptionPayload(overrides: Record<string, unknown> = {}) {
       marketplace_id: "mp-1",
       marketplace_name: "Obreasy",
       offer: {
-        id: "PLACEHOLDER_ESSENCIAL_MENSAL",
+        id: "a11062ad-c63a-4968-8ac6-e2cd2f0eeebc",
         name: "Essencial Mensal",
         value: 2990,
       },
@@ -121,7 +121,7 @@ function makeTransactionPayload(overrides: Record<string, unknown> = {}) {
       id: "prod-1",
       name: "Obreasy Essencial Anual",
       type: "subscription",
-      offer: { id: "PLACEHOLDER_ESSENCIAL_ANUAL", name: "Essencial Anual" },
+      offer: { id: "a1106880-7aa9-46c6-a844-8b5fdb23a138", name: "Essencial Anual" },
     },
     ...overrides,
   }

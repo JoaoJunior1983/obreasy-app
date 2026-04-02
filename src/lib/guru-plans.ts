@@ -28,11 +28,11 @@ export interface GuruOffer {
   allowPix: boolean
 }
 
-// ─── Placeholder offer IDs — substituir pelos reais do painel Guru ───
-const PLACEHOLDER_ESSENCIAL_MENSAL = "PLACEHOLDER_ESSENCIAL_MENSAL"
-const PLACEHOLDER_ESSENCIAL_ANUAL = "PLACEHOLDER_ESSENCIAL_ANUAL"
-const PLACEHOLDER_PROFISSIONAL_MENSAL = "PLACEHOLDER_PROFISSIONAL_MENSAL"
-const PLACEHOLDER_PROFISSIONAL_ANUAL = "PLACEHOLDER_PROFISSIONAL_ANUAL"
+// ─── Guru Product/Offer IDs (do painel Guru → marketplace: mercadopago) ───
+const ESSENCIAL_MENSAL_ID = "a11062ad-c63a-4968-8ac6-e2cd2f0eeebc"
+const ESSENCIAL_ANUAL_ID = "a1106880-7aa9-46c6-a844-8b5fdb23a138"
+const PROFISSIONAL_MENSAL_ID = "a1719740-c384-4c67-a927-927c7ae73a64"
+const PROFISSIONAL_ANUAL_ID = "a171989a-5920-411a-8e5c-f71728f24a87"
 
 export const GURU_OFFERS: GuruOffer[] = [
   {
@@ -41,8 +41,8 @@ export const GURU_OFFERS: GuruOffer[] = [
     cycle: "monthly",
     price: 29.9,
     label: "Essencial Mensal",
-    guruOfferId: PLACEHOLDER_ESSENCIAL_MENSAL,
-    guruCheckoutUrl: `https://pay.obreasy.com.br/subscribe/${PLACEHOLDER_ESSENCIAL_MENSAL}`,
+    guruOfferId: ESSENCIAL_MENSAL_ID,
+    guruCheckoutUrl: "https://clkdmg.site/subscribe/obreasy-essencial-mensal",
     allowPix: false,
   },
   {
@@ -51,8 +51,8 @@ export const GURU_OFFERS: GuruOffer[] = [
     cycle: "annual",
     price: 304.8,
     label: "Essencial Anual",
-    guruOfferId: PLACEHOLDER_ESSENCIAL_ANUAL,
-    guruCheckoutUrl: `https://pay.obreasy.com.br/subscribe/${PLACEHOLDER_ESSENCIAL_ANUAL}`,
+    guruOfferId: ESSENCIAL_ANUAL_ID,
+    guruCheckoutUrl: "https://clkdmg.site/subscribe/plano-essencial-anual-12x",
     allowPix: true,
   },
   {
@@ -61,8 +61,8 @@ export const GURU_OFFERS: GuruOffer[] = [
     cycle: "monthly",
     price: 49.9,
     label: "Profissional Mensal",
-    guruOfferId: PLACEHOLDER_PROFISSIONAL_MENSAL,
-    guruCheckoutUrl: `https://pay.obreasy.com.br/subscribe/${PLACEHOLDER_PROFISSIONAL_MENSAL}`,
+    guruOfferId: PROFISSIONAL_MENSAL_ID,
+    guruCheckoutUrl: "https://clkdmg.site/subscribe/plano-profissional-mensal-30",
     allowPix: false,
   },
   {
@@ -71,8 +71,8 @@ export const GURU_OFFERS: GuruOffer[] = [
     cycle: "annual",
     price: 509.0,
     label: "Profissional Anual",
-    guruOfferId: PLACEHOLDER_PROFISSIONAL_ANUAL,
-    guruCheckoutUrl: `https://pay.obreasy.com.br/subscribe/${PLACEHOLDER_PROFISSIONAL_ANUAL}`,
+    guruOfferId: PROFISSIONAL_ANUAL_ID,
+    guruCheckoutUrl: "https://clkdmg.site/subscribe/plano-profissional-anual-12x",
     allowPix: true,
   },
 ]
