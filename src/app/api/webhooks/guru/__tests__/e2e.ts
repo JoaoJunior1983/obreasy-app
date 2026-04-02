@@ -10,7 +10,7 @@
  */
 
 const BASE_URL = process.env.TEST_BASE_URL || "http://localhost:3000"
-const API_TOKEN = process.env.GURU_API_TOKEN || "PLACEHOLDER_SUBSTITUIR_PELO_TOKEN_REAL"
+const API_TOKEN = process.env.GURU_API_TOKEN || "euFx0Oj31isoTY9t9JjsSF1RTzG70SFDs7TWfmTr"
 const TEST_EMAIL = process.env.TEST_EMAIL || "test@obreasy.com.br"
 
 interface TestResult {
@@ -75,7 +75,7 @@ function makeSubscriptionPayload(overrides: Record<string, unknown> = {}) {
       marketplace_id: "mp-1",
       marketplace_name: "Obreasy",
       offer: {
-        id: "a11062ad-c63a-4968-8ac6-e2cd2f0eeebc",
+        id: "a11066a1-241e-46de-836b-8cac701bcb53",
         name: "Essencial Mensal",
         value: 2990,
       },

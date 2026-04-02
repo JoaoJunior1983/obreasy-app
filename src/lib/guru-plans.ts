@@ -28,11 +28,24 @@ export interface GuruOffer {
   allowPix: boolean
 }
 
-// ─── Guru Product/Offer IDs (do painel Guru → marketplace: mercadopago) ───
-const ESSENCIAL_MENSAL_ID = "a11062ad-c63a-4968-8ac6-e2cd2f0eeebc"
-const ESSENCIAL_ANUAL_ID = "a1106880-7aa9-46c6-a844-8b5fdb23a138"
-const PROFISSIONAL_MENSAL_ID = "a1719740-c384-4c67-a927-927c7ae73a64"
-const PROFISSIONAL_ANUAL_ID = "a171989a-5920-411a-8e5c-f71728f24a87"
+// ─── Guru Offer IDs (product.offer.id no payload do webhook) ───
+// Os offer IDs são diferentes dos product IDs. Atualizar conforme confirmados via webhook.
+const ESSENCIAL_MENSAL_OFFER = "a11066a1-241e-46de-836b-8cac701bcb53"
+const ESSENCIAL_ANUAL_OFFER = "a1106880-7aa9-46c6-a844-8b5fdb23a138"     // atualizar quando confirmado via webhook
+const PROFISSIONAL_MENSAL_OFFER = "a1719740-c384-4c67-a927-927c7ae73a64"  // atualizar quando confirmado via webhook
+const PROFISSIONAL_ANUAL_OFFER = "a171989a-5920-411a-8e5c-f71728f24a87"   // atualizar quando confirmado via webhook
+
+// Product IDs (product.id / product.internal_id) — usados como fallback
+const PRODUCT_TO_PLANO: Record<string, { plano: PlanoId; cycle: BillingCycle }> = {
+  "a11062ad-c63a-4968-8ac6-e2cd2f0eeebc": { plano: "essencial", cycle: "monthly" },   // Plano Essencial
+  "1770917323": { plano: "essencial", cycle: "monthly" },                               // marketplace_id
+  "a1106880-7aa9-46c6-a844-8b5fdb23a138": { plano: "essencial", cycle: "annual" },     // Plano Essencial Anual
+  "1770918413": { plano: "essencial", cycle: "annual" },
+  "a1719740-c384-4c67-a927-927c7ae73a64": { plano: "profissional", cycle: "monthly" }, // Plano Profissional
+  "1775092374": { plano: "profissional", cycle: "monthly" },
+  "a171989a-5920-411a-8e5c-f71728f24a87": { plano: "profissional", cycle: "annual" },  // Plano Profissional Anual
+  "1775092619": { plano: "profissional", cycle: "annual" },
+}
 
 export const GURU_OFFERS: GuruOffer[] = [
   {
@@ -41,7 +54,7 @@ export const GURU_OFFERS: GuruOffer[] = [
     cycle: "monthly",
     price: 29.9,
     label: "Essencial Mensal",
-    guruOfferId: ESSENCIAL_MENSAL_ID,
+    guruOfferId: ESSENCIAL_MENSAL_OFFER,
     guruCheckoutUrl: "https://clkdmg.site/subscribe/obreasy-essencial-mensal",
     allowPix: false,
   },
@@ -51,7 +64,7 @@ export const GURU_OFFERS: GuruOffer[] = [
     cycle: "annual",
     price: 304.8,
     label: "Essencial Anual",
-    guruOfferId: ESSENCIAL_ANUAL_ID,
+    guruOfferId: ESSENCIAL_ANUAL_OFFER,
     guruCheckoutUrl: "https://clkdmg.site/subscribe/plano-essencial-anual-12x",
     allowPix: true,
   },
@@ -61,7 +74,7 @@ export const GURU_OFFERS: GuruOffer[] = [
     cycle: "monthly",
     price: 49.9,
     label: "Profissional Mensal",
-    guruOfferId: PROFISSIONAL_MENSAL_ID,
+    guruOfferId: PROFISSIONAL_MENSAL_OFFER,
     guruCheckoutUrl: "https://clkdmg.site/subscribe/plano-profissional-mensal-30",
     allowPix: false,
   },
@@ -71,14 +84,23 @@ export const GURU_OFFERS: GuruOffer[] = [
     cycle: "annual",
     price: 509.0,
     label: "Profissional Anual",
-    guruOfferId: PROFISSIONAL_ANUAL_ID,
+    guruOfferId: PROFISSIONAL_ANUAL_OFFER,
     guruCheckoutUrl: "https://clkdmg.site/subscribe/plano-profissional-anual-12x",
     allowPix: true,
   },
 ]
 
 export function getOfferByGuruId(guruOfferId: string): GuruOffer | null {
-  return GURU_OFFERS.find((o) => o.guruOfferId === guruOfferId) ?? null
+  const byOffer = GURU_OFFERS.find((o) => o.guruOfferId === guruOfferId)
+  if (byOffer) return byOffer
+
+  // Fallback: match by product ID or marketplace ID
+  const mapped = PRODUCT_TO_PLANO[guruOfferId]
+  if (mapped) {
+    return GURU_OFFERS.find((o) => o.plano === mapped.plano && o.cycle === mapped.cycle) ?? null
+  }
+
+  return null
 }
 
 export function getOffersForPlano(plano: PlanoId): GuruOffer[] {
