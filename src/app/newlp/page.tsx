@@ -506,6 +506,7 @@ export default function NewLPPage() {
     message: "",
   })
   const [formSent, setFormSent] = useState(false)
+  const [enviandoContato, setEnviandoContato] = useState(false)
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10)
     window.addEventListener("scroll", handleScroll)
@@ -514,9 +515,27 @@ export default function NewLPPage() {
 
   const handleCTA = () => router.push("/cadastro")
 
-  const handleContactSubmit = (e: React.FormEvent) => {
+  const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setFormSent(true)
+    setEnviandoContato(true)
+    try {
+      const res = await fetch("/api/contato", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nome: contactForm.name,
+          email: contactForm.email,
+          telefone: contactForm.phone,
+          mensagem: contactForm.message,
+        }),
+      })
+      if (!res.ok) throw new Error()
+      setFormSent(true)
+    } catch {
+      alert("Erro ao enviar mensagem. Tente novamente.")
+    } finally {
+      setEnviandoContato(false)
+    }
   }
 
   return (
@@ -1087,10 +1106,15 @@ export default function NewLPPage() {
                 </div>
                 <button
                   type="submit"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md bg-[#0B3064] text-white font-semibold text-sm hover:bg-[#0a2a56] transition-colors mt-2 self-center"
+                  disabled={enviandoContato}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md bg-[#0B3064] text-white font-semibold text-sm hover:bg-[#0a2a56] transition-colors mt-2 self-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Send className="w-4 h-4" />
-                  Enviar mensagem
+                  {enviandoContato ? (
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                  {enviandoContato ? "Enviando..." : "Enviar mensagem"}
                 </button>
               </form>
             )}
