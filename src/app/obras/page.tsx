@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getObrasDoUsuario, setActiveObraId, calcularMetricasObra, calcularMetricasObraFromSupabase, deleteObraCascade, getUserProfile, type Obra, type UserProfile } from "@/lib/storage"
+import { getObrasDoUsuario, setActiveObraId, calcularMetricasObra, calcularMetricasObraFromSupabase, deleteObraCascade, getUserProfile, getClientesSupabase, type Obra, type UserProfile, type Cliente } from "@/lib/storage"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
 
@@ -75,11 +75,14 @@ export default function ObrasPage() {
   // Modal de recebimento
   const [showRecebimentoModal, setShowRecebimentoModal] = useState(false)
   const [obraParaRecebimento, setObraParaRecebimento] = useState<Obra | null>(null)
+  const [clientesObra, setClientesObra] = useState<Cliente[]>([])
+  const [loadingClientes, setLoadingClientes] = useState(false)
   const [recebimentoFormData, setRecebimentoFormData] = useState({
     valor: "",
     data: "",
     formaPagamento: "Pix",
     observacao: "",
+    clienteId: "",
   })
 
   useEffect(() => {
@@ -495,27 +498,45 @@ export default function ObrasPage() {
     })
   }
 
-  const handleRegistrarRecebimento = (e: React.MouseEvent, obra: Obra) => {
+  const handleRegistrarRecebimento = async (e: React.MouseEvent, obra: Obra) => {
     e.stopPropagation()
     setObraParaRecebimento(obra)
+    setClientesObra([])
+    setLoadingClientes(true)
     setShowRecebimentoModal(true)
+    try {
+      const { supabase } = await import("@/lib/supabase")
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const clientes = await getClientesSupabase(obra.id, user.id)
+        setClientesObra(clientes)
+      }
+    } catch {} finally {
+      setLoadingClientes(false)
+    }
   }
 
   const handleCloseRecebimentoModal = () => {
     setShowRecebimentoModal(false)
     setObraParaRecebimento(null)
+    setClientesObra([])
     setRecebimentoFormData({
       valor: "",
       data: "",
       formaPagamento: "Pix",
       observacao: "",
+      clienteId: "",
     })
   }
 
   const handleSalvarRecebimento = async () => {
     if (!obraParaRecebimento) return
 
-    // Validar campos obrigatórios
+    if (!recebimentoFormData.clienteId) {
+      toast({ title: "Selecione um cliente.", variant: "destructive" })
+      return
+    }
+
     if (!recebimentoFormData.valor || !recebimentoFormData.data) {
       toast({
         title: "Por favor, preencha o valor e a data do recebimento.",
@@ -524,7 +545,6 @@ export default function ObrasPage() {
       return
     }
 
-    // Converter valor para número
     const valorNumerico = parseFloat(recebimentoFormData.valor.replace(/\D/g, "")) / 100
 
     if (valorNumerico <= 0) {
@@ -540,14 +560,17 @@ export default function ObrasPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error("Usuário não autenticado")
 
-      const { error } = await supabase.from("recebimentos").insert({
+      const insertData: any = {
         user_id: user.id,
         obra_id: obraParaRecebimento.id,
+        cliente_id: recebimentoFormData.clienteId,
         valor: valorNumerico,
         data: recebimentoFormData.data,
         forma_pagamento: recebimentoFormData.formaPagamento || null,
         observacao: recebimentoFormData.observacao || null,
-      })
+      }
+
+      const { error } = await supabase.from("recebimentos").insert(insertData)
 
       if (error) throw error
 
@@ -1339,85 +1362,137 @@ export default function ObrasPage() {
               </div>
             </div>
 
-            {/* Formulário */}
-            <div className="space-y-4">
-              {/* Valor */}
-              <div className="space-y-2">
-                <Label htmlFor="valor-recebimento" className="text-gray-300">Valor Recebido *</Label>
-                <Input
-                  id="valor-recebimento"
-                  type="text"
-                  value={recebimentoFormData.valor}
-                  onChange={handleValorRecebimentoChange}
-                  placeholder="R$ 0,00"
-                  className="bg-[#2a2d35] border-white/[0.1] text-white"
-                />
+            {loadingClientes ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-6 h-6 border-2 border-[#0B3064] border-t-transparent rounded-full animate-spin" />
               </div>
+            ) : clientesObra.length === 0 ? (
+              <>
+                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-4 py-3 space-y-3 mb-6">
+                  <p className="text-sm text-yellow-400/80">
+                    Nenhum cliente cadastrado nesta obra. Cadastre um cliente antes de registrar um recebimento.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleCloseRecebimentoModal()
+                      setActiveObraId(obraParaRecebimento.id)
+                      router.push("/dashboard/clientes/novo")
+                    }}
+                    className="flex items-center gap-1.5 h-9 px-4 bg-[#0B3064] hover:bg-[#082551] active:scale-95 text-white text-sm font-semibold rounded-lg transition-all"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Cadastrar cliente
+                  </button>
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleCloseRecebimentoModal}
+                    className="h-10 px-6 bg-[#2a2d35] hover:bg-slate-600 text-gray-300 border border-white/[0.1] rounded-md text-sm transition-colors"
+                  >
+                    Fechar
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Formulário */}
+                <div className="space-y-4">
+                  {/* Cliente */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-300">Cliente *</Label>
+                    <Select value={recebimentoFormData.clienteId} onValueChange={(value) => setRecebimentoFormData({ ...recebimentoFormData, clienteId: value })}>
+                      <SelectTrigger className="bg-[#2a2d35] border-white/[0.1] text-white">
+                        <SelectValue placeholder="Selecionar cliente..." />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#2a2d35] border-white/[0.1]">
+                        {clientesObra.map(c => (
+                          <SelectItem key={c.id} value={c.id} className="text-white">{c.nome}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              {/* Data */}
-              <div className="space-y-2">
-                <Label htmlFor="data-recebimento" className="text-gray-300">Data do Recebimento *</Label>
-                <Input
-                  id="data-recebimento"
-                  type="date"
-                  value={recebimentoFormData.data}
-                  onChange={(e) => setRecebimentoFormData({ ...recebimentoFormData, data: e.target.value })}
-                  className="bg-[#2a2d35] border-white/[0.1] text-white"
-                />
-              </div>
+                  {/* Valor */}
+                  <div className="space-y-2">
+                    <Label htmlFor="valor-recebimento" className="text-gray-300">Valor Recebido *</Label>
+                    <Input
+                      id="valor-recebimento"
+                      type="text"
+                      value={recebimentoFormData.valor}
+                      onChange={handleValorRecebimentoChange}
+                      placeholder="R$ 0,00"
+                      className="bg-[#2a2d35] border-white/[0.1] text-white"
+                    />
+                  </div>
 
-              {/* Forma de Pagamento */}
-              <div className="space-y-2">
-                <Label htmlFor="forma-pagamento" className="text-gray-300">Forma de Pagamento</Label>
-                <Select
-                  value={recebimentoFormData.formaPagamento}
-                  onValueChange={(value) => setRecebimentoFormData({ ...recebimentoFormData, formaPagamento: value })}
-                >
-                  <SelectTrigger className="bg-[#2a2d35] border-white/[0.1] text-white">
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#2a2d35] border-white/[0.1]">
-                    <SelectItem value="Pix">Pix</SelectItem>
-                    <SelectItem value="Dinheiro">Dinheiro</SelectItem>
-                    <SelectItem value="Transferência bancária">Transferência bancária</SelectItem>
-                    <SelectItem value="Cartão de crédito">Cartão de crédito</SelectItem>
-                    <SelectItem value="Cartão de débito">Cartão de débito</SelectItem>
-                    <SelectItem value="Cheque">Cheque</SelectItem>
-                    <SelectItem value="Boleto">Boleto</SelectItem>
-                    <SelectItem value="Outro">Outro</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                  {/* Data */}
+                  <div className="space-y-2">
+                    <Label htmlFor="data-recebimento" className="text-gray-300">Data do Recebimento *</Label>
+                    <Input
+                      id="data-recebimento"
+                      type="date"
+                      value={recebimentoFormData.data}
+                      onChange={(e) => setRecebimentoFormData({ ...recebimentoFormData, data: e.target.value })}
+                      className="bg-[#2a2d35] border-white/[0.1] text-white"
+                    />
+                  </div>
 
-              {/* Observação */}
-              <div className="space-y-2">
-                <Label htmlFor="observacao-recebimento" className="text-gray-300">Observação (opcional)</Label>
-                <Input
-                  id="observacao-recebimento"
-                  type="text"
-                  value={recebimentoFormData.observacao}
-                  onChange={(e) => setRecebimentoFormData({ ...recebimentoFormData, observacao: e.target.value })}
-                  placeholder="Ex: Parcela 1/3"
-                  className="bg-[#2a2d35] border-white/[0.1] text-white"
-                />
-              </div>
-            </div>
+                  {/* Forma de Pagamento */}
+                  <div className="space-y-2">
+                    <Label htmlFor="forma-pagamento" className="text-gray-300">Forma de Pagamento</Label>
+                    <Select
+                      value={recebimentoFormData.formaPagamento}
+                      onValueChange={(value) => setRecebimentoFormData({ ...recebimentoFormData, formaPagamento: value })}
+                    >
+                      <SelectTrigger className="bg-[#2a2d35] border-white/[0.1] text-white">
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#2a2d35] border-white/[0.1]">
+                        <SelectItem value="Pix">Pix</SelectItem>
+                        <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                        <SelectItem value="Transferência bancária">Transferência bancária</SelectItem>
+                        <SelectItem value="Cartão de crédito">Cartão de crédito</SelectItem>
+                        <SelectItem value="Cartão de débito">Cartão de débito</SelectItem>
+                        <SelectItem value="Cheque">Cheque</SelectItem>
+                        <SelectItem value="Boleto">Boleto</SelectItem>
+                        <SelectItem value="Outro">Outro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-            {/* Botões */}
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={handleCloseRecebimentoModal}
-                className="flex-1 h-10 !bg-[#2a2d35] hover:!bg-slate-600 !text-red-400 border border-white/[0.1] rounded-md text-sm transition-colors"
-              >
-                Cancelar
-              </button>
-              <Button
-                onClick={handleSalvarRecebimento}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-              >
-                Salvar Recebimento
-              </Button>
-            </div>
+                  {/* Observação */}
+                  <div className="space-y-2">
+                    <Label htmlFor="observacao-recebimento" className="text-gray-300">Observação (opcional)</Label>
+                    <Input
+                      id="observacao-recebimento"
+                      type="text"
+                      value={recebimentoFormData.observacao}
+                      onChange={(e) => setRecebimentoFormData({ ...recebimentoFormData, observacao: e.target.value })}
+                      placeholder="Ex: Parcela 1/3"
+                      className="bg-[#2a2d35] border-white/[0.1] text-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Botões */}
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={handleCloseRecebimentoModal}
+                    className="flex-1 h-10 !bg-[#2a2d35] hover:!bg-slate-600 !text-red-400 border border-white/[0.1] rounded-md text-sm transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <Button
+                    onClick={handleSalvarRecebimento}
+                    disabled={!recebimentoFormData.clienteId}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Salvar Recebimento
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

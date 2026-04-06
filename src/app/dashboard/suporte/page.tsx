@@ -162,6 +162,8 @@ export default function SuportePage() {
   const [mensagem, setMensagem] = useState("")
   const [userEmail, setUserEmail] = useState("")
   const [userPhone, setUserPhone] = useState("")
+  const [enviando, setEnviando] = useState(false)
+  const [enviado, setEnviado] = useState(false)
 
   useEffect(() => {
     const profile = getUserProfile()
@@ -181,14 +183,24 @@ export default function SuportePage() {
     setExpandedFaq(expandedFaq === id ? null : id)
   }
 
-  const handleEnviar = (e: React.FormEvent) => {
+  const handleEnviar = async (e: React.FormEvent) => {
     e.preventDefault()
-    const subject = encodeURIComponent("Solicitação de suporte - Obreasy")
-    const body = encodeURIComponent(
-      `De: ${userEmail}${userPhone ? `\nTelefone: ${userPhone}` : ""}\n\n${mensagem}`
-    )
-    window.location.href = `mailto:suporte@obreasy.com.br?subject=${subject}&body=${body}`
-    setMensagem("")
+    setEnviando(true)
+    try {
+      const res = await fetch("/api/suporte", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: userEmail, telefone: userPhone, mensagem }),
+      })
+      if (!res.ok) throw new Error()
+      setMensagem("")
+      setEnviado(true)
+      setTimeout(() => setEnviado(false), 4000)
+    } catch {
+      alert("Erro ao enviar mensagem. Tente novamente.")
+    } finally {
+      setEnviando(false)
+    }
   }
 
 
@@ -329,14 +341,24 @@ export default function SuportePage() {
                 />
               </div>
 
+              {enviado && (
+                <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-3 py-2.5">
+                  <span className="text-xs text-emerald-400 font-medium">Mensagem enviada com sucesso! Responderemos em até 24h úteis.</span>
+                </div>
+              )}
+
               {/* Botão */}
               <button
                 type="submit"
-                disabled={!mensagem.trim()}
+                disabled={!mensagem.trim() || enviando}
                 className="w-full h-11 flex items-center justify-center gap-2 bg-[#0B3064] hover:bg-[#082551] active:bg-blue-800 disabled:opacity-40 disabled:pointer-events-none rounded-xl text-sm font-medium text-white transition-colors"
               >
-                <Send className="w-4 h-4" />
-                Abrir e-mail
+                {enviando ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+                {enviando ? "Enviando..." : "Enviar mensagem"}
               </button>
             </form>
           </div>

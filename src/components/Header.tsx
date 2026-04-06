@@ -19,6 +19,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [espModal, setEspModal] = useState<"engenheiro" | "arquiteto" | null>(null)
   const [espForm, setEspForm] = useState({ assunto: "", descricao: "" })
+  const [enviandoEsp, setEnviandoEsp] = useState(false)
   const [onboardingStep, setOnboardingStep] = useState<0 | 1 | 2>(2) // 0=logo, 1=obra, 2=done
   const menuRef = useRef<HTMLDivElement>(null)
   const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -418,15 +419,24 @@ export default function Header() {
             </div>
 
             <form
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault()
+                setEnviandoEsp(true)
                 const tipo = espModal === "engenheiro" ? "Consulta com Engenheiro" : "Consulta com Arquiteto"
-                const subject = encodeURIComponent(`${tipo} - ${espForm.assunto}`)
-                const body = encodeURIComponent(
-                  `De: ${userEmail}\n\nAssunto: ${espForm.assunto}\n\n${espForm.descricao}`
-                )
-                window.location.href = `mailto:suporte@obreasy.com.br?subject=${subject}&body=${body}`
-                setEspModal(null)
+                try {
+                  const res = await fetch("/api/suporte", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: userEmail, mensagem: espForm.descricao, assunto: espForm.assunto, tipo }),
+                  })
+                  if (!res.ok) throw new Error()
+                  setEspModal(null)
+                  setEspForm({ assunto: "", descricao: "" })
+                } catch {
+                  alert("Erro ao enviar mensagem. Tente novamente.")
+                } finally {
+                  setEnviandoEsp(false)
+                }
               }}
               className="space-y-3"
             >
@@ -455,12 +465,17 @@ export default function Header() {
 
               <button
                 type="submit"
-                disabled={!espForm.assunto.trim() || !espForm.descricao.trim()}
+                disabled={!espForm.assunto.trim() || !espForm.descricao.trim() || enviandoEsp}
                 className={`w-full py-3 text-white text-sm font-semibold rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
                   espModal === "engenheiro" ? "bg-orange-600 hover:bg-orange-700" : "bg-purple-600 hover:bg-purple-700"
                 }`}
               >
-                <Send className="w-4 h-4" />Abrir e-mail
+                {enviandoEsp ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+                {enviandoEsp ? "Enviando..." : "Enviar mensagem"}
               </button>
             </form>
           </div>

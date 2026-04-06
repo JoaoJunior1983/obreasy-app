@@ -99,15 +99,27 @@ export default function LandingPage() {
 
   // Formulário de contato
   const [contatoForm, setContatoForm] = useState({ nome: "", email: "", telefone: "", mensagem: "" })
+  const [enviandoContato, setEnviandoContato] = useState(false)
+  const [contatoEnviado, setContatoEnviado] = useState(false)
 
-  const handleContatoSubmit = (e: React.FormEvent) => {
+  const handleContatoSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const { nome, email, telefone, mensagem } = contatoForm
-    const subject = encodeURIComponent(`Contato pelo site - ${nome}`)
-    const body = encodeURIComponent(
-      `Nome: ${nome}\nE-mail: ${email}${telefone ? `\nTelefone: ${telefone}` : ""}\n\nMensagem:\n${mensagem}`
-    )
-    window.location.href = `mailto:contato@obreasy.com.br?subject=${subject}&body=${body}`
+    setEnviandoContato(true)
+    try {
+      const res = await fetch("/api/contato", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(contatoForm),
+      })
+      if (!res.ok) throw new Error()
+      setContatoForm({ nome: "", email: "", telefone: "", mensagem: "" })
+      setContatoEnviado(true)
+      setTimeout(() => setContatoEnviado(false), 5000)
+    } catch {
+      alert("Erro ao enviar mensagem. Tente novamente.")
+    } finally {
+      setEnviandoContato(false)
+    }
   }
 
   useEffect(() => {
@@ -908,11 +920,23 @@ export default function LandingPage() {
               />
             </div>
 
+            {contatoEnviado && (
+              <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3">
+                <span className="text-sm text-emerald-400 font-medium">Mensagem enviada com sucesso! Retornamos em até 24h úteis.</span>
+              </div>
+            )}
+
             <button
               type="submit"
-              className="w-full bg-[#0B3064] text-white py-3.5 rounded-xl hover:bg-[#082551] transition-all duration-200 font-bold text-base flex items-center justify-center gap-2"
+              disabled={enviandoContato}
+              className="w-full bg-[#0B3064] text-white py-3.5 rounded-xl hover:bg-[#082551] transition-all duration-200 font-bold text-base flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Send className="w-4 h-4" />Enviar mensagem
+              {enviandoContato ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+              {enviandoContato ? "Enviando..." : "Enviar mensagem"}
             </button>
           </form>
         </div>
