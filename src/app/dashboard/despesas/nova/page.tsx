@@ -92,13 +92,13 @@ export default function NovaDespesaPage() {
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("isAuthenticated")
     if (!isAuthenticated) {
-      router.push("/")
+      router.push("/login")
       return
     }
 
     const userData = localStorage.getItem("user")
     if (!userData) {
-      router.push("/")
+      router.push("/login")
       return
     }
 
@@ -162,7 +162,7 @@ export default function NovaDespesaPage() {
 
       if (authError || !user) {
         toast.error("Erro de autenticação. Faça login novamente.")
-        router.push("/")
+        router.push("/login")
         return
       }
 
@@ -281,7 +281,7 @@ export default function NovaDespesaPage() {
 
       if (authError || !user) {
         toast.error("Erro de autenticação. Faça login novamente.")
-        router.push("/")
+        router.push("/login")
         return
       }
 

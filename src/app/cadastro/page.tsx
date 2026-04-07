@@ -8,7 +8,7 @@ export default function CadastroPage() {
 
   return (
     <AuthModal
-      onClose={() => router.push("/newlp")}
+      onClose={() => router.push("/")}
       fromQuiz={true}
     />
   )

@@ -92,7 +92,7 @@ export default function ObrasPage() {
         const isAuthenticated = localStorage.getItem("isAuthenticated")
 
         if (isAuthenticated !== "true") {
-          router.push("/")
+          router.push("/login")
           return
         }
 

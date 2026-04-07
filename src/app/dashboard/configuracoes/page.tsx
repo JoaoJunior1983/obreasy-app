@@ -11,7 +11,7 @@ export default function ConfiguracoesPage() {
     // Verificar autenticação
     const isAuthenticated = localStorage.getItem("isAuthenticated")
     if (!isAuthenticated) {
-      router.push("/")
+      router.push("/login")
       return
     }
   }, [router])

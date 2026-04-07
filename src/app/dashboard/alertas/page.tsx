@@ -83,7 +83,7 @@ export default function AlertasPage() {
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("isAuthenticated")
     if (!isAuthenticated) {
-      router.push("/")
+      router.push("/login")
       return
     }
 

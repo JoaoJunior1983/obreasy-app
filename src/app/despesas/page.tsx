@@ -33,7 +33,7 @@ export default function DespesasResumoPage() {
           // Fallback: checar localStorage (modo dev / login simulado)
           const isAuthenticated = localStorage.getItem("isAuthenticated")
           if (isAuthenticated !== "true") {
-            router.push("/")
+            router.push("/login")
             return
           }
           setLoading(false)

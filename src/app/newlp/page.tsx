@@ -578,7 +578,7 @@ export default function NewLPPage() {
           {/* CTA */}
           <div className="flex items-center gap-3">
             <a
-              href="/"
+              href="/login"
               className="px-4 py-2 text-sm font-medium text-[#F2F2F2] border border-white/20 rounded-md hover:border-white/40 hover:bg-white/5 transition-all"
             >
               Entrar

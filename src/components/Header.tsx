@@ -201,7 +201,7 @@ export default function Header() {
     // localStorage.removeItem("userProfile")
     // localStorage.removeItem("user")
 
-    router.push("/")
+    router.push("/login")
   }
 
   const handleNavigation = (path: string) => {

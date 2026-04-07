@@ -72,7 +72,7 @@ function ResetPasswordContent() {
       if (updateError) throw updateError
 
       setSuccess(true)
-      setTimeout(() => router.push("/"), 3000)
+      setTimeout(() => router.push("/login"), 3000)
     } catch (err: any) {
       setError(err.message || "Erro ao redefinir senha. Tente novamente.")
     } finally {
@@ -118,7 +118,7 @@ function ResetPasswordContent() {
           <h2 className="text-xl font-bold text-white mb-2">Link inválido ou expirado</h2>
           <p className="text-gray-400 text-sm mb-6">Solicite um novo link de recuperação de senha.</p>
           <button
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/login")}
             className="w-full bg-[#0B3064] hover:bg-[#082551] text-white py-3 rounded-xl font-semibold text-sm transition-colors"
           >
             Voltar para o login
@@ -202,7 +202,7 @@ function ResetPasswordContent() {
 
             <button
               type="button"
-              onClick={() => router.push("/")}
+              onClick={() => router.push("/login")}
               className="w-full text-[#555] hover:text-[#888] transition-colors text-sm"
             >
               Voltar para o login

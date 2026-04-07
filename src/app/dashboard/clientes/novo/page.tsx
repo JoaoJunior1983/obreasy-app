@@ -41,7 +41,7 @@ export default function NovoClientePage() {
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("isAuthenticated")
-    if (!isAuthenticated) { router.push("/"); return }
+    if (!isAuthenticated) { router.push("/login"); return }
 
     const activeObraId = localStorage.getItem("activeObraId")
     if (!activeObraId) { router.push("/obras"); return }
@@ -74,7 +74,7 @@ export default function NovoClientePage() {
     try {
       const { supabase } = await import("@/lib/supabase")
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push("/"); return }
+      if (!user) { router.push("/login"); return }
 
       let contratoUrl: string | null = null
       if (contratoFile) {

@@ -26,7 +26,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       const { supabase } = await import("@/lib/supabase")
       const { data: { user } } = await supabase.auth.getUser()
       if (!user || !ADMIN_EMAILS.includes(user.email ?? "")) {
-        router.replace("/")
+        router.replace("/login")
         return
       }
       setChecking(false)
@@ -37,7 +37,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const { supabase } = await import("@/lib/supabase")
     await supabase.auth.signOut()
     localStorage.clear()
-    router.push("/")
+    router.push("/login")
   }
 
   if (checking) {

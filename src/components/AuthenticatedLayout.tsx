@@ -29,9 +29,8 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
     // Rotas onde o header NÃO deve aparecer
     const noHeaderRoutes = ["/", "/login", "/reset-password", "/lp", "/newlp", "/em-breve", "/relatorios/imprimir"]
 
-    // Proteção adicional: Se estiver na landing page mas autenticado, redirecionar
-    if (pathname === "/" && isAuthenticated === "true") {
-      // Usuário autenticado na landing page - redirecionar imediatamente
+    // Proteção adicional: Se estiver na landing/login mas autenticado, redirecionar
+    if ((pathname === "/" || pathname === "/login") && isAuthenticated === "true") {
       router.replace("/dashboard")
       return
     }

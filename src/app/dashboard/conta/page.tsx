@@ -54,7 +54,7 @@ export default function MinhaContaPage() {
     // Verificar autenticação
     const isAuthenticated = localStorage.getItem("isAuthenticated")
     if (!isAuthenticated) {
-      router.push("/")
+      router.push("/login")
       return
     }
 

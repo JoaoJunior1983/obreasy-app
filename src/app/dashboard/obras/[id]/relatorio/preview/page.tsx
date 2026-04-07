@@ -36,7 +36,7 @@ function RelatorioPreviewPageContent() {
       const isAuthenticated = localStorage.getItem("isAuthenticated")
       if (!isAuthenticated) {
         console.error("[PREVIEW] Não autenticado, redirecionando")
-        router.push("/")
+        router.push("/login")
         return
       }
 
@@ -55,7 +55,7 @@ function RelatorioPreviewPageContent() {
 
         if (!user) {
           console.error("[PREVIEW] Usuário não encontrado, redirecionando")
-          router.push("/")
+          router.push("/login")
           return
         }
 

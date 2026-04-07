@@ -65,7 +65,7 @@ export default function NovoProfissionalPage() {
         const { data: { user }, error: authError } = await supabase.auth.getUser()
 
         if (authError || !user) {
-          router.push("/")
+          router.push("/login")
           return
         }
 
@@ -99,7 +99,7 @@ export default function NovoProfissionalPage() {
         }
       } catch (error) {
         console.error("Erro ao verificar autenticação:", error)
-        router.push("/")
+        router.push("/login")
       }
     }
 
@@ -128,7 +128,7 @@ export default function NovoProfissionalPage() {
 
       if (authError || !user) {
         toast.error("Erro de autenticação. Faça login novamente.")
-        router.push("/")
+        router.push("/login")
         return
       }
 

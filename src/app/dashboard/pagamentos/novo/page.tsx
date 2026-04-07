@@ -68,7 +68,7 @@ export default function NovoPagamentoPage() {
   useEffect(() => {
     const carregarDados = async () => {
       const isAuthenticated = localStorage.getItem("isAuthenticated")
-      if (!isAuthenticated) { router.push("/"); return }
+      if (!isAuthenticated) { router.push("/login"); return }
 
       const activeObraId = localStorage.getItem("activeObraId")
       if (!activeObraId) { router.push("/obras"); return }
@@ -77,7 +77,7 @@ export default function NovoPagamentoPage() {
       try {
         const { supabase } = await import("@/lib/supabase")
         const { data: { user }, error: authError } = await supabase.auth.getUser()
-        if (authError || !user) { router.push("/"); return }
+        if (authError || !user) { router.push("/login"); return }
 
         const { data: profissionaisData, error: profError } = await supabase
           .from("profissionais").select("*").eq("obra_id", activeObraId).eq("user_id", user.id).order("criada_em", { ascending: false })
@@ -134,7 +134,7 @@ export default function NovoPagamentoPage() {
 
       const { supabase } = await import("@/lib/supabase")
       const { data: { user }, error: authError } = await supabase.auth.getUser()
-      if (authError || !user) { toast.error("Erro de autenticação."); router.push("/"); setLoading(false); return }
+      if (authError || !user) { toast.error("Erro de autenticação."); router.push("/login"); setLoading(false); return }
 
       const { isValidUUID } = await import("@/lib/storage")
       if (!isValidUUID(obraId)) { setUuidError("ID da obra inválido. Recarregue a página."); setLoading(false); return }
@@ -237,7 +237,7 @@ export default function NovoPagamentoPage() {
       setUuidError(null)
       const { supabase } = await import("@/lib/supabase")
       const { data: { user }, error: authError } = await supabase.auth.getUser()
-      if (authError || !user) { toast.error("Erro de autenticação."); router.push("/"); return }
+      if (authError || !user) { toast.error("Erro de autenticação."); router.push("/login"); return }
 
       const { isValidUUID, savePagamentoSupabase } = await import("@/lib/storage")
       if (!isValidUUID(pagamentoPendente.pagamento.obraId) || !isValidUUID(pagamentoPendente.pagamento.profissionalId)) {

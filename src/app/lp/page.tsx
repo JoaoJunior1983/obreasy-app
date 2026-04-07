@@ -179,7 +179,7 @@ export default function LandingPage() {
             </a>
           </nav>
           <HoverButton
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/login")}
             className="text-sm font-bold text-white px-6 py-2.5 bg-white/10 hover:bg-white/20"
             style={{
               "--circle-start": "#51ffa1",

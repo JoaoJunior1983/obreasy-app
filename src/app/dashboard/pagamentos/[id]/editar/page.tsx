@@ -96,13 +96,13 @@ export default function EditarPagamentoPage() {
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("isAuthenticated")
     if (!isAuthenticated) {
-      router.push("/")
+      router.push("/login")
       return
     }
 
     const userData = localStorage.getItem("user")
     if (!userData) {
-      router.push("/")
+      router.push("/login")
       return
     }
 
