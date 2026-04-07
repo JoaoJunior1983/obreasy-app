@@ -55,7 +55,7 @@ export const GURU_OFFERS: GuruOffer[] = [
     price: 29.9,
     label: "Essencial Mensal",
     guruOfferId: ESSENCIAL_MENSAL_OFFER,
-    guruCheckoutUrl: "https://clkdmg.site/subscribe/obreasy-essencial-mensal",
+    guruCheckoutUrl: "https://go.obreasy.com.br/subscribe/obreasy-essencial-mensal",
     allowPix: false,
   },
   {
@@ -65,7 +65,7 @@ export const GURU_OFFERS: GuruOffer[] = [
     price: 304.8,
     label: "Essencial Anual",
     guruOfferId: ESSENCIAL_ANUAL_OFFER,
-    guruCheckoutUrl: "https://clkdmg.site/subscribe/plano-essencial-anual-12x",
+    guruCheckoutUrl: "https://go.obreasy.com.br/subscribe/plano-essencial-anual-12x",
     allowPix: true,
   },
   {
@@ -75,7 +75,7 @@ export const GURU_OFFERS: GuruOffer[] = [
     price: 49.9,
     label: "Profissional Mensal",
     guruOfferId: PROFISSIONAL_MENSAL_OFFER,
-    guruCheckoutUrl: "https://clkdmg.site/subscribe/plano-profissional-mensal-30",
+    guruCheckoutUrl: "https://go.obreasy.com.br/subscribe/plano-profissional-mensal-30",
     allowPix: false,
   },
   {
@@ -85,7 +85,7 @@ export const GURU_OFFERS: GuruOffer[] = [
     price: 509.0,
     label: "Profissional Anual",
     guruOfferId: PROFISSIONAL_ANUAL_OFFER,
-    guruCheckoutUrl: "https://clkdmg.site/subscribe/plano-profissional-anual-12x",
+    guruCheckoutUrl: "https://go.obreasy.com.br/subscribe/plano-profissional-anual-12x",
     allowPix: true,
   },
 ]
