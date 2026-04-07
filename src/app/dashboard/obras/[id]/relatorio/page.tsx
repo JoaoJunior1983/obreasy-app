@@ -53,7 +53,7 @@ export default function EscolhaRelatorioPage() {
   useEffect(() => {
     const carregarDados = async () => {
       const isAuthenticated = localStorage.getItem("isAuthenticated")
-      if (!isAuthenticated) { router.push("/"); return }
+      if (!isAuthenticated) { router.push("/login"); return }
 
       const userData = localStorage.getItem("user")
       if (userData) {
@@ -64,7 +64,7 @@ export default function EscolhaRelatorioPage() {
       try {
         const { supabase } = await import("@/lib/supabase")
         const { data: { user } } = await supabase.auth.getUser()
-        if (!user) { router.push("/"); return }
+        if (!user) { router.push("/login"); return }
 
         const { data: dbObra, error: obraError } = await supabase
           .from("obras").select("*").eq("id", obraId).eq("user_id", user.id).single()

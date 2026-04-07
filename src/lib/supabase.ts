@@ -46,7 +46,7 @@ function getSupabaseClient(): SupabaseClient<Database> {
           localStorage.removeItem('isAuthenticated')
           localStorage.removeItem('user')
           localStorage.removeItem('trialExpiraEm')
-          window.location.href = '/'
+          window.location.href = '/login'
         }
       }
     })

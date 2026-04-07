@@ -178,7 +178,7 @@ function ProfissionalDetalhePageContent() {
         const { data: { user }, error: authError } = await supabase.auth.getUser()
 
         if (authError || !user) {
-          router.push("/")
+          router.push("/login")
           return
         }
 

@@ -39,7 +39,7 @@ function PlanoPageInner() {
   const loadProfile = useCallback(async () => {
     const { supabase } = await import("@/lib/supabase")
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push("/"); return null }
+    if (!user) { router.push("/login"); return null }
 
     setUserEmail(user.email || "")
     setUserId(user.id)
@@ -77,7 +77,7 @@ function PlanoPageInner() {
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("isAuthenticated")
-    if (!isAuthenticated) { router.push("/"); return }
+    if (!isAuthenticated) { router.push("/login"); return }
 
     loadProfile().then(() => setLoading(false))
   }, [router, loadProfile])

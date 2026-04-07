@@ -110,7 +110,7 @@ export default function DiarioObraPage() {
 
       const { supabase } = await import("@/lib/supabase")
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push("/"); return }
+      if (!user) { router.push("/login"); return }
 
       setObraId(activeObraId)
       setUserId(user.id)

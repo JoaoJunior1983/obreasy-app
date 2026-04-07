@@ -20,7 +20,7 @@ export default function DashboardPage() {
 
         if (isAuthenticated !== "true") {
           // Se não autenticado, redirecionar para landing page
-          router.push("/")
+          router.push("/login")
           return
         }
 
@@ -72,7 +72,7 @@ export default function DashboardPage() {
         setIsLoading(false)
       } catch (error) {
         console.error("Erro ao verificar autenticação:", error)
-        router.push("/")
+        router.push("/login")
       }
     }
 

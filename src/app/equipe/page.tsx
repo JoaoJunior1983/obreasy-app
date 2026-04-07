@@ -27,7 +27,7 @@ export default function EquipePage() {
         if (authError || !user) {
           const isAuthenticated = localStorage.getItem("isAuthenticated")
           if (isAuthenticated !== "true") {
-            router.push("/")
+            router.push("/login")
             return
           }
           setLoading(false)

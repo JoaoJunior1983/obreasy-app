@@ -129,7 +129,7 @@ export default function EditarDespesaPage() {
     // Verificar autenticação
     const isAuthenticated = localStorage.getItem("isAuthenticated")
     if (!isAuthenticated) {
-      router.push("/")
+      router.push("/login")
       return
     }
 

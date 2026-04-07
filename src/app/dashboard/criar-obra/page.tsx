@@ -159,7 +159,7 @@ export default function CriarObraPage() {
       if (authError || !user) {
         console.log("❌ [CRIAR-OBRA] Erro de autenticação:", authError)
         alert("Usuário não autenticado. Faça login novamente.")
-        router.push("/")
+        router.push("/login")
         return
       }
 

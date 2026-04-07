@@ -86,7 +86,7 @@ export default function ExtratoRecebimentosPage() {
     try {
       const { supabase } = await import("@/lib/supabase")
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push("/"); return }
+      if (!user) { router.push("/login"); return }
 
       const activeObraId = localStorage.getItem("activeObraId")
       if (!activeObraId) { router.push("/obras"); return }

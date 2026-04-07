@@ -97,5 +97,6 @@ export function getLeadSource(): string {
   if (!referrer) return "direct"
   if (referrer.includes("/newlp")) return "newlp"
   if (referrer.includes("/lp")) return "lp"
+  if (referrer.includes("obreasy.com.br") && !referrer.includes("/dashboard")) return "landing"
   return "organic"
 }
