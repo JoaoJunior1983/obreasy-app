@@ -14,9 +14,11 @@ export async function POST(req: NextRequest) {
       ? `${tipo} - ${assunto || "Sem assunto"} - ${email}`
       : `Solicitação de suporte - ${email}`
 
+    const destinatario = tipo ? "contato@obreasy.com.br" : "suporte@obreasy.com.br"
+
     const { error } = await resend.emails.send({
       from: "OBREASY <noreply@obreasy.com.br>",
-      to: "contato@obreasy.com.br",
+      to: destinatario,
       replyTo: email,
       subject: subjectLabel,
       html: `
