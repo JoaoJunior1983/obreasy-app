@@ -29,6 +29,9 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "OBREASY",
   },
+  verification: {
+    google: "cblxEr4OaQALgtBTkeRadx1sjtV8xPeQKAtCouPGmyI",
+  },
   formatDetection: {
     telephone: false,
   },
