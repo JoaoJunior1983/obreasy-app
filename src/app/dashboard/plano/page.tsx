@@ -5,10 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation"
 import {
   LayoutGrid, CheckCircle2, Zap, Building2, Crown,
   CreditCard, QrCode, ExternalLink, Loader2, AlertTriangle,
+  Calendar, ArrowDownCircle, XCircle, ArrowRight, ArrowLeftRight,
 } from "lucide-react"
 import { PLANOS, type PlanoTipo } from "@/lib/plan"
 import { GURU_OFFERS, getOffer, getGracePeriodStatus, type GracePeriodStatus } from "@/lib/guru-plans"
 import { trackEvent, recordSubscriptionChange, updateLastActive } from "@/lib/track-event"
+import { toast } from "sonner"
 
 const fmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
@@ -26,11 +28,16 @@ function PlanoPageInner() {
   const [status, setStatus] = useState<string>("trial")
   const [billingCycle, setBillingCycle] = useState<string | null>(null)
   const [graceStatus, setGraceStatus] = useState<GracePeriodStatus>("ok")
+  const [cycleEndDate, setCycleEndDate] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [polling, setPolling] = useState(false)
   const [userEmail, setUserEmail] = useState("")
   const [userName, setUserName] = useState("")
   const [userId, setUserId] = useState("")
+  const [cancelModalStep, setCancelModalStep] = useState<null | "confirm" | "retention" | "done">(null)
+  const [cancelReason, setCancelReason] = useState("")
+  const [cancelLoading, setCancelLoading] = useState(false)
+  const [cancellationRequested, setCancellationRequested] = useState(false)
 
   // Cycle & payment toggles
   const [selectedCycle, setSelectedCycle] = useState<Cycle>("annual")
@@ -62,6 +69,7 @@ function PlanoPageInner() {
     setPlano(currentPlano)
     setStatus(profile.status || "trial")
     setBillingCycle(profile.billing_cycle as string | null)
+    setCycleEndDate((profile.cycle_end_date as string | null) || null)
 
     if (profile.status === "overdue" || profile.status === "cancelled" || profile.status === "expired") {
       setGraceStatus(getGracePeriodStatus(
@@ -80,7 +88,86 @@ function PlanoPageInner() {
     if (!isAuthenticated) { router.push("/login"); return }
 
     loadProfile().then(() => setLoading(false))
+
+    // Restaurar estado de cancelamento solicitado (persistido localmente até webhook do Guru atualizar)
+    try {
+      if (localStorage.getItem("cancellationRequested") === "true") {
+        setCancellationRequested(true)
+      }
+    } catch { /* ignore */ }
   }, [router, loadProfile])
+
+  const formatarDataPtBr = (iso: string | null): string => {
+    if (!iso) return "—"
+    try {
+      return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })
+    } catch {
+      return "—"
+    }
+  }
+
+  const planoPreco = (() => {
+    const p = PLANOS[plano === "profissional" ? "profissional" : "essencial"]
+    if (billingCycle === "annual") return { valor: p.precoAnual, sufixo: "/ano" }
+    return { valor: p.preco, sufixo: "/mês" }
+  })()
+
+  const handleAbrirCancelamento = () => {
+    setCancelModalStep("confirm")
+    setCancelReason("")
+  }
+
+  const handleConfirmarCancelamento = async () => {
+    setCancelLoading(true)
+    try {
+      const planoAtual = isProfissional ? "Profissional" : "Essencial"
+      const cicloAtual = billingCycle === "annual" ? "Anual" : "Mensal"
+      const proximaCobranca = formatarDataPtBr(cycleEndDate)
+
+      const mensagem = `Solicitação de cancelamento de assinatura.
+
+Usuário: ${userName || "—"}
+E-mail: ${userEmail}
+Plano atual: ${planoAtual}
+Ciclo: ${cicloAtual}
+Próxima cobrança: ${proximaCobranca}
+
+Motivo informado pelo cliente:
+${cancelReason || "(não informado)"}`
+
+      const res = await fetch("/api/suporte", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: userEmail,
+          assunto: "Cancelamento de assinatura",
+          mensagem,
+        }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data?.error || "Falha ao solicitar cancelamento")
+      }
+
+      try {
+        localStorage.setItem("cancellationRequested", "true")
+      } catch { /* ignore */ }
+      setCancellationRequested(true)
+      setCancelModalStep("done")
+      trackEvent("plan_cancelled", { plano, billing_cycle: billingCycle, requested: true }).catch(() => {})
+    } catch (e: any) {
+      console.error(e)
+      toast.error(e?.message || "Erro ao solicitar cancelamento")
+    } finally {
+      setCancelLoading(false)
+    }
+  }
+
+  const handleScrollPlanos = () => {
+    if (typeof document === "undefined") return
+    document.getElementById("planos-disponiveis")?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }
 
   // Poll after checkout redirect
   useEffect(() => {
@@ -170,12 +257,13 @@ function PlanoPageInner() {
               {isProfissional ? "Profissional" : "Essencial"}
             </span>
           </div>
+
           <div className="grid grid-cols-3 divide-x divide-white/[0.06]">
             {[
               {
                 label: "Valor",
-                value: fmt(PLANOS[plano === "profissional" ? "profissional" : "essencial"].preco),
-                sub: "/mês",
+                value: fmt(planoPreco.valor),
+                sub: planoPreco.sufixo,
               },
               {
                 label: "Obras",
@@ -188,18 +276,21 @@ function PlanoPageInner() {
                 custom: (
                   <div className="flex items-center justify-center gap-1">
                     <div className={`w-1.5 h-1.5 rounded-full ${
+                      cancellationRequested ? "bg-amber-400 animate-pulse" :
                       isActive ? "bg-emerald-400 animate-pulse" :
                       isOverdue ? "bg-red-400 animate-pulse" :
                       isTrial ? "bg-blue-400 animate-pulse" :
                       "bg-gray-500"
                     }`} />
                     <span className={`text-xs font-semibold ${
+                      cancellationRequested ? "text-amber-400" :
                       isActive ? "text-emerald-400" :
                       isOverdue ? "text-red-400" :
                       isTrial ? "text-blue-400" :
                       "text-gray-400"
                     }`}>
-                      {isActive ? "Ativo" :
+                      {cancellationRequested ? "Cancelamento agendado" :
+                       isActive ? "Ativo" :
                        isOverdue ? "Pendente" :
                        isTrial ? "Trial" :
                        status === "cancelled" ? "Cancelado" : "Inativo"}
@@ -219,17 +310,83 @@ function PlanoPageInner() {
               </div>
             ))}
           </div>
-          {billingCycle && isActive && (
-            <div className="px-4 py-2.5 border-t border-white/[0.06]">
-              <p className="text-[10px] text-gray-500">
-                Ciclo: <span className="text-gray-300 font-medium">{billingCycle === "annual" ? "Anual" : "Mensal"}</span>
+
+          {/* Detalhes adicionais (ciclo, próxima cobrança, forma de pagamento) */}
+          {(isActive || isTrial) && (
+            <div className="px-4 py-2.5 border-t border-white/[0.06] space-y-1.5">
+              {billingCycle && (
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-gray-500 flex items-center gap-1.5">
+                    <ArrowLeftRight className="w-3 h-3" />
+                    Ciclo
+                  </span>
+                  <span className="text-gray-300 font-medium">
+                    {billingCycle === "annual" ? "Anual" : "Mensal"}
+                  </span>
+                </div>
+              )}
+              {cycleEndDate && (
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-gray-500 flex items-center gap-1.5">
+                    <Calendar className="w-3 h-3" />
+                    {isTrial ? "Fim do trial" : cancellationRequested ? "Acesso até" : "Próxima cobrança"}
+                  </span>
+                  <span className="text-gray-300 font-medium">
+                    {formatarDataPtBr(cycleEndDate)}
+                  </span>
+                </div>
+              )}
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-gray-500 flex items-center gap-1.5">
+                  <CreditCard className="w-3 h-3" />
+                  Forma de pagamento
+                </span>
+                <span className="text-gray-300 font-medium">
+                  {isTrial ? "—" : "Cartão / Pix"}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Mensagem após solicitação de cancelamento */}
+          {cancellationRequested && (
+            <div className="px-4 py-2.5 border-t border-white/[0.06] bg-amber-500/5">
+              <p className="text-[10px] text-amber-300/80 leading-relaxed">
+                Cancelamento solicitado. Seu acesso permanecerá ativo até{" "}
+                <span className="font-semibold text-amber-300">{formatarDataPtBr(cycleEndDate)}</span>.
+                Você receberá uma confirmação por e-mail em até 1 dia útil.
               </p>
+            </div>
+          )}
+
+          {/* Ações de gestão */}
+          {isActive && !isTrial && !isOverdue && !cancellationRequested && (
+            <div className="px-4 py-2.5 border-t border-white/[0.06] flex gap-2">
+              <button
+                onClick={handleScrollPlanos}
+                className="flex-1 h-8 text-[11px] font-medium text-gray-300 bg-white/[0.05] border border-white/[0.08] rounded-lg hover:bg-white/[0.08] hover:border-[#0B3064]/40 transition-all flex items-center justify-center gap-1.5"
+              >
+                <ArrowLeftRight className="w-3 h-3" />
+                Alterar plano
+              </button>
+              <button
+                onClick={handleAbrirCancelamento}
+                className="h-8 px-3 text-[11px] font-medium text-gray-500 hover:text-red-400 transition-colors"
+              >
+                Cancelar assinatura
+              </button>
             </div>
           )}
         </div>
 
         {/* ─── Plan selection ─── */}
         <>
+          <div id="planos-disponiveis" className="pt-2">
+            <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-widest mb-2 px-1 text-center">
+              Planos disponíveis
+            </p>
+          </div>
+
           {/* Toggle Mensal / Anual */}
             <div className="flex justify-center">
               <div className="inline-flex rounded-full p-1 border border-white/[0.08]" style={{ backgroundColor: "rgba(20,20,35,0.8)" }}>
@@ -442,12 +599,12 @@ function PlanoPageInner() {
               </div>
             </div>
 
-          {/* Manage subscription note */}
+          {/* Manage subscription note (apenas para mudança de forma de pagamento) */}
           {isActive && !isTrial && !isOverdue && (
             <div className="flex items-start gap-2 bg-[#1f2228]/60 border border-white/[0.06] rounded-xl p-3">
               <Zap className="w-3.5 h-3.5 text-gray-500 flex-shrink-0 mt-0.5" />
               <p className="text-[10px] text-gray-500 leading-relaxed">
-                Para alterar ciclo, forma de pagamento ou cancelar, entre em contato pelo{" "}
+                Para trocar a forma de pagamento ou alterar o cartão, entre em contato pelo{" "}
                 <button onClick={() => router.push("/dashboard/suporte")} className="text-[#7eaaee] underline underline-offset-2">
                   suporte
                 </button>.
@@ -457,6 +614,152 @@ function PlanoPageInner() {
         </>
 
       </div>
+
+      {/* ── Modal de Cancelamento ─────────────────────────────── */}
+      {cancelModalStep && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-[#1f2228] border border-white/[0.1] rounded-2xl shadow-2xl max-w-md w-full p-5 animate-in zoom-in-95 duration-200">
+
+            {cancelModalStep === "confirm" && (
+              <>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-amber-500/15 border border-amber-500/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <AlertTriangle className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white">Cancelar assinatura?</h3>
+                </div>
+                <p className="text-sm text-gray-300 leading-relaxed mb-1.5">
+                  Tem certeza que deseja cancelar sua assinatura?
+                </p>
+                <p className="text-xs text-gray-500 leading-relaxed mb-5">
+                  Você continuará com acesso a todos os recursos até{" "}
+                  <span className="text-gray-300 font-semibold">{formatarDataPtBr(cycleEndDate)}</span>.
+                  Após essa data, o app retornará ao modo gratuito.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setCancelModalStep(null)}
+                    className="flex-1 h-10 bg-[#2a2d35] hover:bg-white/[0.13] text-gray-200 border border-white/[0.1] rounded-lg text-sm font-medium transition-colors"
+                  >
+                    Voltar
+                  </button>
+                  <button
+                    onClick={() => setCancelModalStep("retention")}
+                    className="flex-1 h-10 bg-red-600/90 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors"
+                  >
+                    Continuar
+                  </button>
+                </div>
+              </>
+            )}
+
+            {cancelModalStep === "retention" && (
+              <>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-[#0B3064]/20 border border-[#0B3064]/40 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Crown className="w-5 h-5 text-[#7eaaee]" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white">Antes de cancelar...</h3>
+                </div>
+                <p className="text-xs text-gray-400 leading-relaxed mb-4">
+                  Talvez uma destas opções funcione melhor para você:
+                </p>
+
+                <div className="space-y-2 mb-4">
+                  <button
+                    onClick={() => setCancelModalStep(null)}
+                    className="w-full flex items-start gap-3 text-left bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-[#0B3064]/40 rounded-lg p-3 transition-all"
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-white">Continuar com o plano</p>
+                      <p className="text-[11px] text-gray-500">Mantenha tudo do jeito que está</p>
+                    </div>
+                  </button>
+
+                  {isProfissional && (
+                    <button
+                      onClick={() => {
+                        setCancelModalStep(null)
+                        handleScrollPlanos()
+                      }}
+                      className="w-full flex items-start gap-3 text-left bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-[#0B3064]/40 rounded-lg p-3 transition-all"
+                    >
+                      <ArrowDownCircle className="w-4 h-4 text-[#7eaaee] flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-semibold text-white">Mudar para plano menor</p>
+                        <p className="text-[11px] text-gray-500">Plano Essencial — {fmt(PLANOS.essencial.preco)}/mês</p>
+                      </div>
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-1.5 mb-3">
+                  <label className="text-[11px] font-medium text-gray-400">
+                    Pode nos contar o motivo? (opcional)
+                  </label>
+                  <textarea
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    rows={2}
+                    placeholder="Ex.: terminei a obra, preço, falta funcionalidade..."
+                    className="w-full bg-[#1E293B] border border-[#334155] text-[#F8FAFC] placeholder:text-[#64748B] rounded-lg p-2 text-xs focus:border-[#3B82F6] focus:outline-none resize-none"
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setCancelModalStep("confirm")}
+                    disabled={cancelLoading}
+                    className="flex-1 h-10 bg-[#2a2d35] hover:bg-white/[0.13] text-gray-200 border border-white/[0.1] rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                  >
+                    Voltar
+                  </button>
+                  <button
+                    onClick={handleConfirmarCancelamento}
+                    disabled={cancelLoading}
+                    className="flex-1 h-10 bg-red-600/90 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                  >
+                    {cancelLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <XCircle className="w-3.5 h-3.5" />
+                        Confirmar cancelamento
+                      </>
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {cancelModalStep === "done" && (
+              <>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-amber-500/15 border border-amber-500/40 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <CheckCircle2 className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white">Cancelamento agendado</h3>
+                </div>
+                <p className="text-sm text-gray-300 leading-relaxed mb-1.5">
+                  Sua solicitação foi registrada. Nossa equipe processa em até 1 dia útil.
+                </p>
+                <p className="text-xs text-gray-500 leading-relaxed mb-5">
+                  Seu acesso permanecerá ativo até{" "}
+                  <span className="text-gray-300 font-semibold">{formatarDataPtBr(cycleEndDate)}</span>.
+                  Você receberá um e-mail de confirmação em <span className="text-gray-300">{userEmail}</span>.
+                </p>
+                <button
+                  onClick={() => setCancelModalStep(null)}
+                  className="w-full h-10 bg-[#0B3064] hover:bg-[#082551] text-white rounded-lg text-sm font-semibold transition-colors"
+                >
+                  Entendi
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

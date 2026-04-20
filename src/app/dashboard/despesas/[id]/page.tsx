@@ -9,6 +9,7 @@ import { deleteDespesa } from "@/lib/storage"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import Image from "next/image"
+import { getCategoriaLabel } from "@/lib/despesa-categorias"
 
 interface Despesa {
   id: string
@@ -40,15 +41,8 @@ interface Obra {
   nome: string
 }
 
-// Mapear tipos para exibição
-const getTipoLabel = (tipo: string): string => {
-  const tipos: { [key: string]: string } = {
-    material: "Material",
-    mao_obra: "Mão de obra",
-    outros: "Outros"
-  }
-  return tipos[tipo] || tipo
-}
+// Mapear tipos para exibição (suporta categorias padrão e customizadas)
+const getTipoLabel = (tipo: string): string => getCategoriaLabel(tipo)
 
 export default function DetalhesDespesaPage() {
   const router = useRouter()

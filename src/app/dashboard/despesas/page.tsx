@@ -6,6 +6,7 @@ import { Eye, Pencil, Trash2, FileText, Search, ArrowUpDown, ArrowUp, ArrowDown,
 import { goToObraDashboard } from "@/lib/navigation"
 import { toast } from "sonner"
 import { deleteDespesa } from "@/lib/storage"
+import { getAllCategorias, getCategoriaLabel } from "@/lib/despesa-categorias"
 
 interface Despesa {
   id: string
@@ -69,6 +70,7 @@ function DespesasPageContent() {
   const [tipoFiltro, setTipoFiltro] = useState<"todos" | "material" | "maoobra">(
     tipoParam === "material" || tipoParam === "maoobra" ? tipoParam : "todos"
   )
+  const [categoriaFiltro, setCategoriaFiltro] = useState<string>("todas")
 
   useEffect(() => {
     const carregarDados = async () => {
@@ -306,9 +308,17 @@ function DespesasPageContent() {
   }
 
   // Lista filtrada por tipo (material ou mão de obra)
-  const despesasExibidas = tipoFiltro === "todos"
+  const despesasPorTipo = tipoFiltro === "todos"
     ? despesasFiltradas
     : despesasFiltradas.filter(d => tipoFiltro === "material" ? !isMaoDeObra(d) : isMaoDeObra(d))
+
+  // Filtro adicional por categoria específica (só relevante quando não estamos em "maoobra")
+  const despesasExibidas = (categoriaFiltro === "todas" || tipoFiltro === "maoobra")
+    ? despesasPorTipo
+    : despesasPorTipo.filter(d => {
+        const cat = String(d.category ?? d.categoria ?? d.tipo ?? "").toLowerCase()
+        return cat === categoriaFiltro
+      })
 
   // Totais
   const totalPeriodo = despesasFiltradas.reduce((sum, d) => sum + d.valor, 0)
@@ -451,6 +461,23 @@ function DespesasPageContent() {
                 className="w-full pl-8 pr-3 h-8 bg-white/[0.08] border border-white/[0.08] rounded-lg text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#0B3064]/50"
               />
             </div>
+            {/* Filtro por categoria (somente Material/Outros e Todos) */}
+            {tipoFiltro !== "maoobra" && (
+              <select
+                value={categoriaFiltro}
+                onChange={(e) => setCategoriaFiltro(e.target.value)}
+                className="w-full h-8 px-2.5 bg-white/[0.08] border border-white/[0.08] rounded-lg text-white text-xs focus:outline-none focus:border-[#0B3064]/50"
+              >
+                <option value="todas">Todas as categorias</option>
+                {getAllCategorias()
+                  .filter((c) => c.value !== "mao_obra")
+                  .map((cat) => (
+                    <option key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </option>
+                  ))}
+              </select>
+            )}
           </div>
 
           {/* Itens */}
@@ -477,8 +504,14 @@ function DespesasPageContent() {
                       <p className="text-sm text-white font-medium truncate leading-tight">
                         {despesa.descricao || 'Sem descrição'}
                       </p>
-                      <p className="text-[10px] text-gray-500 leading-tight">
-                        {dataFormatada}{despesa.fornecedor ? ` · ${despesa.fornecedor}` : ""}
+                      <p className="text-[10px] text-gray-500 leading-tight truncate">
+                        {dataFormatada}
+                        {(() => {
+                          const cat = despesa.category || despesa.categoria || despesa.tipo || ""
+                          if (!cat || cat === "mao_obra") return null
+                          return ` · ${getCategoriaLabel(cat)}`
+                        })()}
+                        {despesa.fornecedor ? ` · ${despesa.fornecedor}` : ""}
                       </p>
                     </div>
 

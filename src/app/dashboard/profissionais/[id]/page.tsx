@@ -15,6 +15,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { FileUpload } from "@/components/custom/FileUpload"
 import { toast } from "sonner"
 import Image from "next/image"
+import { updateProfissionalSupabase } from "@/lib/storage"
+import { getAllFuncoes, addCustomFuncao, formatarTelefoneBR } from "@/lib/profissional-funcoes"
 
 interface Profissional {
   id: string
@@ -93,6 +95,10 @@ function ProfissionalDetalhePageContent() {
   const [anexoPagamentoEditarFile, setAnexoPagamentoEditarFile] = useState<File | null>(null)
   const [uploadingComprovante, setUploadingComprovante] = useState(false)
   
+  const [funcoesDisponiveis, setFuncoesDisponiveis] = useState<string[]>(() => getAllFuncoes())
+  const [showNovaFuncao, setShowNovaFuncao] = useState(false)
+  const [novaFuncaoLabel, setNovaFuncaoLabel] = useState("")
+
   const [editForm, setEditForm] = useState({
     nome: "",
     funcao: "",
@@ -429,25 +435,81 @@ function ProfissionalDetalhePageContent() {
     handleContratoChange("etapas", newEtapas)
   }
 
+  const handleCriarFuncao = () => {
+    const criada = addCustomFuncao(novaFuncaoLabel)
+    if (!criada) {
+      toast.error("Informe um nome válido para a função")
+      return
+    }
+    setFuncoesDisponiveis(getAllFuncoes())
+    setEditForm((prev) => ({ ...prev, funcao: criada }))
+    setShowNovaFuncao(false)
+    setNovaFuncaoLabel("")
+    toast.success(`Função "${criada}" criada!`)
+  }
+
   const handleSalvar = async () => {
     try {
-      const todosProfissionais = JSON.parse(localStorage.getItem("profissionais") || "[]")
-      const index = todosProfissionais.findIndex((p: Profissional) => p.id === id)
-      if (index === -1) throw new Error("Profissional não encontrado")
-
-      const profissionalAtualizado = {
-        ...todosProfissionais[index],
-        nome: editForm.nome,
-        funcao: editForm.funcao,
-        telefone: editForm.telefone,
-        observacoes: editForm.observacoes,
-        contrato: editForm.contrato
+      if (!editForm.nome.trim() || !editForm.funcao.trim()) {
+        toast.error("Preencha nome e função")
+        return
       }
 
-      todosProfissionais[index] = profissionalAtualizado
-      localStorage.setItem("profissionais", JSON.stringify(todosProfissionais))
+      const { supabase } = await import("@/lib/supabase")
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user) {
+        toast.error("Erro de autenticação. Faça login novamente.")
+        router.push("/login")
+        return
+      }
 
-      setProfissional(profissionalAtualizado)
+      const result = await updateProfissionalSupabase(
+        id,
+        {
+          nome: editForm.nome.trim(),
+          funcao: editForm.funcao.trim(),
+          telefone: editForm.telefone.trim() || null,
+          observacoes: editForm.observacoes.trim() || null,
+        },
+        user.id,
+      )
+
+      if (!result.success) {
+        toast.error(result.error || "Erro ao salvar profissional")
+        return
+      }
+
+      // Atualizar estado local
+      setProfissional((prev) =>
+        prev
+          ? {
+              ...prev,
+              nome: editForm.nome.trim(),
+              funcao: editForm.funcao.trim(),
+              telefone: editForm.telefone.trim() || undefined,
+              observacoes: editForm.observacoes.trim() || undefined,
+            }
+          : prev,
+      )
+
+      // Sincronizar localStorage (legado)
+      try {
+        const todosProfissionais = JSON.parse(localStorage.getItem("profissionais") || "[]")
+        const index = todosProfissionais.findIndex((p: Profissional) => p.id === id)
+        if (index !== -1) {
+          todosProfissionais[index] = {
+            ...todosProfissionais[index],
+            nome: editForm.nome.trim(),
+            funcao: editForm.funcao.trim(),
+            telefone: editForm.telefone.trim() || undefined,
+            observacoes: editForm.observacoes.trim() || undefined,
+          }
+          localStorage.setItem("profissionais", JSON.stringify(todosProfissionais))
+        }
+      } catch {
+        // localStorage opcional
+      }
+
       setIsEditing(false)
       toast.success("Profissional salvo com sucesso!")
     } catch (error) {
@@ -1075,24 +1137,69 @@ function ProfissionalDetalhePageContent() {
                     <Label htmlFor="funcao" className="text-sm text-gray-300 font-medium">Função</Label>
                     <Select
                       value={editForm.funcao}
-                      onValueChange={(value) => setEditForm({...editForm, funcao: value})}
+                      onValueChange={(value) => {
+                        if (value === "__nova__") {
+                          setShowNovaFuncao(true)
+                          return
+                        }
+                        setEditForm({ ...editForm, funcao: value })
+                      }}
                     >
                       <SelectTrigger className="h-10 bg-[#1E293B] border border-[#334155] text-[#F8FAFC] placeholder:text-[#64748B] rounded-lg hover:bg-[#243552] focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F680] transition-colors data-[state=open]:border-[#3B82F6] data-[state=open]:ring-2 data-[state=open]:ring-[#3B82F680] [&>span]:text-[#F8FAFC] [&>svg]:text-[#94A3B8] hover:[&>svg]:text-[#3B82F6]">
                         <SelectValue placeholder="Selecione a função" className="text-[#64748B]" />
                       </SelectTrigger>
                       <SelectContent className="bg-[#0F172A] border border-[#334155] rounded-lg">
-                        <SelectItem value="Pedreiro" className="text-[#E5E7EB] hover:bg-[#1D4ED8] hover:text-white focus:bg-[#2563EB] focus:text-white data-[state=checked]:bg-[#2563EB] data-[state=checked]:text-white cursor-pointer">Pedreiro</SelectItem>
-                        <SelectItem value="Eletricista" className="text-[#E5E7EB] hover:bg-[#1D4ED8] hover:text-white focus:bg-[#2563EB] focus:text-white data-[state=checked]:bg-[#2563EB] data-[state=checked]:text-white cursor-pointer">Eletricista</SelectItem>
-                        <SelectItem value="Encanador" className="text-[#E5E7EB] hover:bg-[#1D4ED8] hover:text-white focus:bg-[#2563EB] focus:text-white data-[state=checked]:bg-[#2563EB] data-[state=checked]:text-white cursor-pointer">Encanador</SelectItem>
-                        <SelectItem value="Azulejista" className="text-[#E5E7EB] hover:bg-[#1D4ED8] hover:text-white focus:bg-[#2563EB] focus:text-white data-[state=checked]:bg-[#2563EB] data-[state=checked]:text-white cursor-pointer">Azulejista</SelectItem>
-                        <SelectItem value="Pintor" className="text-[#E5E7EB] hover:bg-[#1D4ED8] hover:text-white focus:bg-[#2563EB] focus:text-white data-[state=checked]:bg-[#2563EB] data-[state=checked]:text-white cursor-pointer">Pintor</SelectItem>
-                        <SelectItem value="Gesseiro" className="text-[#E5E7EB] hover:bg-[#1D4ED8] hover:text-white focus:bg-[#2563EB] focus:text-white data-[state=checked]:bg-[#2563EB] data-[state=checked]:text-white cursor-pointer">Gesseiro</SelectItem>
-                        <SelectItem value="Marceneiro" className="text-[#E5E7EB] hover:bg-[#1D4ED8] hover:text-white focus:bg-[#2563EB] focus:text-white data-[state=checked]:bg-[#2563EB] data-[state=checked]:text-white cursor-pointer">Marceneiro</SelectItem>
-                        <SelectItem value="Engenheiro" className="text-[#E5E7EB] hover:bg-[#1D4ED8] hover:text-white focus:bg-[#2563EB] focus:text-white data-[state=checked]:bg-[#2563EB] data-[state=checked]:text-white cursor-pointer">Engenheiro</SelectItem>
-                        <SelectItem value="Arquiteto" className="text-[#E5E7EB] hover:bg-[#1D4ED8] hover:text-white focus:bg-[#2563EB] focus:text-white data-[state=checked]:bg-[#2563EB] data-[state=checked]:text-white cursor-pointer">Arquiteto</SelectItem>
-                        <SelectItem value="Outros" className="text-[#E5E7EB] hover:bg-[#1D4ED8] hover:text-white focus:bg-[#2563EB] focus:text-white data-[state=checked]:bg-[#2563EB] data-[state=checked]:text-white cursor-pointer">Outros</SelectItem>
+                        {funcoesDisponiveis.map((funcao) => (
+                          <SelectItem
+                            key={funcao}
+                            value={funcao}
+                            className="text-[#E5E7EB] hover:bg-[#1D4ED8] hover:text-white focus:bg-[#2563EB] focus:text-white data-[state=checked]:bg-[#2563EB] data-[state=checked]:text-white cursor-pointer"
+                          >
+                            {funcao}
+                          </SelectItem>
+                        ))}
+                        <SelectItem
+                          value="__nova__"
+                          className="text-[#7eaaee] focus:bg-[#2563EB] focus:text-white cursor-pointer border-t border-white/10 mt-1"
+                        >
+                          + Criar função
+                        </SelectItem>
                       </SelectContent>
                     </Select>
+                    {showNovaFuncao && (
+                      <div className="flex gap-1.5 mt-1.5">
+                        <Input
+                          autoFocus
+                          placeholder="Nome da função"
+                          value={novaFuncaoLabel}
+                          onChange={(e) => setNovaFuncaoLabel(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault()
+                              handleCriarFuncao()
+                            }
+                          }}
+                          className="h-8 text-xs bg-[#1E293B] border border-[#334155] text-[#F8FAFC] rounded-lg"
+                        />
+                        <Button
+                          type="button"
+                          onClick={handleCriarFuncao}
+                          className="h-8 px-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                        >
+                          Criar
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            setShowNovaFuncao(false)
+                            setNovaFuncaoLabel("")
+                          }}
+                          className="h-8 px-2 text-xs bg-[#2a2d35] hover:bg-white/[0.13] text-gray-300 border border-white/[0.1] rounded-lg"
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1100,8 +1207,12 @@ function ProfissionalDetalhePageContent() {
                   <Label htmlFor="telefone" className="text-sm text-gray-300 font-medium">Telefone</Label>
                   <Input
                     id="telefone"
+                    type="tel"
+                    inputMode="numeric"
+                    placeholder="(00) 00000-0000"
+                    maxLength={15}
                     value={editForm.telefone}
-                    onChange={(e) => setEditForm({...editForm, telefone: e.target.value})}
+                    onChange={(e) => setEditForm({ ...editForm, telefone: formatarTelefoneBR(e.target.value) })}
                     className="h-10 bg-[#1E293B] border border-[#334155] text-[#F8FAFC] placeholder:text-[#64748B] rounded-lg hover:bg-[#243552] focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F680] transition-colors"
                   />
                 </div>
