@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, Users, Trash2, FileText, Clock, X } from "lucide-react"
+import { Plus, Users, Trash2, FileText, Clock, X, MessageSquare } from "lucide-react"
 import { toast } from "sonner"
 import { getPagamentosByProfissional, getActiveObraId } from "@/lib/storage"
 
@@ -384,7 +384,22 @@ export default function ProfissionaisPage() {
                       <Users className="w-3.5 h-3.5 text-[#7eaaee]" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-white truncate">{profissional.nome}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-bold text-white truncate">{profissional.nome}</p>
+                        {profissional.observacoes && profissional.observacoes.trim() !== "" && (
+                          <span
+                            title={profissional.observacoes}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              router.push(`/dashboard/profissionais/${profissional.id}?edit=true`)
+                            }}
+                            className="inline-flex items-center justify-center w-4 h-4 bg-amber-500/15 border border-amber-500/40 rounded-full cursor-pointer flex-shrink-0"
+                            aria-label="Possui observação"
+                          >
+                            <MessageSquare className="w-2.5 h-2.5 text-amber-400" />
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[10px] text-gray-500">{profissional.funcao}{profissional.telefone ? ` · ${profissional.telefone}` : ""}</p>
                     </div>
                   </div>

@@ -14,20 +14,7 @@ import { BudgetAlertModal } from "@/components/custom/BudgetAlertModal"
 import { checkBudgetAfterTransaction } from "@/lib/budget-calculator"
 import { type BudgetAlert } from "@/lib/budget-alerts"
 import { toast } from "sonner"
-
-const CATEGORIAS = [
-  { value: "material", label: "Material de Construção" },
-  { value: "ferramentas", label: "Ferramentas e Equipamentos" },
-  { value: "licencas", label: "Licenças e Documentação" },
-  { value: "transporte", label: "Transporte e Frete" },
-  { value: "alimentacao", label: "Alimentação" },
-  { value: "limpeza", label: "Limpeza" },
-  { value: "seguranca", label: "Segurança e EPIs" },
-  { value: "energia_agua", label: "Energia e Água" },
-  { value: "aluguel", label: "Aluguel de Equipamentos" },
-  { value: "projetos", label: "Projetos e Consultorias" },
-  { value: "outros", label: "Outros" }
-]
+import { getAllCategorias, addCustomCategoria } from "@/lib/despesa-categorias"
 
 const FORMAS_PAGAMENTO = [
   "Pix",
@@ -69,6 +56,22 @@ export default function EditarDespesaPage() {
   const [budgetAlert, setBudgetAlert] = useState<BudgetAlert | null>(null)
   const [despesaPendente, setDespesaPendente] = useState<any>(null)
   const [obraId, setObraId] = useState("")
+  const [categoriasDisponiveis, setCategoriasDisponiveis] = useState(() => getAllCategorias())
+  const [showNovaCategoria, setShowNovaCategoria] = useState(false)
+  const [novaCategoriaLabel, setNovaCategoriaLabel] = useState("")
+
+  const handleCriarCategoria = () => {
+    const criada = addCustomCategoria(novaCategoriaLabel)
+    if (!criada) {
+      toast.error("Informe um nome válido para a categoria")
+      return
+    }
+    setCategoriasDisponiveis(getAllCategorias())
+    setFormData((prev) => ({ ...prev, tipo: criada.value }))
+    setShowNovaCategoria(false)
+    setNovaCategoriaLabel("")
+    toast.success(`Categoria "${criada.label}" criada!`)
+  }
 
   const [formData, setFormData] = useState({
     data: "",
@@ -342,18 +345,68 @@ export default function EditarDespesaPage() {
             <div className="flex items-start">
               <div className="space-y-1 flex-1">
                 <Label htmlFor="categoria" className="text-xs text-gray-400">Categoria *</Label>
-                <Select value={formData.tipo} onValueChange={(value) => setFormData({ ...formData, tipo: value })} required>
+                <Select
+                  value={formData.tipo}
+                  onValueChange={(value) => {
+                    if (value === "__nova__") {
+                      setShowNovaCategoria(true)
+                      return
+                    }
+                    setFormData({ ...formData, tipo: value })
+                  }}
+                  required
+                >
                   <SelectTrigger className="h-9 text-sm bg-[#1E293B] border border-[#334155] text-[#F8FAFC] rounded-lg focus:border-[#3B82F6] [&>span]:text-[#F8FAFC] [&>svg]:text-[#94A3B8]">
                     <SelectValue placeholder="Selecione" className="text-[#64748B]" />
                   </SelectTrigger>
                   <SelectContent className="bg-[#0F172A] border border-[#334155] rounded-lg">
-                    {CATEGORIAS.map((tipo) => (
+                    {categoriasDisponiveis.map((tipo) => (
                       <SelectItem key={tipo.value} value={tipo.value} className="text-[#E5E7EB] focus:bg-[#2563EB] focus:text-white data-[state=checked]:bg-[#2563EB] data-[state=checked]:text-white cursor-pointer text-sm">
                         {tipo.label}
                       </SelectItem>
                     ))}
+                    <SelectItem
+                      value="__nova__"
+                      className="text-[#7eaaee] focus:bg-[#2563EB] focus:text-white cursor-pointer text-sm border-t border-white/10 mt-1"
+                    >
+                      + Criar nova categoria
+                    </SelectItem>
                   </SelectContent>
                 </Select>
+                {showNovaCategoria && (
+                  <div className="flex gap-1.5 mt-1.5">
+                    <Input
+                      autoFocus
+                      placeholder="Nome da categoria"
+                      value={novaCategoriaLabel}
+                      onChange={(e) => setNovaCategoriaLabel(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault()
+                          handleCriarCategoria()
+                        }
+                      }}
+                      className="h-8 text-xs bg-[#1E293B] border border-[#334155] text-[#F8FAFC] rounded-lg"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleCriarCategoria}
+                      className="h-8 px-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                    >
+                      Criar
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        setShowNovaCategoria(false)
+                        setNovaCategoriaLabel("")
+                      }}
+                      className="h-8 px-2 text-xs bg-[#2a2d35] hover:bg-white/[0.13] text-gray-300 border border-white/[0.1] rounded-lg"
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                )}
               </div>
               <div className="shrink-0 w-6" />
               <div className="space-y-1 flex-1">

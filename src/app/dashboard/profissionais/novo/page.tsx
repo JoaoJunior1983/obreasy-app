@@ -11,37 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import Image from "next/image"
 import { toast } from "sonner"
+import { getAllFuncoes, addCustomFuncao, formatarTelefoneBR } from "@/lib/profissional-funcoes"
 
-const FUNCOES = [
-  "Pedreiro",
-  "Eletricista",
-  "Encanador",
-  "Azulejista",
-  "Pintor",
-  "Gesseiro",
-  "Marceneiro",
-  "Engenheiro",
-  "Arquiteto",
-  "Outros"
-]
-
-// Função para formatar telefone brasileiro
-const formatarTelefone = (valor: string): string => {
-  // Remove tudo que não é dígito
-  const apenasNumeros = valor.replace(/\D/g, "")
-
-  // Aplica a máscara (00) 00000-0000
-  if (apenasNumeros.length <= 2) {
-    return apenasNumeros
-  } else if (apenasNumeros.length <= 7) {
-    return `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2)}`
-  } else if (apenasNumeros.length <= 11) {
-    return `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2, 7)}-${apenasNumeros.slice(7)}`
-  } else {
-    // Limita a 11 dígitos
-    return `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2, 7)}-${apenasNumeros.slice(7, 11)}`
-  }
-}
+const formatarTelefone = formatarTelefoneBR
 
 export default function NovoProfissionalPage() {
   const router = useRouter()
@@ -56,6 +28,22 @@ export default function NovoProfissionalPage() {
     telefone: "",
     observacoes: ""
   })
+  const [funcoesDisponiveis, setFuncoesDisponiveis] = useState<string[]>(() => getAllFuncoes())
+  const [showNovaFuncao, setShowNovaFuncao] = useState(false)
+  const [novaFuncaoLabel, setNovaFuncaoLabel] = useState("")
+
+  const handleCriarFuncao = () => {
+    const criada = addCustomFuncao(novaFuncaoLabel)
+    if (!criada) {
+      toast.error("Informe um nome válido para a função")
+      return
+    }
+    setFuncoesDisponiveis(getAllFuncoes())
+    setFormData((prev) => ({ ...prev, funcao: criada }))
+    setShowNovaFuncao(false)
+    setNovaFuncaoLabel("")
+    toast.success(`Função "${criada}" criada!`)
+  }
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -248,20 +236,66 @@ export default function NovoProfissionalPage() {
               </Label>
               <Select
                 value={formData.funcao}
-                onValueChange={(value) => setFormData({ ...formData, funcao: value })}
+                onValueChange={(value) => {
+                  if (value === "__nova__") {
+                    setShowNovaFuncao(true)
+                    return
+                  }
+                  setFormData({ ...formData, funcao: value })
+                }}
                 required
               >
                 <SelectTrigger className="h-9 bg-[#1E293B] border border-[#334155] text-[#F8FAFC] placeholder:text-[#64748B] rounded-[10px] hover:bg-[#243552] focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F680] transition-colors data-[state=open]:border-[#3B82F6] data-[state=open]:ring-2 data-[state=open]:ring-[#3B82F680] [&>span]:text-[#F8FAFC] [&>svg]:text-[#94A3B8] hover:[&>svg]:text-[#3B82F6] text-sm">
                   <SelectValue placeholder="Selecione a função" className="text-[#64748B]" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#0F172A] border border-[#334155] rounded-[10px]">
-                  {FUNCOES.map((funcao) => (
+                  {funcoesDisponiveis.map((funcao) => (
                     <SelectItem key={funcao} value={funcao} className="text-[#E5E7EB] hover:bg-[#1D4ED8] hover:text-white focus:bg-[#2563EB] focus:text-white data-[state=checked]:bg-[#2563EB] data-[state=checked]:text-white cursor-pointer text-sm">
                       {funcao}
                     </SelectItem>
                   ))}
+                  <SelectItem
+                    value="__nova__"
+                    className="text-[#7eaaee] focus:bg-[#2563EB] focus:text-white cursor-pointer text-sm border-t border-white/10 mt-1"
+                  >
+                    + Criar função
+                  </SelectItem>
                 </SelectContent>
               </Select>
+              {showNovaFuncao && (
+                <div className="flex gap-1.5 mt-1.5">
+                  <Input
+                    autoFocus
+                    placeholder="Nome da função"
+                    value={novaFuncaoLabel}
+                    onChange={(e) => setNovaFuncaoLabel(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault()
+                        handleCriarFuncao()
+                      }
+                    }}
+                    className="h-8 text-xs bg-[#1E293B] border border-[#334155] text-[#F8FAFC] rounded-[10px]"
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleCriarFuncao}
+                    className="h-8 px-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-[10px]"
+                  >
+                    Criar
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setShowNovaFuncao(false)
+                      setNovaFuncaoLabel("")
+                    }}
+                    className="h-8 px-2 text-xs bg-[#2a2d35] hover:bg-white/[0.13] text-gray-300 border border-white/[0.1] rounded-[10px]"
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Telefone / WhatsApp */}

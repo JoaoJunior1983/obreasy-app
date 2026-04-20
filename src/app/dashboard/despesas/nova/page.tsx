@@ -20,20 +20,7 @@ import { BudgetMilestoneToast } from "@/components/custom/BudgetMilestoneToast"
 import { avisoAposCriarDespesa } from "@/lib/alert-manager"
 import { getDataHoje } from "@/lib/utils"
 import { toast } from "sonner"
-
-const CATEGORIAS = [
-  { value: "material", label: "Material de Construção" },
-  { value: "ferramentas", label: "Ferramentas e Equipamentos" },
-  { value: "licencas", label: "Licenças e Documentação" },
-  { value: "transporte", label: "Transporte e Frete" },
-  { value: "alimentacao", label: "Alimentação" },
-  { value: "limpeza", label: "Limpeza" },
-  { value: "seguranca", label: "Segurança e EPIs" },
-  { value: "energia_agua", label: "Energia e Água" },
-  { value: "aluguel", label: "Aluguel de Equipamentos" },
-  { value: "projetos", label: "Projetos e Consultorias" },
-  { value: "outros", label: "Outros" }
-]
+import { getAllCategorias, addCustomCategoria } from "@/lib/despesa-categorias"
 
 const FORMAS_PAGAMENTO = [
   "Pix",
@@ -74,6 +61,9 @@ export default function NovaDespesaPage() {
   const [valorFormatado, setValorFormatado] = useState("")
   const [profissionais, setProfissionais] = useState<Profissional[]>([])
   const [comprovanteAnexo, setComprovanteAnexo] = useState<string | null>(null)
+  const [categoriasDisponiveis, setCategoriasDisponiveis] = useState(() => getAllCategorias())
+  const [showNovaCategoria, setShowNovaCategoria] = useState(false)
+  const [novaCategoriaLabel, setNovaCategoriaLabel] = useState("")
   const primeiroInputRef = useRef<HTMLInputElement>(null)
   const [budgetAlert, setBudgetAlert] = useState<BudgetAlert | null>(null)
   const [despesaPendente, setDespesaPendente] = useState<any>(null)
@@ -117,6 +107,19 @@ export default function NovaDespesaPage() {
     setProfissionais(profissionaisObra)
   }, [router])
 
+  const handleCriarCategoria = () => {
+    const criada = addCustomCategoria(novaCategoriaLabel)
+    if (!criada) {
+      toast.error("Informe um nome válido para a categoria")
+      return
+    }
+    setCategoriasDisponiveis(getAllCategorias())
+    setFormData((prev) => ({ ...prev, category: criada.value }))
+    setShowNovaCategoria(false)
+    setNovaCategoriaLabel("")
+    toast.success(`Categoria "${criada.label}" criada!`)
+  }
+
   const handleValorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const valorDigitado = e.target.value
     const valorFormatado = formatarMoeda(valorDigitado)
@@ -137,6 +140,7 @@ export default function NovaDespesaPage() {
       observacoes: ""
     })
     setValorFormatado("")
+    setComprovanteAnexo(null)
     setSuccess(false)
     setLoading(false)
 
@@ -446,14 +450,20 @@ export default function NovaDespesaPage() {
                   </Label>
                   <Select
                     value={formData.category}
-                    onValueChange={(value) => setFormData({ ...formData, category: value })}
+                    onValueChange={(value) => {
+                      if (value === "__nova__") {
+                        setShowNovaCategoria(true)
+                        return
+                      }
+                      setFormData({ ...formData, category: value })
+                    }}
                     required
                   >
                     <SelectTrigger className="h-9 text-sm w-full bg-[#1E293B] border border-[#334155] text-[#F8FAFC] rounded-lg hover:bg-[#243552] focus:border-[#3B82F6] focus:ring-1 transition-colors [&>span]:text-[#F8FAFC] [&>svg]:text-[#94A3B8]">
                       <SelectValue placeholder="Selecione" className="text-[#64748B]" />
                     </SelectTrigger>
                     <SelectContent className="bg-[#0F172A] border border-[#334155] rounded-[10px]">
-                      {CATEGORIAS.map((categoria) => (
+                      {categoriasDisponiveis.map((categoria) => (
                         <SelectItem
                           key={categoria.value}
                           value={categoria.value}
@@ -462,8 +472,48 @@ export default function NovaDespesaPage() {
                           {categoria.label}
                         </SelectItem>
                       ))}
+                      <SelectItem
+                        value="__nova__"
+                        className="text-[#7eaaee] hover:bg-[#1D4ED8] hover:text-white focus:bg-[#2563EB] focus:text-white cursor-pointer border-t border-white/10 mt-1"
+                      >
+                        + Criar nova categoria
+                      </SelectItem>
                     </SelectContent>
                   </Select>
+                  {showNovaCategoria && (
+                    <div className="flex gap-1.5 mt-1.5">
+                      <Input
+                        autoFocus
+                        placeholder="Nome da categoria"
+                        value={novaCategoriaLabel}
+                        onChange={(e) => setNovaCategoriaLabel(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault()
+                            handleCriarCategoria()
+                          }
+                        }}
+                        className="h-8 text-xs bg-[#1E293B] border border-[#334155] text-[#F8FAFC] rounded-lg"
+                      />
+                      <Button
+                        type="button"
+                        onClick={handleCriarCategoria}
+                        className="h-8 px-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                      >
+                        Criar
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          setShowNovaCategoria(false)
+                          setNovaCategoriaLabel("")
+                        }}
+                        className="h-8 px-2 text-xs bg-[#2a2d35] hover:bg-white/[0.13] text-gray-300 border border-white/[0.1] rounded-lg"
+                      >
+                        Cancelar
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-0.5">

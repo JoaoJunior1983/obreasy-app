@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, TrendingUp, Wallet, PiggyBank, Home, Plus, Users, FileText, AlertCircle, CheckCircle, AlertTriangle, MoreVertical, Pencil, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown, HandCoins, Edit3, Camera, CreditCard, X } from "lucide-react"
+import { ArrowLeft, TrendingUp, Wallet, PiggyBank, Home, Plus, Users, FileText, AlertCircle, CheckCircle, AlertTriangle, MoreVertical, Pencil, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown, HandCoins, Edit3, Camera, CreditCard, X, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -1269,13 +1269,14 @@ export default function DashboardObraPage() {
                 <div
                   key={label}
                   onClick={() => router.push(href)}
-                  className="bg-white/[0.04] rounded-lg active:bg-white/[0.1] transition-colors"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', cursor: 'pointer' }}
+                  className="bg-white/[0.04] rounded-lg border border-white/[0.04] hover:bg-white/[0.08] hover:border-[#0B3064]/40 hover:shadow-md active:scale-[0.99] transition-all duration-200 cursor-pointer"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px' }}
                 >
                   <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 500 }}>{label}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     {warn && <AlertTriangle className="w-3 h-3 text-red-400" />}
                     <span style={{ fontSize: '14px', fontWeight: 700, color: '#d1d5db' }}>{value}</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-gray-600" />
                   </div>
                 </div>
               ))}
@@ -1341,11 +1342,14 @@ export default function DashboardObraPage() {
             <Card className="!p-3 sm:!p-4 bg-[#1f2228]/80 border border-white/[0.08] shadow-md">
               <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 <div
-                  className="border border-white/[0.08] rounded-xl p-3 bg-white/[0.03] cursor-pointer hover:border-[#0B3064]/50 hover:bg-white/[0.05] transition-all"
+                  className="group border border-white/[0.08] rounded-xl p-3 bg-white/[0.03] cursor-pointer hover:border-[#0B3064]/50 hover:bg-white/[0.06] hover:shadow-md active:scale-[0.99] transition-all duration-200"
                   onClick={() => router.push("/dashboard/despesas?tipo=material")}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xs font-bold text-white">Material / Outros</h3>
+                    <h3 className="text-xs font-bold text-white flex items-center gap-1">
+                      Material / Outros
+                      <ChevronRight className="w-3 h-3 text-gray-500 group-hover:text-[#7eaaee] transition-colors" />
+                    </h3>
                     <span className="text-xs font-bold text-gray-300">
                       {obra.orcamento ? ((distribuicao.materialOutros / obra.orcamento) * 100).toFixed(1) : '0.0'}%
                     </span>
@@ -1358,11 +1362,14 @@ export default function DashboardObraPage() {
                 </div>
 
                 <div
-                  className="border border-white/[0.08] rounded-xl p-3 bg-white/[0.03] cursor-pointer hover:border-orange-500/40 hover:bg-white/[0.05] transition-all"
+                  className="group border border-white/[0.08] rounded-xl p-3 bg-white/[0.03] cursor-pointer hover:border-orange-500/40 hover:bg-white/[0.06] hover:shadow-md active:scale-[0.99] transition-all duration-200"
                   onClick={() => router.push("/dashboard/despesas?tipo=maoobra")}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xs font-bold text-white">Mão de Obra</h3>
+                    <h3 className="text-xs font-bold text-white flex items-center gap-1">
+                      Mão de Obra
+                      <ChevronRight className="w-3 h-3 text-gray-500 group-hover:text-orange-400 transition-colors" />
+                    </h3>
                     <span className="text-xs font-bold text-gray-300">
                       {obra.orcamento ? ((distribuicao.maoObra / obra.orcamento) * 100).toFixed(1) : '0.0'}%
                     </span>

@@ -800,6 +800,61 @@ export async function saveProfissionalSupabase(profissional: any, userId: string
 }
 
 /**
+ * Atualizar profissional existente no Supabase
+ */
+export async function updateProfissionalSupabase(
+  profissionalId: string,
+  profissional: any,
+  userId: string
+): Promise<{ success: boolean; error: string | null }> {
+  try {
+    const { supabase } = await import("@/lib/supabase")
+
+    try {
+      validateUUID(userId, "userId")
+      validateUUID(profissionalId, "profissionalId")
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : "UUID inválido" }
+    }
+
+    if (!profissional.nome || !profissional.funcao) {
+      return { success: false, error: "Nome e função são obrigatórios" }
+    }
+
+    const updatePayload: Record<string, any> = {
+      nome: profissional.nome,
+      funcao: profissional.funcao,
+      telefone: profissional.telefone?.toString().trim() || null,
+      observacoes: profissional.observacoes?.toString().trim() || null,
+    }
+
+    if (profissional.email !== undefined) updatePayload.email = profissional.email || null
+    if (profissional.cpf !== undefined) updatePayload.cpf = profissional.cpf || null
+    if (profissional.contrato !== undefined) updatePayload.contrato = profissional.contrato || null
+    if (profissional.valorPrevisto !== undefined) updatePayload.valor_previsto = profissional.valorPrevisto
+
+    const { error } = await supabase
+      .from("profissionais")
+      .update(updatePayload as any)
+      .eq("id", profissionalId)
+      .eq("user_id", userId)
+
+    if (error) {
+      console.error("Erro ao atualizar profissional:", error)
+      return { success: false, error: `Erro do banco: ${error.message}` }
+    }
+
+    return { success: true, error: null }
+  } catch (error) {
+    console.error("Erro inesperado ao atualizar profissional:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Erro desconhecido",
+    }
+  }
+}
+
+/**
  * Carregar profissionais de uma obra do Supabase
  * @param obraId - ID da obra
  * @param userId - ID do usuário autenticado
@@ -886,14 +941,9 @@ export async function saveDespesaSupabase(despesa: any, userId: string): Promise
       return { id: null, error: "Categoria é obrigatória" }
     }
 
-    // Validar que categoria é uma string válida
-    const categoriaValor = despesa.categoria || despesa.category
-    const categoriasValidas = [
-      "material", "mao_obra", "ferramentas", "licencas", "transporte",
-      "alimentacao", "limpeza", "seguranca", "energia_agua", "aluguel",
-      "projetos", "outros"
-    ]
-    if (!categoriaValor || !categoriasValidas.includes(categoriaValor)) {
+    // Validar que categoria é uma string válida (padrão ou customizada pelo usuário)
+    const categoriaValor: string = (despesa.categoria || despesa.category || "").toString().trim()
+    if (!categoriaValor || categoriaValor.length > 60 || !/^[a-z0-9_]+$/.test(categoriaValor)) {
       console.error("Validação falhou: categoria inválida", categoriaValor)
       return { id: null, error: `Categoria inválida: ${categoriaValor}` }
     }
