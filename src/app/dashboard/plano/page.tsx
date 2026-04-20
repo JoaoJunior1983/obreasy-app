@@ -53,7 +53,7 @@ function PlanoPageInner() {
 
     const { data: profile } = await supabase
       .from("user_profiles")
-      .select("profile_type, plano, status, billing_cycle, cycle_end_date, overdue_since, pix_expires_at, first_name, last_name")
+      .select("profile_type, plano, plano_expira_em, status, billing_cycle, cycle_end_date, overdue_since, pix_expires_at, first_name, last_name")
       .eq("id", user.id)
       .single()
 
@@ -69,7 +69,13 @@ function PlanoPageInner() {
     setPlano(currentPlano)
     setStatus(profile.status || "trial")
     setBillingCycle(profile.billing_cycle as string | null)
-    setCycleEndDate((profile.cycle_end_date as string | null) || null)
+    // Fallback ordenado: cycle_end_date (assinatura) → plano_expira_em (trial) → pix_expires_at
+    const dataAcesso =
+      (profile.cycle_end_date as string | null) ||
+      (profile.plano_expira_em as string | null) ||
+      (profile.pix_expires_at as string | null) ||
+      null
+    setCycleEndDate(dataAcesso)
 
     if (profile.status === "overdue" || profile.status === "cancelled" || profile.status === "expired") {
       setGraceStatus(getGracePeriodStatus(
