@@ -7,6 +7,7 @@ import { goToObraDashboard } from "@/lib/navigation"
 import { toast } from "sonner"
 import { deleteDespesa } from "@/lib/storage"
 import { getAllCategorias, getCategoriaLabel } from "@/lib/despesa-categorias"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface Despesa {
   id: string
@@ -463,20 +464,30 @@ function DespesasPageContent() {
             </div>
             {/* Filtro por categoria (somente Material/Outros e Todos) */}
             {tipoFiltro !== "maoobra" && (
-              <select
-                value={categoriaFiltro}
-                onChange={(e) => setCategoriaFiltro(e.target.value)}
-                className="w-full h-8 px-2.5 bg-white/[0.08] border border-white/[0.08] rounded-lg text-white text-xs focus:outline-none focus:border-[#0B3064]/50"
-              >
-                <option value="todas">Todas as categorias</option>
-                {getAllCategorias()
-                  .filter((c) => c.value !== "mao_obra")
-                  .map((cat) => (
-                    <option key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </option>
-                  ))}
-              </select>
+              <Select value={categoriaFiltro} onValueChange={setCategoriaFiltro}>
+                <SelectTrigger className="w-full h-8 bg-white/[0.08] border border-white/[0.08] text-white text-xs rounded-lg hover:bg-white/[0.12] focus:border-[#0B3064]/50 transition-colors [&>span]:text-white [&>svg]:text-gray-500">
+                  <SelectValue placeholder="Todas as categorias" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#0F172A] border border-[#334155] rounded-lg">
+                  <SelectItem
+                    value="todas"
+                    className="text-[#E5E7EB] hover:bg-[#1D4ED8] hover:text-white focus:bg-[#2563EB] focus:text-white data-[state=checked]:bg-[#2563EB] data-[state=checked]:text-white cursor-pointer text-xs"
+                  >
+                    Todas as categorias
+                  </SelectItem>
+                  {getAllCategorias()
+                    .filter((c) => c.value !== "mao_obra")
+                    .map((cat) => (
+                      <SelectItem
+                        key={cat.value}
+                        value={cat.value}
+                        className="text-[#E5E7EB] hover:bg-[#1D4ED8] hover:text-white focus:bg-[#2563EB] focus:text-white data-[state=checked]:bg-[#2563EB] data-[state=checked]:text-white cursor-pointer text-xs"
+                      >
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             )}
           </div>
 
