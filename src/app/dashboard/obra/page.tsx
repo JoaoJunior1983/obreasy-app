@@ -1261,8 +1261,8 @@ export default function DashboardObraPage() {
 
             <div className="flex flex-col gap-1.5">
               {[
-                { label: 'Total Gasto', value: formatarMoedaDisplay(totalGasto), href: '/dashboard/obra/extrato-geral', warn: percentualGasto > 100 },
-                ...(obra.orcamento ? [{ label: 'Saldo', value: formatarMoedaDisplay(calcularSaldoDisponivel()), href: '/dashboard/obra/extrato-geral', warn: false }] : []),
+                { label: 'Total Gasto', value: formatarMoedaDisplay(totalGasto), href: '/dashboard/despesas', warn: percentualGasto > 100 },
+                ...(obra.orcamento ? [{ label: 'Saldo', value: formatarMoedaDisplay(calcularSaldoDisponivel()), href: '/dashboard/despesas', warn: false }] : []),
                 ...(obra.area ? [{ label: 'Custo por m²', value: calcularCustoPorM2(), href: '/dashboard/obra/custo-m2', warn: false }] : []),
                 { label: 'Profissionais', value: formatarMoedaDisplay(pagamentos.reduce((acc, p) => acc + p.valor, 0)), href: '/dashboard/profissionais', warn: false },
               ].map(({ label, value, href, warn }) => (
