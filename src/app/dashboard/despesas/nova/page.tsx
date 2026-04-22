@@ -21,6 +21,7 @@ import { avisoAposCriarDespesa } from "@/lib/alert-manager"
 import { getDataHoje } from "@/lib/utils"
 import { toast } from "sonner"
 import { getAllCategorias, addCustomCategoria } from "@/lib/despesa-categorias"
+import { uploadComprovante } from "@/lib/upload-comprovante"
 
 const FORMAS_PAGAMENTO = [
   "Pix",
@@ -61,6 +62,7 @@ export default function NovaDespesaPage() {
   const [valorFormatado, setValorFormatado] = useState("")
   const [profissionais, setProfissionais] = useState<Profissional[]>([])
   const [comprovanteAnexo, setComprovanteAnexo] = useState<string | null>(null)
+  const [comprovanteFile, setComprovanteFile] = useState<File | null>(null)
   const [categoriasDisponiveis, setCategoriasDisponiveis] = useState(() => getAllCategorias())
   const [showNovaCategoria, setShowNovaCategoria] = useState(false)
   const [novaCategoriaLabel, setNovaCategoriaLabel] = useState("")
@@ -141,6 +143,7 @@ export default function NovaDespesaPage() {
     })
     setValorFormatado("")
     setComprovanteAnexo(null)
+    setComprovanteFile(null)
     setSuccess(false)
     setLoading(false)
 
@@ -170,6 +173,21 @@ export default function NovaDespesaPage() {
         return
       }
 
+      // Upload do comprovante para o Storage antes de salvar a despesa
+      // (evita enviar data URL base64 gigante no insert, que estourava o payload)
+      let anexoUrl: string | null = comprovanteAnexo && !comprovanteFile ? comprovanteAnexo : null
+      if (comprovanteFile) {
+        const upload = await uploadComprovante(comprovanteFile, user.id, "despesas")
+        if (upload.error || !upload.url) {
+          toast.error(upload.error || "Falha ao enviar comprovante. Tente novamente.")
+          setLoading(false)
+          return
+        }
+        anexoUrl = upload.url
+        setComprovanteAnexo(upload.url)
+        setComprovanteFile(null)
+      }
+
       // ID temporário APENAS para verificação de orçamento local
       // NÃO será enviado ao Supabase (removido antes do insert)
       const despesaIdLocal = `desp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
@@ -186,7 +204,7 @@ export default function NovaDespesaPage() {
         fornecedor: formData.fornecedor || undefined,
         observacoes: formData.observacoes || undefined,
         observacao: formData.observacoes || undefined,
-        anexo: comprovanteAnexo || undefined
+        anexo: anexoUrl || undefined
       }
 
       // Carregar totais reais do Supabase para verificação de percentuais (antes de salvar)
@@ -560,7 +578,10 @@ export default function NovaDespesaPage() {
                 accept="image/jpeg,image/png,application/pdf"
                 maxSize={10}
                 value={comprovanteAnexo}
-                onChange={(file, preview) => setComprovanteAnexo(preview)}
+                onChange={(file, preview) => {
+                  setComprovanteFile(file)
+                  setComprovanteAnexo(preview)
+                }}
               />
 
               {/* Observações */}
