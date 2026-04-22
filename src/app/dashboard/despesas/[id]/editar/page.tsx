@@ -15,6 +15,7 @@ import { checkBudgetAfterTransaction } from "@/lib/budget-calculator"
 import { type BudgetAlert } from "@/lib/budget-alerts"
 import { toast } from "sonner"
 import { getAllCategorias, addCustomCategoria } from "@/lib/despesa-categorias"
+import { uploadComprovante } from "@/lib/upload-comprovante"
 
 const FORMAS_PAGAMENTO = [
   "Pix",
@@ -53,6 +54,7 @@ export default function EditarDespesaPage() {
   const [carregando, setCarregando] = useState(true)
   const [valorFormatado, setValorFormatado] = useState("")
   const [comprovanteAnexo, setComprovanteAnexo] = useState<string | null>(null)
+  const [comprovanteFile, setComprovanteFile] = useState<File | null>(null)
   const [budgetAlert, setBudgetAlert] = useState<BudgetAlert | null>(null)
   const [despesaPendente, setDespesaPendente] = useState<any>(null)
   const [obraId, setObraId] = useState("")
@@ -181,6 +183,21 @@ export default function EditarDespesaPage() {
         return
       }
 
+      // Se o usuário anexou um novo arquivo, faz upload para o Storage e usa a URL pública.
+      // Caso contrário, mantém o valor atual (URL do DB ou null).
+      let anexoUrl: string | null = comprovanteAnexo
+      if (comprovanteFile) {
+        const upload = await uploadComprovante(comprovanteFile, user.id, "despesas")
+        if (upload.error || !upload.url) {
+          toast.error(upload.error || "Falha ao enviar comprovante. Tente novamente.")
+          setLoading(false)
+          return
+        }
+        anexoUrl = upload.url
+        setComprovanteAnexo(upload.url)
+        setComprovanteFile(null)
+      }
+
       const despesaAtualizada = {
         data: formData.data,
         tipo: formData.tipo,
@@ -192,11 +209,8 @@ export default function EditarDespesaPage() {
         fornecedor: formData.fornecedor || undefined,
         observacoes: formData.observacoes || undefined,
         observacao: formData.observacoes || undefined,
-        anexo: comprovanteAnexo || null
+        anexo: anexoUrl
       }
-
-      console.log("Despesa atualizada antes de salvar:", despesaAtualizada)
-      console.log("Comprovante anexo:", comprovanteAnexo)
 
       // Atualizar no Supabase
       const { updateDespesaSupabase } = await import("@/lib/storage")
@@ -450,7 +464,10 @@ export default function EditarDespesaPage() {
               accept="image/jpeg,image/png,application/pdf"
               maxSize={10}
               value={comprovanteAnexo}
-              onChange={(file, preview) => setComprovanteAnexo(preview)}
+              onChange={(file, preview) => {
+                setComprovanteFile(file)
+                setComprovanteAnexo(preview)
+              }}
             />
 
             {/* Observações */}
