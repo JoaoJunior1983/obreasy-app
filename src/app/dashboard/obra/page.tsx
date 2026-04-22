@@ -2009,7 +2009,7 @@ export default function DashboardObraPage() {
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#13151a]/95 backdrop-blur-md border-t border-white/[0.08] shadow-[0_-4px_20px_rgba(0,0,0,0.4)]">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-2 justify-center">
           <button
-            onClick={() => router.push("/dashboard/despesas/nova")}
+            onClick={() => router.push("/dashboard/despesas")}
             className="flex-1 flex flex-col items-center justify-center gap-0.5 h-12 sm:flex-row sm:gap-1.5 sm:h-10 bg-[#2a2d35] hover:bg-white/[0.13] active:scale-95 text-gray-300 text-[9px] sm:text-xs font-medium rounded-lg border border-white/[0.08] transition-all duration-150"
           >
             <Wallet className="w-3.5 h-3.5 flex-shrink-0" />
