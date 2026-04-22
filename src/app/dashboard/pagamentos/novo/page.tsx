@@ -13,6 +13,7 @@ import { type BudgetAlert } from "@/lib/budget-alerts"
 import { avisoAposCriarPagamento } from "@/lib/alert-manager"
 import { getDataHoje } from "@/lib/utils"
 import { toast } from "sonner"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const FORMAS_PAGAMENTO = ["Pix", "Dinheiro", "Cartão", "Boleto", "Transferência"]
 
@@ -358,24 +359,37 @@ export default function NovoPagamentoPage() {
                 {/* Profissional */}
                 <div className="px-3 pt-3 pb-2.5 border-b border-white/[0.06]">
                   <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wide mb-1.5">Profissional *</p>
-                  <div className="relative overflow-hidden rounded-lg border border-white/[0.08] bg-[#2a2d35]">
-                    <select
-                      value={formData.profissionalId}
-                      onChange={(e) => {
-                        if (e.target.value === "__new__") router.push("/dashboard/profissionais/novo")
-                        else setFormData({ ...formData, profissionalId: e.target.value })
-                      }}
-                      required
-                      className="w-full h-10 px-3 bg-[#2a2d35] text-sm text-white focus:outline-none appearance-none"
-                      style={{ WebkitAppearance: 'none', colorScheme: 'dark' }}
-                    >
-                      <option value="">Selecione um profissional</option>
+                  <Select
+                    value={formData.profissionalId}
+                    onValueChange={(value) => {
+                      if (value === "__new__") {
+                        router.push("/dashboard/profissionais/novo")
+                        return
+                      }
+                      setFormData({ ...formData, profissionalId: value })
+                    }}
+                  >
+                    <SelectTrigger className="h-10 w-full bg-[#1E293B] border border-[#334155] text-[#F8FAFC] rounded-lg hover:bg-[#243552] focus:border-[#3B82F6] focus:ring-1 transition-colors [&>span]:text-[#F8FAFC] [&>svg]:text-[#94A3B8]">
+                      <SelectValue placeholder="Selecione um profissional" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#0F172A] border border-[#334155] rounded-[10px]">
                       {profissionais.map(p => (
-                        <option key={p.id} value={p.id}>{p.nome} — {p.funcao}</option>
+                        <SelectItem
+                          key={p.id}
+                          value={p.id}
+                          className="text-[#E5E7EB] focus:bg-[#2563EB] focus:text-white data-[state=checked]:bg-[#2563EB] data-[state=checked]:text-white cursor-pointer"
+                        >
+                          {p.nome} — {p.funcao}
+                        </SelectItem>
                       ))}
-                      <option value="__new__">+ Cadastrar novo profissional</option>
-                    </select>
-                  </div>
+                      <SelectItem
+                        value="__new__"
+                        className="text-[#7eaaee] focus:bg-[#2563EB] focus:text-white cursor-pointer border-t border-white/10 mt-1"
+                      >
+                        + Cadastrar novo profissional
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Valor */}
@@ -414,16 +428,25 @@ export default function NovoPagamentoPage() {
                 {/* Forma de pagamento */}
                 <div className="px-3 pt-2.5 pb-2.5 border-b border-white/[0.06]">
                   <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wide mb-1.5">Forma de Pagamento</p>
-                  <div className="relative overflow-hidden rounded-lg border border-white/[0.08] bg-[#2a2d35]">
-                    <select
-                      value={formData.formaPagamento}
-                      onChange={(e) => setFormData({ ...formData, formaPagamento: e.target.value })}
-                      className="w-full h-10 px-3 bg-[#2a2d35] text-sm text-white focus:outline-none appearance-none"
-                      style={{ WebkitAppearance: 'none', colorScheme: 'dark' }}
-                    >
-                      {FORMAS_PAGAMENTO.map(f => <option key={f} value={f}>{f}</option>)}
-                    </select>
-                  </div>
+                  <Select
+                    value={formData.formaPagamento}
+                    onValueChange={(value) => setFormData({ ...formData, formaPagamento: value })}
+                  >
+                    <SelectTrigger className="h-10 w-full bg-[#1E293B] border border-[#334155] text-[#F8FAFC] rounded-lg hover:bg-[#243552] focus:border-[#3B82F6] focus:ring-1 transition-colors [&>span]:text-[#F8FAFC] [&>svg]:text-[#94A3B8]">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#0F172A] border border-[#334155] rounded-[10px]">
+                      {FORMAS_PAGAMENTO.map(f => (
+                        <SelectItem
+                          key={f}
+                          value={f}
+                          className="text-[#E5E7EB] focus:bg-[#2563EB] focus:text-white data-[state=checked]:bg-[#2563EB] data-[state=checked]:text-white cursor-pointer"
+                        >
+                          {f}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Comprovante */}
