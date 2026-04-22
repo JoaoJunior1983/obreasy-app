@@ -6,7 +6,7 @@ import { Eye, Pencil, Trash2, FileText, Search, ArrowUpDown, ArrowUp, ArrowDown,
 import { goToObraDashboard } from "@/lib/navigation"
 import { toast } from "sonner"
 import { deleteDespesa } from "@/lib/storage"
-import { getAllCategorias, getCategoriaLabel } from "@/lib/despesa-categorias"
+import { getAllCategorias, getCategoriaLabel, getCategoriaColor } from "@/lib/despesa-categorias"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface Despesa {
@@ -405,52 +405,50 @@ function DespesasPageContent() {
 
           {/* Cabeçalho da lista: tabs + ordenação + busca */}
           <div className="px-3 pt-3 pb-2 border-b border-white/[0.08] space-y-2">
-            <div className="flex items-center justify-between">
-              {/* Tabs de tipo */}
-              <div className="flex gap-1">
-                {(["todos", "material", "maoobra"] as const).map((tipo) => (
-                  <button
-                    key={tipo}
-                    onClick={() => setTipoFiltro(tipo)}
-                    className={`px-2.5 py-1 text-xs rounded-md font-medium transition-all ${
-                      tipoFiltro === tipo
-                        ? tipo === "material"
-                          ? "bg-[#0B3064] text-white"
-                          : tipo === "maoobra"
-                          ? "bg-orange-600 text-white"
-                          : "bg-slate-600 text-white"
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    {tipo === "todos" ? "Todos" : tipo === "material" ? "Material" : "Mão de Obra"}
-                  </button>
-                ))}
-              </div>
-              {/* Ordenação compacta */}
-              <div className="flex items-center gap-0.5">
+            {/* Tabs de tipo — grid de 3 colunas, centralizadas, sem corte em mobile */}
+            <div className="grid grid-cols-3 gap-1">
+              {(["todos", "material", "maoobra"] as const).map((tipo) => (
                 <button
-                  onClick={() => toggleSort("data")}
-                  className={`flex items-center gap-0.5 px-2 py-1 text-[10px] rounded transition-all ${
-                    sortBy === "data" ? "text-[#7eaaee]" : "text-gray-500 hover:text-gray-300"
+                  key={tipo}
+                  onClick={() => setTipoFiltro(tipo)}
+                  className={`flex items-center justify-center px-2 py-1.5 text-xs rounded-md font-medium transition-all whitespace-nowrap ${
+                    tipoFiltro === tipo
+                      ? tipo === "material"
+                        ? "bg-[#0B3064] text-white"
+                        : tipo === "maoobra"
+                        ? "bg-orange-600 text-white"
+                        : "bg-slate-600 text-white"
+                      : "text-gray-400 hover:text-white"
                   }`}
                 >
-                  Data
-                  {sortBy === "data"
-                    ? sortOrder === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
-                    : <ArrowUpDown className="w-3 h-3" />}
+                  {tipo === "todos" ? "Todos" : tipo === "material" ? "Material" : "Mão de Obra"}
                 </button>
-                <button
-                  onClick={() => toggleSort("valor")}
-                  className={`flex items-center gap-0.5 px-2 py-1 text-[10px] rounded transition-all ${
-                    sortBy === "valor" ? "text-[#7eaaee]" : "text-gray-500 hover:text-gray-300"
-                  }`}
-                >
-                  Valor
-                  {sortBy === "valor"
-                    ? sortOrder === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
-                    : <ArrowUpDown className="w-3 h-3" />}
-                </button>
-              </div>
+              ))}
+            </div>
+            {/* Ordenação centralizada */}
+            <div className="flex items-center justify-center gap-1">
+              <button
+                onClick={() => toggleSort("data")}
+                className={`flex items-center gap-1 px-2.5 py-1 text-[11px] rounded transition-all ${
+                  sortBy === "data" ? "text-[#7eaaee]" : "text-gray-500 hover:text-gray-300"
+                }`}
+              >
+                Data
+                {sortBy === "data"
+                  ? sortOrder === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                  : <ArrowUpDown className="w-3 h-3" />}
+              </button>
+              <button
+                onClick={() => toggleSort("valor")}
+                className={`flex items-center gap-1 px-2.5 py-1 text-[11px] rounded transition-all ${
+                  sortBy === "valor" ? "text-[#7eaaee]" : "text-gray-500 hover:text-gray-300"
+                }`}
+              >
+                Valor
+                {sortBy === "valor"
+                  ? sortOrder === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                  : <ArrowUpDown className="w-3 h-3" />}
+              </button>
             </div>
             {/* Busca compacta */}
             <div className="relative">
@@ -510,15 +508,17 @@ function DespesasPageContent() {
                   ? (despesa.descricao || 'Pagamento')
                   : (catRaw && catRaw !== 'mao_obra' ? getCategoriaLabel(catRaw) : (isMao ? 'Mão de obra' : 'Despesa'))
                 const descricaoSecundaria = !isPagamento && despesa.descricao ? despesa.descricao : ''
+                const colorKey = isPagamento || isMao ? 'mao_obra' : catRaw
+                const cor = getCategoriaColor(colorKey)
 
                 return (
                   <div key={despesa.id} className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-white/[0.04] transition-colors">
                     {/* Indicador de categoria */}
-                    <span className={`w-1 h-7 rounded-full flex-shrink-0 ${isMao ? "bg-orange-500" : "bg-blue-500"}`} />
+                    <span className={`w-1 h-7 rounded-full flex-shrink-0 ${cor.bar}`} />
 
                     {/* Categoria + meta */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white font-medium truncate leading-tight">
+                      <p className={`text-sm font-medium truncate leading-tight ${cor.text}`}>
                         {labelPrincipal}
                       </p>
                       <p className="text-[10px] text-gray-500 leading-tight truncate">

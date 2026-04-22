@@ -88,3 +88,35 @@ export function getCategoriaLabel(value: string | undefined | null): string {
     .replace(/_/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase())
 }
+
+export interface CategoriaColor {
+  bar: string
+  text: string
+  dot: string
+}
+
+export const CATEGORIA_COLORS: Record<string, CategoriaColor> = {
+  material:     { bar: "bg-blue-500",    text: "text-blue-400",    dot: "bg-blue-500" },
+  mao_obra:     { bar: "bg-orange-500",  text: "text-orange-400",  dot: "bg-orange-500" },
+  licencas:     { bar: "bg-amber-500",   text: "text-amber-400",   dot: "bg-amber-500" },
+  ferramentas:  { bar: "bg-slate-400",   text: "text-slate-300",   dot: "bg-slate-400" },
+  transporte:   { bar: "bg-cyan-500",    text: "text-cyan-400",    dot: "bg-cyan-500" },
+  alimentacao:  { bar: "bg-pink-500",    text: "text-pink-400",    dot: "bg-pink-500" },
+  limpeza:      { bar: "bg-teal-500",    text: "text-teal-400",    dot: "bg-teal-500" },
+  seguranca:    { bar: "bg-red-500",     text: "text-red-400",     dot: "bg-red-500" },
+  energia_agua: { bar: "bg-sky-500",     text: "text-sky-400",     dot: "bg-sky-500" },
+  aluguel:      { bar: "bg-indigo-500",  text: "text-indigo-400",  dot: "bg-indigo-500" },
+  projetos:     { bar: "bg-violet-500",  text: "text-violet-400",  dot: "bg-violet-500" },
+  outros:       { bar: "bg-purple-500",  text: "text-purple-400",  dot: "bg-purple-500" },
+}
+
+const FALLBACK_CATEGORIA_COLOR: CategoriaColor = {
+  bar: "bg-purple-500",
+  text: "text-purple-400",
+  dot: "bg-purple-500",
+}
+
+export function getCategoriaColor(value: string | null | undefined): CategoriaColor {
+  if (!value) return FALLBACK_CATEGORIA_COLOR
+  return CATEGORIA_COLORS[value] ?? FALLBACK_CATEGORIA_COLOR
+}
