@@ -1,5 +1,5 @@
 // Service Worker para OBREASY PWA
-const CACHE_NAME = 'obreasy-v2';
+const CACHE_NAME = 'obreasy-v3';
 const urlsToCache = [
   '/',
   '/dashboard',
@@ -39,30 +39,43 @@ self.addEventListener('activate', (event) => {
 });
 
 // Estratégia de cache: Network First, fallback to Cache
+// IMPORTANTE: só intercepta GETs de mesma origem. Qualquer outra
+// requisição (POST para Supabase Auth, chamadas cross-origin, etc.)
+// é deixada passar direto — caso contrário, respondWith pode retornar
+// null e quebrar fluxos críticos (ex.: criação de conta).
 self.addEventListener('fetch', (event) => {
+  const request = event.request;
+
+  if (request.method !== 'GET') return;
+
+  let url;
+  try {
+    url = new URL(request.url);
+  } catch {
+    return;
+  }
+
+  if (url.origin !== self.location.origin) return;
+
   event.respondWith(
-    fetch(event.request)
+    fetch(request)
       .then((response) => {
-        // Se a requisição for bem-sucedida, clona e armazena em cache
-        if (response.status === 200) {
+        if (response && response.status === 200) {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
+            cache.put(request, responseClone);
+          }).catch(() => {});
         }
         return response;
       })
-      .catch(() => {
-        // Se falhar, tenta buscar do cache
-        return caches.match(event.request).then((response) => {
-          if (response) {
-            return response;
-          }
-          // Se não houver cache, retorna página offline
-          if (event.request.mode === 'navigate') {
-            return caches.match('/offline.html');
-          }
-        });
+      .catch(async () => {
+        const cached = await caches.match(request);
+        if (cached) return cached;
+        if (request.mode === 'navigate') {
+          const offline = await caches.match('/offline.html');
+          if (offline) return offline;
+        }
+        return new Response('', { status: 504, statusText: 'Gateway Timeout' });
       })
   );
 });
