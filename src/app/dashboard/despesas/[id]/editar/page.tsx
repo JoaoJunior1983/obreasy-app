@@ -387,40 +387,6 @@ export default function EditarDespesaPage() {
                     </SelectItem>
                   </SelectContent>
                 </Select>
-                {showNovaCategoria && (
-                  <div className="flex gap-1.5 mt-1.5">
-                    <Input
-                      autoFocus
-                      placeholder="Nome da categoria"
-                      value={novaCategoriaLabel}
-                      onChange={(e) => setNovaCategoriaLabel(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault()
-                          handleCriarCategoria()
-                        }
-                      }}
-                      className="h-8 text-xs bg-[#1E293B] border border-[#334155] text-[#F8FAFC] rounded-lg"
-                    />
-                    <Button
-                      type="button"
-                      onClick={handleCriarCategoria}
-                      className="h-8 px-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
-                    >
-                      Criar
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={() => {
-                        setShowNovaCategoria(false)
-                        setNovaCategoriaLabel("")
-                      }}
-                      className="h-8 px-2 text-xs bg-[#2a2d35] hover:bg-white/[0.13] text-gray-300 border border-white/[0.1] rounded-lg"
-                    >
-                      Cancelar
-                    </Button>
-                  </div>
-                )}
               </div>
               <div className="shrink-0 w-6" />
               <div className="space-y-1 flex-1">
@@ -442,6 +408,41 @@ export default function EditarDespesaPage() {
                 </Select>
               </div>
             </div>
+
+            {showNovaCategoria && (
+              <div className="flex items-center gap-1.5">
+                <Input
+                  autoFocus
+                  placeholder="Nome da nova categoria"
+                  value={novaCategoriaLabel}
+                  onChange={(e) => setNovaCategoriaLabel(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault()
+                      handleCriarCategoria()
+                    }
+                  }}
+                  className="flex-1 h-9 text-sm bg-[#1E293B] border border-[#334155] text-[#F8FAFC] placeholder:text-[#64748B] rounded-lg"
+                />
+                <Button
+                  type="button"
+                  onClick={handleCriarCategoria}
+                  className="h-9 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg shrink-0"
+                >
+                  Criar
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setShowNovaCategoria(false)
+                    setNovaCategoriaLabel("")
+                  }}
+                  className="h-9 px-3 text-xs bg-[#2a2d35] hover:bg-white/[0.13] text-gray-300 border border-white/[0.1] rounded-lg shrink-0"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            )}
 
             {/* Fornecedor */}
             <div className="space-y-1">
