@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { Save, X, Calendar, DollarSign, FileText, CreditCard, User, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -55,6 +55,7 @@ export default function EditarDespesaPage() {
   const [valorFormatado, setValorFormatado] = useState("")
   const [comprovanteAnexo, setComprovanteAnexo] = useState<string | null>(null)
   const [comprovanteFile, setComprovanteFile] = useState<File | null>(null)
+  const isSubmittingRef = useRef(false)
   const [budgetAlert, setBudgetAlert] = useState<BudgetAlert | null>(null)
   const [despesaPendente, setDespesaPendente] = useState<any>(null)
   const [obraId, setObraId] = useState("")
@@ -163,6 +164,8 @@ export default function EditarDespesaPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (isSubmittingRef.current) return
+    isSubmittingRef.current = true
     setLoading(true)
 
     try {
@@ -237,11 +240,15 @@ export default function EditarDespesaPage() {
       console.error("Erro ao atualizar despesa:", error)
       toast.error("Erro ao atualizar despesa. Tente novamente.")
       setLoading(false)
+    } finally {
+      isSubmittingRef.current = false
     }
   }
 
   const handleConfirmarDespesa = async () => {
     if (!despesaPendente) return
+    if (isSubmittingRef.current) return
+    isSubmittingRef.current = true
 
     try {
       // Obter usuário autenticado
@@ -275,6 +282,8 @@ export default function EditarDespesaPage() {
     } catch (error) {
       console.error("Erro ao confirmar despesa:", error)
       toast.error("Erro ao atualizar despesa")
+    } finally {
+      isSubmittingRef.current = false
     }
   }
 
