@@ -64,6 +64,7 @@ export default function ProfissionaisPage() {
   const [contratoUrl, setContratoUrl] = useState<string | null>(null)
   const [ultimosPagamentos, setUltimosPagamentos] = useState<Record<string, { valor: number; data: string; criadoEm: string } | null>>({})
   const [totalPagoPorProfissional, setTotalPagoPorProfissional] = useState<Record<string, number>>({})
+  const [obsAberta, setObsAberta] = useState<Profissional | null>(null)
 
   const carregarProfissionais = async () => {
     try {
@@ -384,23 +385,21 @@ export default function ProfissionaisPage() {
                       <Users className="w-3.5 h-3.5 text-[#7eaaee]" />
                     </div>
                     <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-sm font-bold text-white truncate">{profissional.nome}</p>
-                        {profissional.observacoes && profissional.observacoes.trim() !== "" && (
-                          <span
-                            title={profissional.observacoes}
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              router.push(`/dashboard/profissionais/${profissional.id}?edit=true`)
-                            }}
-                            className="inline-flex items-center justify-center w-4 h-4 bg-amber-500/15 border border-amber-500/40 rounded-full cursor-pointer flex-shrink-0"
-                            aria-label="Possui observação"
-                          >
-                            <MessageSquare className="w-2.5 h-2.5 text-amber-400" />
-                          </span>
-                        )}
-                      </div>
+                      <p className="text-sm font-bold text-white truncate">{profissional.nome}</p>
                       <p className="text-[10px] text-gray-500">{profissional.funcao}{profissional.telefone ? ` · ${profissional.telefone}` : ""}</p>
+                      {profissional.observacoes && profissional.observacoes.trim() !== "" && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setObsAberta(profissional)
+                          }}
+                          className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 bg-amber-500/15 border border-amber-500/30 text-amber-300 hover:bg-amber-500/25 text-[10px] font-medium rounded-md transition-colors"
+                          aria-label="Ver observação"
+                        >
+                          <MessageSquare className="w-3 h-3" />
+                          Ver observação
+                        </button>
+                      )}
                     </div>
                   </div>
                   {(profissional.contrato as any)?.anexo && (
@@ -543,6 +542,52 @@ export default function ProfissionaisPage() {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal observação do profissional */}
+      {obsAberta && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+          onClick={() => setObsAberta(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md bg-[#1f2228] border border-white/[0.08] rounded-xl shadow-2xl"
+          >
+            <div className="flex items-start justify-between px-4 pt-4 pb-3 border-b border-white/[0.08]">
+              <div className="min-w-0">
+                <p className="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">Observação</p>
+                <p className="text-sm font-bold text-white truncate">{obsAberta.nome}</p>
+              </div>
+              <button
+                onClick={() => setObsAberta(null)}
+                className="text-gray-400 hover:text-white flex-shrink-0"
+                aria-label="Fechar"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="px-4 py-4 max-h-[60vh] overflow-y-auto">
+              <p className="text-sm text-gray-200 whitespace-pre-wrap leading-relaxed">
+                {obsAberta.observacoes}
+              </p>
+            </div>
+            <div className="flex gap-2 px-4 pb-4">
+              <button
+                onClick={() => router.push(`/dashboard/profissionais/${obsAberta.id}?edit=true`)}
+                className="flex-1 h-9 bg-[#0B3064] hover:bg-[#082551] text-white text-xs font-medium rounded-lg transition-colors"
+              >
+                Editar
+              </button>
+              <button
+                onClick={() => setObsAberta(null)}
+                className="flex-1 h-9 bg-[#2a2d35] hover:bg-white/[0.13] text-gray-300 text-xs font-medium rounded-lg border border-white/[0.08] transition-colors"
+              >
+                Fechar
+              </button>
             </div>
           </div>
         </div>
