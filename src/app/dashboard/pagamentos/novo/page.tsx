@@ -54,6 +54,7 @@ export default function NovoPagamentoPage() {
   const [budgetAlert, setBudgetAlert] = useState<BudgetAlert | null>(null)
   const [pagamentoPendente, setPagamentoPendente] = useState<any>(null)
   const preCheckRef = useRef({ totalPagoProfAntes: 0, totalGastoObraAntes: 0, obraOrcamento: 0 })
+  const isSubmittingRef = useRef(false)
   const [loadingDados, setLoadingDados] = useState(true)
   const [uuidError, setUuidError] = useState<string | null>(null)
 
@@ -122,6 +123,8 @@ export default function NovoPagamentoPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (isSubmittingRef.current) return
+    isSubmittingRef.current = true
     setLoading(true)
     setUuidError(null)
 
@@ -227,11 +230,15 @@ export default function NovoPagamentoPage() {
     } catch (error) {
       toast.error("Erro ao salvar pagamento. Tente novamente.")
       setLoading(false)
+    } finally {
+      isSubmittingRef.current = false
     }
   }
 
   const handleConfirmarPagamento = async () => {
     if (!pagamentoPendente) return
+    if (isSubmittingRef.current) return
+    isSubmittingRef.current = true
     try {
       setLoading(true)
       setUuidError(null)
@@ -269,6 +276,8 @@ export default function NovoPagamentoPage() {
     } catch {
       toast.error("Erro ao salvar pagamento. Tente novamente.")
       setLoading(false)
+    } finally {
+      isSubmittingRef.current = false
     }
   }
 

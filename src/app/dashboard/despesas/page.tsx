@@ -505,23 +505,25 @@ function DespesasPageContent() {
                   ? new Date(despesa.data + (despesa.data.length === 10 ? 'T00:00:00' : '')).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
                   : '-'
 
+                const catRaw = String(despesa.category || despesa.categoria || despesa.tipo || "")
+                const labelPrincipal = isPagamento
+                  ? (despesa.descricao || 'Pagamento')
+                  : (catRaw && catRaw !== 'mao_obra' ? getCategoriaLabel(catRaw) : (isMao ? 'Mão de obra' : 'Despesa'))
+                const descricaoSecundaria = !isPagamento && despesa.descricao ? despesa.descricao : ''
+
                 return (
                   <div key={despesa.id} className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-white/[0.04] transition-colors">
                     {/* Indicador de categoria */}
                     <span className={`w-1 h-7 rounded-full flex-shrink-0 ${isMao ? "bg-orange-500" : "bg-blue-500"}`} />
 
-                    {/* Descrição + meta */}
+                    {/* Categoria + meta */}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-white font-medium truncate leading-tight">
-                        {despesa.descricao || 'Sem descrição'}
+                        {labelPrincipal}
                       </p>
                       <p className="text-[10px] text-gray-500 leading-tight truncate">
                         {dataFormatada}
-                        {(() => {
-                          const cat = despesa.category || despesa.categoria || despesa.tipo || ""
-                          if (!cat || cat === "mao_obra") return null
-                          return ` · ${getCategoriaLabel(cat)}`
-                        })()}
+                        {descricaoSecundaria ? ` · ${descricaoSecundaria}` : ""}
                         {despesa.fornecedor ? ` · ${despesa.fornecedor}` : ""}
                       </p>
                     </div>

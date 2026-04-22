@@ -70,6 +70,7 @@ export default function NovaDespesaPage() {
   const [budgetAlert, setBudgetAlert] = useState<BudgetAlert | null>(null)
   const [despesaPendente, setDespesaPendente] = useState<any>(null)
   const preCheckRef = useRef({ totalGastoObraAntes: 0, obraOrcamento: 0 })
+  const isSubmittingRef = useRef(false)
   
   const [formData, setFormData] = useState({
     data: getDataHoje(),
@@ -154,6 +155,8 @@ export default function NovaDespesaPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (isSubmittingRef.current) return
+    isSubmittingRef.current = true
     setLoading(true)
 
     try {
@@ -290,11 +293,15 @@ export default function NovaDespesaPage() {
       console.error("Erro ao salvar despesa:", error)
       toast.error("Erro ao salvar despesa. Tente novamente.")
       setLoading(false)
+    } finally {
+      isSubmittingRef.current = false
     }
   }
 
   const handleConfirmarDespesa = async () => {
     if (!despesaPendente) return
+    if (isSubmittingRef.current) return
+    isSubmittingRef.current = true
 
     try {
       // Verificar autenticação
@@ -352,6 +359,8 @@ export default function NovaDespesaPage() {
     } catch (error) {
       console.error("Erro ao confirmar despesa:", error)
       toast.error("Erro ao salvar despesa. Tente novamente.")
+    } finally {
+      isSubmittingRef.current = false
     }
   }
 
