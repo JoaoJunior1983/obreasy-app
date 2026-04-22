@@ -8,6 +8,7 @@ import {
   getGracePeriodStatus,
   type GracePeriodStatus,
 } from "@/lib/guru-plans"
+import { isAdminEmail } from "@/lib/admin"
 
 type BannerState =
   | { type: "none" }
@@ -28,6 +29,13 @@ export default function TrialBanner() {
         const { supabase } = await import("@/lib/supabase")
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
+
+        // Admins (equipe Obreasy/Lasy) têm acesso full, sem bloqueio de trial/pagamento
+        if (isAdminEmail(user.email)) {
+          localStorage.removeItem("trialExpiraEm")
+          setState({ type: "none" })
+          return
+        }
 
         const { data } = await supabase
           .from("user_profiles")

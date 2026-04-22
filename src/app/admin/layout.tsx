@@ -4,8 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import { LayoutDashboard, Users, Gift, LogOut, Shield, Menu, X, DollarSign, FileText } from "lucide-react"
-
-const ADMIN_EMAILS = ["cleyton@lasy.ai", "joaojrsilva@hotmail.com", "giovanni@lasy.ai"]
+import { ADMIN_EMAILS, isAdminEmail } from "@/lib/admin"
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -25,7 +24,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     ;(async () => {
       const { supabase } = await import("@/lib/supabase")
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user || !ADMIN_EMAILS.includes(user.email ?? "")) {
+      if (!user || !isAdminEmail(user.email)) {
         router.replace("/login")
         return
       }
