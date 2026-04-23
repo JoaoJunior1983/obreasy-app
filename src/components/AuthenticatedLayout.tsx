@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import Header from "./Header"
 import TrialBanner from "./custom/TrialBanner"
+import { cleanupLocalStorageBase64 } from "@/lib/cleanup-local-storage"
 
 interface AuthenticatedLayoutProps {
   children: React.ReactNode
@@ -18,6 +19,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
 
   useEffect(() => {
     setMounted(true)
+    cleanupLocalStorageBase64()
   }, [])
 
   useEffect(() => {
