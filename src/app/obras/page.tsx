@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getObrasDoUsuario, setActiveObraId, calcularMetricasObra, calcularMetricasObraFromSupabase, deleteObraCascade, getUserProfile, getClientesSupabase, type Obra, type UserProfile, type Cliente } from "@/lib/storage"
+import { getObrasDoUsuario, setActiveObraId, calcularMetricasObra, deleteObraCascade, getUserProfile, getClientesSupabase, type Obra, type UserProfile, type Cliente } from "@/lib/storage"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
 
@@ -145,81 +145,76 @@ export default function ObrasPage() {
         setObras(obrasOrdenadas as any)
         setLoading(false)
 
-        // Carregar métricas financeiras e mão de obra de cada obra
+        // Carregar métricas financeiras e mão de obra — TODAS as obras de uma vez.
+        // Antes havia N+1 queries (1 calcularMetricas + 4 queries filtradas por obra_id, por obra).
+        // Agora: 4 queries globais filtradas só por user_id e agregamos em memória.
         setLoadingMetricas(true)
-        const metricasPromises = obrasOrdenadas.map(async (obra: any) => {
-          const metricas = await calcularMetricasObraFromSupabase(obra.id)
+        try {
+          const [despesasRes, pagamentosRes, recebimentosRes, clientesRes] = await Promise.all([
+            supabase.from("despesas").select("obra_id, valor, categoria, profissional_id").eq("user_id", user.id),
+            supabase.from("pagamentos").select("obra_id, valor").eq("user_id", user.id),
+            supabase.from("recebimentos").select("obra_id, valor").eq("user_id", user.id),
+            supabase.from("clientes").select("obra_id, contrato_valor").eq("user_id", user.id),
+          ])
 
-          // Calcular mão de obra incluindo pagamentos do Supabase
-          let maoObraTotal = 0
-          let totalRecebidoObra = 0
-          let totalContratoObra = 0
-          let materiaisTotal = 0
-          try {
-            const { supabase } = await import("@/lib/supabase")
+          const despesasList = (despesasRes.data || []) as any[]
+          const pagamentosList = (pagamentosRes.data || []) as any[]
+          const recebimentosList = (recebimentosRes.data || []) as any[]
+          const clientesList = (clientesRes.data || []) as any[]
 
-            // Despesas de mão de obra do localStorage
-            // Excluir itens com profissionalId (são cópias dos pagamentos — já somados abaixo)
-            const despesas = JSON.parse(localStorage.getItem("despesas") || "[]")
-            const maoObraDespesas = despesas
-              .filter((d: any) => {
-                if (d.obraId !== obra.id) return false
-                if (d.profissionalId) return false
-                const category = String(d.category ?? d.categoria ?? d.tipo ?? "").toLowerCase()
-                return category === "mao_obra" || category === "mão de obra"
-              })
-              .reduce((acc: number, d: any) => acc + (d.valor ?? 0), 0)
+          const metricasMap: Record<string, any> = {}
+          const maoObraMap: Record<string, number> = {}
+          const recebimentosMap: Record<string, { totalRecebido: number; totalContrato: number }> = {}
+          const materiaisMap: Record<string, number> = {}
 
-            // Pagamentos aos profissionais do Supabase
-            const { data: { user } } = await supabase.auth.getUser()
-            let pagamentosTotal = 0
-            if (user) {
-              const [pagamentosRes, recebimentosRes, clientesRes, despesasRes] = await Promise.all([
-                supabase.from("pagamentos").select("valor").eq("obra_id", obra.id).eq("user_id", user.id),
-                supabase.from("recebimentos").select("valor").eq("obra_id", obra.id).eq("user_id", user.id),
-                supabase.from("clientes").select("contrato_valor").eq("obra_id", obra.id).eq("user_id", user.id),
-                supabase.from("despesas").select("valor, categoria").eq("obra_id", obra.id).eq("user_id", user.id),
-              ])
+          for (const obra of obrasOrdenadas) {
+            const despesasObra = despesasList.filter(d => d.obra_id === obra.id)
+            const pagamentosObra = pagamentosList.filter(p => p.obra_id === obra.id)
+            const recebimentosObra = recebimentosList.filter(r => r.obra_id === obra.id)
+            const clientesObra = clientesList.filter(c => c.obra_id === obra.id)
 
-              if (pagamentosRes.data && pagamentosRes.data.length > 0) {
-                pagamentosTotal = pagamentosRes.data.reduce((acc: number, p: any) => acc + (parseFloat(p.valor) || 0), 0)
-              }
-              if (recebimentosRes.data) {
-                totalRecebidoObra = recebimentosRes.data.reduce((acc: number, r: any) => acc + (parseFloat(r.valor) || 0), 0)
-              }
-              if (clientesRes.data) {
-                totalContratoObra = clientesRes.data.reduce((acc: number, c: any) => acc + (parseFloat(c.contrato_valor) || 0), 0)
-              }
-              if (despesasRes.data) {
-                materiaisTotal = despesasRes.data
-                  .filter((d: any) => d.categoria !== "mao_obra")
-                  .reduce((acc: number, d: any) => acc + (parseFloat(d.valor) || 0), 0)
-              }
+            // Mão de obra: despesas com categoria "mao_obra" (sem profissional_id) + todos os pagamentos
+            const maoObraDespesas = despesasObra
+              .filter(d => !d.profissional_id && String(d.categoria || "").toLowerCase() === "mao_obra")
+              .reduce((acc, d) => acc + (parseFloat(d.valor) || 0), 0)
+            const pagamentosTotal = pagamentosObra.reduce((acc, p) => acc + (parseFloat(p.valor) || 0), 0)
+            const maoObraTotal = maoObraDespesas + pagamentosTotal
+
+            // Materiais: despesas com categoria ≠ mao_obra
+            const materiaisTotal = despesasObra
+              .filter(d => String(d.categoria || "").toLowerCase() !== "mao_obra")
+              .reduce((acc, d) => acc + (parseFloat(d.valor) || 0), 0)
+
+            const totalRecebidoObra = recebimentosObra.reduce((acc, r) => acc + (parseFloat(r.valor) || 0), 0)
+            const totalContratoObra = clientesObra.reduce((acc, c) => acc + (parseFloat(c.contrato_valor) || 0), 0)
+
+            // Métricas no mesmo formato que calcularMetricasObraFromSupabase retornava
+            const despesasNaoProf = despesasObra
+              .filter(d => !d.profissional_id)
+              .reduce((acc, d) => acc + (parseFloat(d.valor) || 0), 0)
+            const totalGasto = despesasNaoProf + pagamentosTotal
+            const orcamentoEstimado = (obra as any).orcamento || 0
+            const areaM2 = (obra as any).area || 0
+
+            metricasMap[obra.id] = {
+              orcamentoEstimado,
+              totalGasto,
+              saldoDisponivel: orcamentoEstimado - totalGasto,
+              custoPorM2: areaM2 > 0 ? totalGasto / areaM2 : 0,
+              areaM2,
             }
-
-            maoObraTotal = maoObraDespesas + pagamentosTotal
-          } catch (error) {
-            console.error("Erro ao calcular mão de obra:", error)
+            maoObraMap[obra.id] = maoObraTotal
+            recebimentosMap[obra.id] = { totalRecebido: totalRecebidoObra, totalContrato: totalContratoObra }
+            materiaisMap[obra.id] = materiaisTotal
           }
 
-          return { obraId: obra.id, metricas, maoObra: maoObraTotal, totalRecebidoObra, totalContratoObra, materiais: materiaisTotal }
-        })
-
-        const metricasResults = await Promise.all(metricasPromises)
-        const metricasMap: Record<string, any> = {}
-        const maoObraMap: Record<string, number> = {}
-        const recebimentosMap: Record<string, { totalRecebido: number; totalContrato: number }> = {}
-        const materiaisMap: Record<string, number> = {}
-        metricasResults.forEach(({ obraId, metricas, maoObra, totalRecebidoObra, totalContratoObra, materiais }: any) => {
-          metricasMap[obraId] = metricas
-          maoObraMap[obraId] = maoObra
-          recebimentosMap[obraId] = { totalRecebido: totalRecebidoObra, totalContrato: totalContratoObra }
-          materiaisMap[obraId] = materiais ?? 0
-        })
-        setMetricasObras(metricasMap)
-        setMaoObraObras(maoObraMap)
-        setRecebimentosObras(recebimentosMap)
-        setMateriaisObras(materiaisMap)
+          setMetricasObras(metricasMap)
+          setMaoObraObras(maoObraMap)
+          setRecebimentosObras(recebimentosMap)
+          setMateriaisObras(materiaisMap)
+        } catch (err) {
+          console.error("Erro ao carregar métricas das obras:", err)
+        }
         setLoadingMetricas(false)
       } catch (error) {
         console.error("Erro ao carregar obras:", error)
