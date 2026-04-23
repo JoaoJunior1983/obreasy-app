@@ -308,10 +308,10 @@ export default function ObrasPage() {
     router.push(`/dashboard/obras/${obraId}/relatorio`)
   }
 
-  const handleVerDespesas = (e: React.MouseEvent, obraId: string) => {
+  const handleNovaDespesa = (e: React.MouseEvent, obraId: string) => {
     e.stopPropagation()
     setActiveObraId(obraId)
-    router.push("/dashboard/despesas")
+    router.push("/dashboard/despesas/nova")
   }
 
   const handleNovoPagamento = (e: React.MouseEvent, obraId: string) => {
@@ -1007,9 +1007,9 @@ export default function ObrasPage() {
                   <div className="grid grid-cols-4 gap-1 pt-1">
                     <Button
                       className="flex-1 flex-col gap-0.5 bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-gray-300 text-[9px] px-0 h-10 sm:h-9 sm:flex-row sm:gap-1 sm:text-xs sm:px-2"
-                      onClick={(e) => handleVerDespesas(e, obra.id)}
+                      onClick={(e) => handleNovaDespesa(e, obra.id)}
                       disabled={isDeleting}
-                      title="Ver despesas da obra"
+                      title="Adicionar nova despesa"
                     >
                       <Wallet className="w-3.5 h-3.5 flex-shrink-0" />
                       <span>Despesa</span>
@@ -1046,9 +1046,9 @@ export default function ObrasPage() {
                   <div className="grid grid-cols-3 gap-1 pt-1">
                     <Button
                       className="w-full flex-col gap-0.5 bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-gray-300 text-[9px] px-0 h-10 sm:h-9 sm:flex-row sm:gap-1 sm:text-xs sm:px-2"
-                      onClick={(e) => handleVerDespesas(e, obra.id)}
+                      onClick={(e) => handleNovaDespesa(e, obra.id)}
                       disabled={isDeleting}
-                      title="Ver despesas da obra"
+                      title="Adicionar nova despesa"
                     >
                       <Wallet className="w-3.5 h-3.5 flex-shrink-0" />
                       <span>Despesa</span>
