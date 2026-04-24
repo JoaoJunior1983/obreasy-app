@@ -23,6 +23,7 @@ import { checkBudgetAlerts, type BudgetAlert } from "@/lib/budget-alerts"
 import { inicializarAvisos } from "@/lib/alert-manager"
 import { getDataHoje, formatarData, parseLocalDate } from "@/lib/utils"
 import { toast } from "sonner"
+import { useDelayedLoading } from "@/hooks/use-delayed-loading"
 
 const ESTADOS_BRASILEIROS = [
   "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
@@ -1114,13 +1115,12 @@ export default function DashboardObraPage() {
     setShowEditValorContratadoModal(true)
   }
 
+  const showLoader = useDelayedLoading(loading, 400)
   if (loading) {
+    if (!showLoader) return null
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-300">Carregando...</p>
-        </div>
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500" />
       </div>
     )
   }

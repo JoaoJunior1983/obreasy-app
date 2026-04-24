@@ -7,6 +7,7 @@ import { goToObraDashboard } from "@/lib/navigation"
 import { toast } from "sonner"
 import { deleteDespesa } from "@/lib/storage"
 import { getAllCategorias, getCategoriaLabel, getCategoriaColor } from "@/lib/despesa-categorias"
+import { useDelayedLoading } from "@/hooks/use-delayed-loading"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface Despesa {
@@ -210,13 +211,12 @@ function DespesasPageContent() {
     })
   }
 
+  const showLoader = useDelayedLoading(loading || !obra, 400)
   if (loading || !obra) {
+    if (!showLoader) return null
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-300">Carregando...</p>
-        </div>
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500" />
       </div>
     )
   }
