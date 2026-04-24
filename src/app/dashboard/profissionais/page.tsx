@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Plus, Users, Trash2, FileText, Clock, X, MessageSquare } from "lucide-react"
 import { toast } from "sonner"
 import { getPagamentosByProfissional, getActiveObraId } from "@/lib/storage"
+import { useDelayedLoading } from "@/hooks/use-delayed-loading"
 
 interface Profissional {
   id: string
@@ -338,7 +339,9 @@ export default function ProfissionaisPage() {
     return url.toLowerCase().includes('.pdf')
   }
 
+  const showLoader = useDelayedLoading(loading, 400)
   if (loading) {
+    if (!showLoader) return null
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#0B3064] border-t-transparent rounded-full animate-spin" />

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getObrasDoUsuario, setActiveObraId, calcularMetricasObra, deleteObraCascade, getUserProfile, getClientesSupabase, type Obra, type UserProfile, type Cliente } from "@/lib/storage"
+import { useDelayedLoading } from "@/hooks/use-delayed-loading"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
 
@@ -594,13 +595,12 @@ export default function ObrasPage() {
     setRecebimentoFormData({ ...recebimentoFormData, valor: valorFormatado })
   }
 
+  const showLoader = useDelayedLoading(loading, 400)
   if (loading) {
+    if (!showLoader) return null
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-300">Carregando suas obras...</p>
-        </div>
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500" />
       </div>
     )
   }

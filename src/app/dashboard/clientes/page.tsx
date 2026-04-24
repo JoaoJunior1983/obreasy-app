@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { getClientesSupabase, deleteClienteSupabase, type Cliente } from "@/lib/storage"
 import { toast } from "sonner"
+import { useDelayedLoading } from "@/hooks/use-delayed-loading"
 
 const formatarMoeda = (valor: number) =>
   valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
@@ -14,6 +15,7 @@ const formatarMoeda = (valor: number) =>
 export default function ClientesPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
+  const showLoader = useDelayedLoading(loading, 400)
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [obraId, setObraId] = useState("")
   const [deletandoId, setDeletandoId] = useState<string | null>(null)
@@ -104,7 +106,7 @@ export default function ClientesPage() {
         </div>
 
         {/* Loading */}
-        {loading && (
+        {loading && showLoader && (
           <div className="flex items-center justify-center py-16">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400" />
           </div>
