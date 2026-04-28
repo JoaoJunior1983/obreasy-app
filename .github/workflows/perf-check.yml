@@ -1,0 +1,72 @@
+name: Perf Check
+
+on:
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: "URL alvo (default: https://obreasy.com.br)"
+        required: false
+        default: "https://obreasy.com.br"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run perf suite
+        env:
+          BASE_URL: ${{ github.event.inputs.target_url || 'https://obreasy.com.br' }}
+          PERF_TEST_EMAIL: ${{ secrets.PERF_TEST_EMAIL }}
+          PERF_TEST_PASSWORD: ${{ secrets.PERF_TEST_PASSWORD }}
+        run: npm run perf
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: |
+            perf/reports/
+            playwright-report/
+          retention-days: 30
+
+      - name: Comment PR with summary
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const trendsPath = 'perf/TRENDS.md';
+            if (!fs.existsSync(trendsPath)) return;
+            const content = fs.readFileSync(trendsPath, 'utf8');
+            // Pega só o último run (entre o primeiro "## " e o primeiro "---")
+            const start = content.indexOf('## ');
+            const end = content.indexOf('---', start);
+            const snippet = start >= 0 ? content.slice(start, end + 3) : content.slice(0, 4000);
+            const body = `### 📊 Perf check\n\n${snippet}\n\n_Baseline: \`perf/baselines/\` na branch \`dev\`._`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });

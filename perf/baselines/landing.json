@@ -1,0 +1,93 @@
+{
+  "route": "landing",
+  "url": "https://obreasy.com.br/",
+  "timestamp": "2026-04-28T21:04:59.659Z",
+  "scores": {
+    "performance": 98,
+    "accessibility": 89,
+    "bestPractices": 100,
+    "seo": 100
+  },
+  "metrics": {
+    "first-contentful-paint": {
+      "numeric": 984.2905,
+      "display": "1.0 s",
+      "score": 1,
+      "unit": "ms"
+    },
+    "largest-contentful-paint": {
+      "numeric": 1260.4902661590577,
+      "display": "1.3 s",
+      "score": 1,
+      "unit": "ms"
+    },
+    "total-blocking-time": {
+      "numeric": 155.59782791137707,
+      "display": "160 ms",
+      "score": 0.94,
+      "unit": "ms"
+    },
+    "cumulative-layout-shift": {
+      "numeric": 0,
+      "display": "0",
+      "score": 1,
+      "unit": "score"
+    },
+    "speed-index": {
+      "numeric": 984.2905,
+      "display": "1.0 s",
+      "score": 1,
+      "unit": "ms"
+    },
+    "interactive": {
+      "numeric": 1291.7285451202395,
+      "display": "1.3 s",
+      "score": 1,
+      "unit": "ms"
+    },
+    "server-response-time": {
+      "numeric": 7.265,
+      "display": "Root document took 10 ms",
+      "score": 1,
+      "unit": "ms"
+    },
+    "total-byte-weight": {
+      "numeric": 1743878,
+      "display": "Total size was 1,703 KiB",
+      "score": 1,
+      "unit": "byte"
+    },
+    "dom-size": {
+      "numeric": 603,
+      "display": "603 elements",
+      "score": 1,
+      "unit": "count"
+    },
+    "bootup-time": {
+      "numeric": 353.0360000000007,
+      "display": "0.4 s",
+      "score": 1,
+      "unit": "ms"
+    },
+    "mainthread-work-breakdown": {
+      "numeric": 1666.0599999999986,
+      "display": "1.7 s",
+      "score": 1,
+      "unit": "ms"
+    }
+  },
+  "topOpportunities": [
+    {
+      "id": "modern-image-formats",
+      "title": "Serve images in next-gen formats",
+      "savingsMs": 0,
+      "savingsBytes": 1519795.25
+    },
+    {
+      "id": "legacy-javascript",
+      "title": "Avoid serving legacy JavaScript to modern browsers",
+      "savingsMs": 0,
+      "savingsBytes": 0
+    }
+  ]
+}

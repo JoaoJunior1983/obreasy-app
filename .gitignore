@@ -49,3 +49,9 @@ Thumbs.db
 
 .lasy/
 .vercel
+
+# Perf — runs descartáveis (baselines e TRENDS.md ficam versionados)
+perf/reports/
+playwright-report/
+test-results/
+.auth/

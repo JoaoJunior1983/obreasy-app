@@ -1,0 +1,98 @@
+{
+  "route": "cadastro",
+  "url": "https://obreasy.com.br/cadastro",
+  "timestamp": "2026-04-28T21:04:42.698Z",
+  "scores": {
+    "performance": 98,
+    "accessibility": 83,
+    "bestPractices": 100,
+    "seo": 100
+  },
+  "metrics": {
+    "first-contentful-paint": {
+      "numeric": 1080.034,
+      "display": "1.1 s",
+      "score": 0.99,
+      "unit": "ms"
+    },
+    "largest-contentful-paint": {
+      "numeric": 2280.034,
+      "display": "2.3 s",
+      "score": 0.93,
+      "unit": "ms"
+    },
+    "total-blocking-time": {
+      "numeric": 79,
+      "display": "80 ms",
+      "score": 0.99,
+      "unit": "ms"
+    },
+    "cumulative-layout-shift": {
+      "numeric": 0,
+      "display": "0",
+      "score": 1,
+      "unit": "score"
+    },
+    "speed-index": {
+      "numeric": 1080.034,
+      "display": "1.1 s",
+      "score": 1,
+      "unit": "ms"
+    },
+    "interactive": {
+      "numeric": 2480.134,
+      "display": "2.5 s",
+      "score": 0.98,
+      "unit": "ms"
+    },
+    "server-response-time": {
+      "numeric": 6.7890000000000015,
+      "display": "Root document took 10 ms",
+      "score": 1,
+      "unit": "ms"
+    },
+    "total-byte-weight": {
+      "numeric": 401718,
+      "display": "Total size was 392 KiB",
+      "score": 1,
+      "unit": "byte"
+    },
+    "dom-size": {
+      "numeric": 74,
+      "display": "74 elements",
+      "score": 1,
+      "unit": "count"
+    },
+    "bootup-time": {
+      "numeric": 421.3680000000003,
+      "display": "0.4 s",
+      "score": 1,
+      "unit": "ms"
+    },
+    "mainthread-work-breakdown": {
+      "numeric": 816.1159999999999,
+      "display": "0.8 s",
+      "score": 1,
+      "unit": "ms"
+    }
+  },
+  "topOpportunities": [
+    {
+      "id": "render-blocking-resources",
+      "title": "Eliminate render-blocking resources",
+      "savingsMs": 90
+    },
+    {
+      "id": "unused-javascript",
+      "title": "Reduce unused JavaScript",
+      "savingsMs": 0,
+      "savingsBytes": 34192
+    },
+    {
+      "id": "legacy-javascript",
+      "title": "Avoid serving legacy JavaScript to modern browsers",
+      "savingsMs": 0,
+      "savingsBytes": 10448
+    }
+  ]
+}

@@ -6,7 +6,12 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "perf": "playwright test",
+    "perf:prod": "cross-env BASE_URL=https://obreasy.com.br playwright test",
+    "perf:local": "cross-env BASE_URL=http://localhost:3000 playwright test",
+    "perf:baseline": "cross-env UPDATE_BASELINE=1 BASE_URL=https://obreasy.com.br playwright test",
+    "perf:report": "playwright show-report"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -73,13 +78,18 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.20",
+    "chrome-launcher": "^1.2.1",
+    "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "^16.1.1",
+    "lighthouse": "^12.6.0",
+    "playwright-lighthouse": "^4.0.0",
     "postcss": "^8.5",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.6",
