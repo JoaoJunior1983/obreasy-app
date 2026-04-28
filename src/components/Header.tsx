@@ -25,9 +25,6 @@ export default function Header() {
   const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const loadUserData = async () => {
-    console.log("[HEADER] 🔄 Carregando dados do usuário...")
-
-    // Priorizar userProfile
     const userProfileStr = localStorage.getItem("userProfile")
     const userDataStr = localStorage.getItem("user")
 
@@ -40,60 +37,58 @@ export default function Header() {
       name = profile.name || ""
       email = profile.email || ""
       avatar = profile.avatarDataUrl || null
-      console.log("[HEADER] Dados do userProfile:", { name, email, avatarLength: avatar?.length })
     } else if (userDataStr) {
       const user = JSON.parse(userDataStr)
       name = user.name || ""
       email = user.email || ""
       avatar = user.avatarDataUrl || null
-      console.log("[HEADER] Dados do user (fallback):", { name, email, avatarLength: avatar?.length })
     }
 
-    // Tentar carregar avatar do Supabase (prioridade)
-    try {
-      const { supabase } = await import("@/lib/supabase")
-      const { data: { user } } = await supabase.auth.getUser()
+    const cachedAvatar = localStorage.getItem("cachedAvatarUrl")
+    const cachedTs = Number(localStorage.getItem("cachedAvatarTs") || 0)
+    if (cachedAvatar) avatar = cachedAvatar
 
-      if (user) {
-        const { data: profileData, error } = await supabase
-          .from('user_profiles')
-          .select('avatar_url')
-          .eq('id', user.id)
-          .single()
-
-        if (error) {
-          console.warn("[HEADER] ⚠️ Erro ao buscar perfil no Supabase:", error)
-        }
-
-        if (profileData && profileData.avatar_url) {
-          avatar = profileData.avatar_url
-          console.log("[HEADER] ✅ Avatar carregado do Supabase:", avatar)
-        } else {
-          console.log("[HEADER] ℹ️ Nenhum avatar no Supabase, usando localStorage")
-        }
-      }
-    } catch (error) {
-      console.error("[HEADER] ❌ Erro ao carregar avatar do Supabase:", error)
-      // Continuar com avatar do localStorage se falhar
-    }
-
-    console.log("[HEADER] Avatar final:", avatar?.substring(0, 100) + "...")
     setUserName(name)
     setUserEmail(email)
     setAvatarUrl(avatar)
 
-    // Gerar iniciais
     if (name) {
       const parts = name.trim().split(" ")
-      if (parts.length >= 2) {
-        setUserInitials(parts[0][0] + parts[parts.length - 1][0])
-      } else {
-        setUserInitials(parts[0][0])
-      }
+      setUserInitials(parts.length >= 2 ? parts[0][0] + parts[parts.length - 1][0] : parts[0][0])
     } else if (email) {
       setUserInitials(email[0])
     } else {
       setUserInitials("U")
+    }
+
+    const FIVE_MIN = 5 * 60 * 1000
+    if (cachedAvatar && Date.now() - cachedTs < FIVE_MIN) return
+
+    try {
+      const { supabase } = await import("@/lib/supabase")
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data: profileData } = await supabase
+        .from("user_profiles")
+        .select("avatar_url")
+        .eq("id", user.id)
+        .single()
+
+      const fresh = profileData?.avatar_url ?? null
+      if (fresh && fresh !== cachedAvatar) {
+        setAvatarUrl(fresh)
+        localStorage.setItem("cachedAvatarUrl", fresh)
+        localStorage.setItem("cachedAvatarTs", String(Date.now()))
+      } else if (fresh) {
+        localStorage.setItem("cachedAvatarTs", String(Date.now()))
+      } else if (cachedAvatar) {
+        localStorage.removeItem("cachedAvatarUrl")
+        localStorage.removeItem("cachedAvatarTs")
+        setAvatarUrl(null)
+      }
+    } catch {
+      // mantém o cache; sem fallback adicional
     }
   }
 

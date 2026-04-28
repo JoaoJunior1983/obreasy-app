@@ -1,0 +1,87 @@
+{
+  "route": "login",
+  "url": "https://www.obreasy.com.br/login",
+  "timestamp": "2026-04-28T21:34:46.810Z",
+  "scores": {
+    "performance": 98,
+    "accessibility": 83,
+    "bestPractices": 100,
+    "seo": 100
+  },
+  "metrics": {
+    "first-contentful-paint": {
+      "numeric": 810,
+      "display": "0.8 s",
+      "score": 1,
+      "unit": "ms"
+    },
+    "largest-contentful-paint": {
+      "numeric": 1229,
+      "display": "1.2 s",
+      "score": 1,
+      "unit": "ms"
+    },
+    "total-blocking-time": {
+      "numeric": 161,
+      "display": "160 ms",
+      "score": 0.93,
+      "unit": "ms"
+    },
+    "cumulative-layout-shift": {
+      "numeric": 0,
+      "display": "0",
+      "score": 1,
+      "unit": "score"
+    },
+    "speed-index": {
+      "numeric": 835.4913415055883,
+      "display": "0.8 s",
+      "score": 1,
+      "unit": "ms"
+    },
+    "interactive": {
+      "numeric": 1243,
+      "display": "1.2 s",
+      "score": 1,
+      "unit": "ms"
+    },
+    "server-response-time": {
+      "numeric": 35.223000000000006,
+      "display": "Root document took 40 ms",
+      "score": 1,
+      "unit": "ms"
+    },
+    "total-byte-weight": {
+      "numeric": 0,
+      "display": "Total size was 0 KiB",
+      "score": 1,
+      "unit": "byte"
+    },
+    "dom-size": {
+      "numeric": 55,
+      "display": "55 elements",
+      "score": 1,
+      "unit": "count"
+    },
+    "bootup-time": {
+      "numeric": 469.36000000000007,
+      "display": "0.5 s",
+      "score": 1,
+      "unit": "ms"
+    },
+    "mainthread-work-breakdown": {
+      "numeric": 900.9359999999999,
+      "display": "0.9 s",
+      "score": 1,
+      "unit": "ms"
+    }
+  },
+  "topOpportunities": [
+    {
+      "id": "legacy-javascript",
+      "title": "Avoid serving legacy JavaScript to modern browsers",
+      "savingsMs": 0,
+      "savingsBytes": 0
+    }
+  ]
+}
