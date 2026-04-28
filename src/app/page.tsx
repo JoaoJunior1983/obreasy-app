@@ -359,7 +359,6 @@ function NewLPCarousel() {
                 alt={img.label}
                 fill
                 sizes="(max-width: 768px) 92vw, 70vw"
-                priority={i === 0}
                 style={{ objectFit: "cover" }}
               />
             </div>
