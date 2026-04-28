@@ -55,6 +55,8 @@ perf/
 | `/cadastro` | `cadastro.spec.ts` | — |
 | `/login` | `login.spec.ts` | — |
 | `/dashboard` | `dashboard.spec.ts` | requer envs |
+| `/dashboard/obra` | `dashboard-obra.spec.ts` | requer envs |
+| `/dashboard/despesas` | `dashboard-despesas.spec.ts` | requer envs |
 
 ## Rotas autenticadas
 
