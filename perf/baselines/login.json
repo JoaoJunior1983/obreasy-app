@@ -1,30 +1,30 @@
 {
   "route": "login",
   "url": "https://www.obreasy.com.br/login",
-  "timestamp": "2026-04-28T22:30:34.968Z",
+  "timestamp": "2026-04-28T23:04:52.525Z",
   "scores": {
-    "performance": 91,
+    "performance": 99,
     "accessibility": 83,
     "bestPractices": 100,
     "seo": 100
   },
   "metrics": {
     "first-contentful-paint": {
-      "numeric": 834,
+      "numeric": 826,
       "display": "0.8 s",
       "score": 1,
       "unit": "ms"
     },
     "largest-contentful-paint": {
-      "numeric": 1373.5,
-      "display": "1.4 s",
+      "numeric": 1072,
+      "display": "1.1 s",
       "score": 1,
       "unit": "ms"
     },
     "total-blocking-time": {
-      "numeric": 389.5,
-      "display": "390 ms",
-      "score": 0.69,
+      "numeric": 104,
+      "display": "100 ms",
+      "score": 0.98,
       "unit": "ms"
     },
     "cumulative-layout-shift": {
@@ -34,19 +34,19 @@
       "unit": "score"
     },
     "speed-index": {
-      "numeric": 1216.6320217643847,
-      "display": "1.2 s",
+      "numeric": 826,
+      "display": "0.8 s",
       "score": 1,
       "unit": "ms"
     },
     "interactive": {
-      "numeric": 1517.35,
-      "display": "1.5 s",
+      "numeric": 1072,
+      "display": "1.1 s",
       "score": 1,
       "unit": "ms"
     },
     "server-response-time": {
-      "numeric": 43.246,
+      "numeric": 38.853,
       "display": "Root document took 40 ms",
       "score": 1,
       "unit": "ms"
@@ -64,14 +64,14 @@
       "unit": "count"
     },
     "bootup-time": {
-      "numeric": 359.42400000000004,
-      "display": "0.4 s",
+      "numeric": 262.87200000000007,
+      "display": "0.3 s",
       "score": 1,
       "unit": "ms"
     },
     "mainthread-work-breakdown": {
-      "numeric": 1650.7840000000003,
-      "display": "1.7 s",
+      "numeric": 635.48,
+      "display": "0.6 s",
       "score": 1,
       "unit": "ms"
     }

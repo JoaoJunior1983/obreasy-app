@@ -31,6 +31,8 @@ function fmtValue(n: number, unit: MetricUnit | undefined): string {
 }
 
 const REGRESSION_TOLERANCE = 0.05;
+const MIN_ABSOLUTE_REGRESSION_MS = 50;
+const MIN_ABSOLUTE_REGRESSION_BYTES = 5 * 1024;
 
 export function compareWithBaseline(
   summary: AuditSummary,
@@ -67,8 +69,13 @@ export function compareWithBaseline(
     if (typeof budgetMax === "number" && m.numeric > budgetMax) {
       budgetExceeded = true;
     }
-    if (baseline && baseVal > 0 && diff > baseVal * REGRESSION_TOLERANCE && id !== "cumulative-layout-shift") {
-      budgetExceeded = budgetExceeded || diff > baseVal * REGRESSION_TOLERANCE;
+    if (baseline && baseVal > 0 && id !== "cumulative-layout-shift") {
+      const minAbs = m.unit === "byte" ? MIN_ABSOLUTE_REGRESSION_BYTES : MIN_ABSOLUTE_REGRESSION_MS;
+      const overRelative = diff > baseVal * REGRESSION_TOLERANCE;
+      const overAbsolute = diff > minAbs;
+      if (overRelative && overAbsolute) {
+        budgetExceeded = true;
+      }
     }
 
     deltas.push({

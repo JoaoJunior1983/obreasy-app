@@ -1,30 +1,30 @@
 {
   "route": "landing",
   "url": "https://www.obreasy.com.br/",
-  "timestamp": "2026-04-28T22:30:19.367Z",
+  "timestamp": "2026-04-28T23:04:25.824Z",
   "scores": {
-    "performance": 76,
+    "performance": 100,
     "accessibility": 89,
     "bestPractices": 100,
     "seo": 100
   },
   "metrics": {
     "first-contentful-paint": {
-      "numeric": 995.6127,
-      "display": "1.0 s",
-      "score": 1,
+      "numeric": 1152.499,
+      "display": "1.2 s",
+      "score": 0.99,
       "unit": "ms"
     },
     "largest-contentful-paint": {
-      "numeric": 1211.1763501312257,
+      "numeric": 1218.499,
       "display": "1.2 s",
       "score": 1,
       "unit": "ms"
     },
     "total-blocking-time": {
-      "numeric": 1171.5,
-      "display": "1,170 ms",
-      "score": 0.21,
+      "numeric": 70.5,
+      "display": "70 ms",
+      "score": 0.99,
       "unit": "ms"
     },
     "cumulative-layout-shift": {
@@ -34,26 +34,26 @@
       "unit": "score"
     },
     "speed-index": {
-      "numeric": 1141.5676342563106,
-      "display": "1.1 s",
+      "numeric": 1152.499,
+      "display": "1.2 s",
       "score": 1,
       "unit": "ms"
     },
     "interactive": {
-      "numeric": 2437.8627000000006,
-      "display": "2.4 s",
-      "score": 0.98,
+      "numeric": 1359.3990000000001,
+      "display": "1.4 s",
+      "score": 1,
       "unit": "ms"
     },
     "server-response-time": {
-      "numeric": 7.802,
-      "display": "Root document took 10 ms",
+      "numeric": 40.586,
+      "display": "Root document took 40 ms",
       "score": 1,
       "unit": "ms"
     },
     "total-byte-weight": {
-      "numeric": 106475,
-      "display": "Total size was 104 KiB",
+      "numeric": 5736,
+      "display": "Total size was 6 KiB",
       "score": 1,
       "unit": "byte"
     },
@@ -64,14 +64,14 @@
       "unit": "count"
     },
     "bootup-time": {
-      "numeric": 430.8480000000003,
-      "display": "0.4 s",
+      "numeric": 505.2880000000003,
+      "display": "0.5 s",
       "score": 1,
       "unit": "ms"
     },
     "mainthread-work-breakdown": {
-      "numeric": 3369.4519999999966,
-      "display": "3.4 s",
+      "numeric": 2279.444,
+      "display": "2.3 s",
       "score": 0,
       "unit": "ms"
     }
