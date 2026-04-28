@@ -1,29 +1,29 @@
 {
   "route": "cadastro",
   "url": "https://www.obreasy.com.br/cadastro",
-  "timestamp": "2026-04-28T21:34:21.966Z",
+  "timestamp": "2026-04-28T22:30:00.050Z",
   "scores": {
-    "performance": 95,
+    "performance": 94,
     "accessibility": 83,
     "bestPractices": 100,
     "seo": 100
   },
   "metrics": {
     "first-contentful-paint": {
-      "numeric": 1074.792,
+      "numeric": 1087.613,
       "display": "1.1 s",
       "score": 0.99,
       "unit": "ms"
     },
     "largest-contentful-paint": {
-      "numeric": 2724.792,
-      "display": "2.7 s",
-      "score": 0.85,
+      "numeric": 2887.6130000000003,
+      "display": "2.9 s",
+      "score": 0.81,
       "unit": "ms"
     },
     "total-blocking-time": {
-      "numeric": 133,
-      "display": "130 ms",
+      "numeric": 136,
+      "display": "140 ms",
       "score": 0.96,
       "unit": "ms"
     },
@@ -34,44 +34,44 @@
       "unit": "score"
     },
     "speed-index": {
-      "numeric": 1074.792,
+      "numeric": 1087.613,
       "display": "1.1 s",
       "score": 1,
       "unit": "ms"
     },
     "interactive": {
-      "numeric": 2724.7920000000004,
-      "display": "2.7 s",
-      "score": 0.97,
+      "numeric": 2887.6130000000003,
+      "display": "2.9 s",
+      "score": 0.96,
       "unit": "ms"
     },
     "server-response-time": {
-      "numeric": 6.195999999999998,
+      "numeric": 9.682999999999993,
       "display": "Root document took 10 ms",
       "score": 1,
       "unit": "ms"
     },
     "total-byte-weight": {
-      "numeric": 401710,
-      "display": "Total size was 392 KiB",
+      "numeric": 399594,
+      "display": "Total size was 390 KiB",
       "score": 1,
       "unit": "byte"
     },
     "dom-size": {
-      "numeric": 74,
-      "display": "74 elements",
+      "numeric": 75,
+      "display": "75 elements",
       "score": 1,
       "unit": "count"
     },
     "bootup-time": {
-      "numeric": 429.6640000000001,
-      "display": "0.4 s",
+      "numeric": 458.5520000000002,
+      "display": "0.5 s",
       "score": 1,
       "unit": "ms"
     },
     "mainthread-work-breakdown": {
-      "numeric": 783.1760000000005,
-      "display": "0.8 s",
+      "numeric": 989.5200000000011,
+      "display": "1.0 s",
       "score": 1,
       "unit": "ms"
     }
@@ -80,19 +80,19 @@
     {
       "id": "render-blocking-resources",
       "title": "Eliminate render-blocking resources",
-      "savingsMs": 81
+      "savingsMs": 70
     },
     {
       "id": "unused-javascript",
       "title": "Reduce unused JavaScript",
       "savingsMs": 150,
-      "savingsBytes": 49234
+      "savingsBytes": 34192
     },
     {
       "id": "legacy-javascript",
       "title": "Avoid serving legacy JavaScript to modern browsers",
       "savingsMs": 0,
-      "savingsBytes": 10448
+      "savingsBytes": 7237
     }
   ]
 }
