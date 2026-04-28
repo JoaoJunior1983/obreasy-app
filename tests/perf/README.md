@@ -2,6 +2,16 @@
 
 Suite de medição contínua de performance. Cada rota crítica é auditada via Lighthouse (mobile, throttle padrão), com budget próprio e baseline versionada.
 
+## Variabilidade — sempre rode N>=3 quando comparar
+
+Lighthouse contra prod tem ruído de rede de ~15–30% nos scores. Para comparar antes/depois com confiança, rode com `PERF_RUNS=3` (mediana). Default é 1 para iteração rápida.
+
+```bash
+PERF_RUNS=3 npm run perf:prod
+```
+
+A CI já roda com `PERF_RUNS=3`.
+
 ## Como rodar
 
 ```bash

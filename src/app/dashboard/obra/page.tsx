@@ -239,91 +239,102 @@ export default function DashboardObraPage() {
       setObra(obraAtiva)
       router.prefetch(`/dashboard/obras/${obraAtiva.id}/relatorio`)
 
-      // Carregar TODAS as despesas do Supabase (incluindo mão de obra com profissionalId)
+      // Paralelizar queries independentes — antes eram 7 sequenciais
       const { getDespesasSupabase } = await import("@/lib/storage")
-      const todasDespesasSupabase = await getDespesasSupabase(obraAtiva.id, user.id)
-      const despesasObra = todasDespesasSupabase
-        .sort((a: any, b: any) => {
-          const dataA = new Date(a.data || 0).getTime()
-          const dataB = new Date(b.data || 0).getTime()
-
-          if (dataB !== dataA) {
-            return dataB - dataA
-          }
-
-          const idA = parseInt(a.id || "0")
-          const idB = parseInt(b.id || "0")
-          return idB - idA
-        })
-      setDespesas(despesasObra)
-
-      // Carregar profissionais do Supabase
-      let profissionaisObra: Profissional[] = []
-      try {
-        const { data: profissionaisData } = await supabase
+      const [
+        despesasRes,
+        profissionaisRes,
+        pagamentosRes,
+        recebimentosRes,
+        clientesRes,
+        diarioFotosRes,
+        diarioCountRes,
+      ] = await Promise.allSettled([
+        getDespesasSupabase(obraAtiva.id, user.id),
+        supabase
           .from("profissionais")
           .select("*")
           .eq("obra_id", obraAtiva.id)
-          .eq("user_id", dbObra.user_id)
-
-        if (profissionaisData && profissionaisData.length > 0) {
-          profissionaisObra = profissionaisData
-          setProfissionais(profissionaisData)
-        } else {
-          setProfissionais([])
-        }
-      } catch (profError) {
-        console.error("Erro ao carregar profissionais:", profError)
-        setProfissionais([])
-      }
-
-      // Carregar pagamentos do Supabase (pagamentos a profissionais)
-      let pagamentosObra: any[] = []
-      try {
-        const { data: pagamentosData, error: pagamentosError } = await supabase
+          .eq("user_id", dbObra.user_id),
+        supabase
           .from("pagamentos")
           .select("id, valor, profissional_id, data, comprovante_url")
-          .eq("obra_id", obraAtiva.id)
-
-        if (pagamentosError) {
-          console.error("[OBRA] Erro ao carregar pagamentos:", pagamentosError)
-        }
-
-        if (pagamentosData && pagamentosData.length > 0) {
-          pagamentosObra = pagamentosData.map((p: any) => ({
-            id: p.id,
-            valor: parseFloat(p.valor) || 0,
-            profissional_id: p.profissional_id,
-            data: p.data,
-            comprovante_url: p.comprovante_url
-          }))
-        }
-        setPagamentos(pagamentosObra)
-      } catch (pagError) {
-        console.error("Erro ao carregar pagamentos:", pagError)
-        setPagamentos([])
-      }
-
-      // Carregar recebimentos do Supabase para o card do dashboard
-      try {
-        const { data: recData } = await supabase
+          .eq("obra_id", obraAtiva.id),
+        supabase
           .from("recebimentos")
           .select("valor")
           .eq("obra_id", obraAtiva.id)
+          .eq("user_id", user.id),
+        getClientesSupabase(obraAtiva.id, user.id),
+        supabase
+          .from("diario_obra")
+          .select("id, foto_url")
+          .eq("obra_id", obraAtiva.id)
           .eq("user_id", user.id)
-        setRecebimentosDB((recData || []).map((r: any) => ({ valor: parseFloat(r.valor) || 0 })))
-      } catch {
-        setRecebimentosDB([])
-      }
+          .order("data_registro", { ascending: false })
+          .order("criado_em", { ascending: false })
+          .limit(4),
+        supabase
+          .from("diario_obra")
+          .select("id", { count: "exact", head: true })
+          .eq("obra_id", obraAtiva.id)
+          .eq("user_id", user.id),
+      ])
 
-      // Carregar clientes para total contratado
-      try {
-        const clientesData = await getClientesSupabase(obraAtiva.id, user.id)
+      // Despesas
+      const despesasObra: Despesa[] = despesasRes.status === "fulfilled"
+        ? (despesasRes.value as Despesa[]).slice().sort((a: any, b: any) => {
+            const dataA = new Date(a.data || 0).getTime()
+            const dataB = new Date(b.data || 0).getTime()
+            if (dataB !== dataA) return dataB - dataA
+            return parseInt(b.id || "0") - parseInt(a.id || "0")
+          })
+        : []
+      setDespesas(despesasObra)
+
+      // Profissionais
+      const profissionaisObra: Profissional[] =
+        profissionaisRes.status === "fulfilled" && profissionaisRes.value.data
+          ? (profissionaisRes.value.data as Profissional[])
+          : []
+      setProfissionais(profissionaisObra)
+
+      // Pagamentos
+      const pagamentosObra =
+        pagamentosRes.status === "fulfilled" && pagamentosRes.value.data
+          ? (pagamentosRes.value.data as any[]).map((p) => ({
+              id: p.id,
+              valor: parseFloat(p.valor) || 0,
+              profissional_id: p.profissional_id,
+              data: p.data,
+              comprovante_url: p.comprovante_url,
+            }))
+          : []
+      setPagamentos(pagamentosObra)
+
+      // Recebimentos
+      const recebimentos =
+        recebimentosRes.status === "fulfilled" && recebimentosRes.value.data
+          ? (recebimentosRes.value.data as any[]).map((r) => ({ valor: parseFloat(r.valor) || 0 }))
+          : []
+      setRecebimentosDB(recebimentos)
+
+      // Clientes
+      if (clientesRes.status === "fulfilled") {
+        const clientesData = clientesRes.value
         setNumClientes(clientesData.length)
         setTotalContratoClientes(clientesData.reduce((acc, c) => acc + (c.contratoValor || 0), 0))
-      } catch {
+      } else {
         setNumClientes(0)
         setTotalContratoClientes(0)
+      }
+
+      // Diário (preview + count)
+      if (diarioFotosRes.status === "fulfilled" && diarioFotosRes.value.data) {
+        setDiarioFotos(diarioFotosRes.value.data)
+      }
+      if (diarioCountRes.status === "fulfilled" && typeof diarioCountRes.value.count === "number") {
+        setDiarioTotal(diarioCountRes.value.count)
       }
 
       const totalDespesas = despesasObra.reduce((acc: number, d: Despesa) => acc + (d.valor ?? 0), 0)
@@ -331,33 +342,8 @@ export default function DashboardObraPage() {
       const totalGasto = totalDespesas + totalPagamentos
       verificarTodosAlertas(obraAtiva.id, obraAtiva.orcamento || 0, totalGasto)
       loadAlertasStatus(obraAtiva.id)
-
-      // CRÍTICO: Inicializar sistema de avisos inteligentes
       inicializarAvisos(obraAtiva.id)
-
-      // Verificar alertas inteligentes de orçamento
       checkBudgetAlertsForObra(obraAtiva, despesasObra, profissionaisObra, pagamentosObra)
-
-      // Carregar preview do Diário da Obra
-      try {
-        const { data: diarioData } = await supabase
-          .from("diario_obra")
-          .select("id, foto_url")
-          .eq("obra_id", obraAtiva.id)
-          .eq("user_id", user.id)
-          .order("data_registro", { ascending: false })
-          .order("criado_em", { ascending: false })
-          .limit(4)
-        if (diarioData) {
-          setDiarioFotos(diarioData)
-          const { count } = await supabase
-            .from("diario_obra")
-            .select("id", { count: "exact", head: true })
-            .eq("obra_id", obraAtiva.id)
-            .eq("user_id", user.id)
-          setDiarioTotal(count || 0)
-        }
-      } catch { /* não bloqueia o carregamento principal */ }
 
       setLoading(false)
 
