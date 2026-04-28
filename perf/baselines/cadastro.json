@@ -1,30 +1,30 @@
 {
   "route": "cadastro",
-  "url": "https://obreasy.com.br/cadastro",
-  "timestamp": "2026-04-28T21:04:42.698Z",
+  "url": "https://www.obreasy.com.br/cadastro",
+  "timestamp": "2026-04-28T21:34:21.966Z",
   "scores": {
-    "performance": 98,
+    "performance": 95,
     "accessibility": 83,
     "bestPractices": 100,
     "seo": 100
   },
   "metrics": {
     "first-contentful-paint": {
-      "numeric": 1080.034,
+      "numeric": 1074.792,
       "display": "1.1 s",
       "score": 0.99,
       "unit": "ms"
     },
     "largest-contentful-paint": {
-      "numeric": 2280.034,
-      "display": "2.3 s",
-      "score": 0.93,
+      "numeric": 2724.792,
+      "display": "2.7 s",
+      "score": 0.85,
       "unit": "ms"
     },
     "total-blocking-time": {
-      "numeric": 79,
-      "display": "80 ms",
-      "score": 0.99,
+      "numeric": 133,
+      "display": "130 ms",
+      "score": 0.96,
       "unit": "ms"
     },
     "cumulative-layout-shift": {
@@ -34,25 +34,25 @@
       "unit": "score"
     },
     "speed-index": {
-      "numeric": 1080.034,
+      "numeric": 1074.792,
       "display": "1.1 s",
       "score": 1,
       "unit": "ms"
     },
     "interactive": {
-      "numeric": 2480.134,
-      "display": "2.5 s",
-      "score": 0.98,
+      "numeric": 2724.7920000000004,
+      "display": "2.7 s",
+      "score": 0.97,
       "unit": "ms"
     },
     "server-response-time": {
-      "numeric": 6.7890000000000015,
+      "numeric": 6.195999999999998,
       "display": "Root document took 10 ms",
       "score": 1,
       "unit": "ms"
     },
     "total-byte-weight": {
-      "numeric": 401718,
+      "numeric": 401710,
       "display": "Total size was 392 KiB",
       "score": 1,
       "unit": "byte"
@@ -64,13 +64,13 @@
       "unit": "count"
     },
     "bootup-time": {
-      "numeric": 421.3680000000003,
+      "numeric": 429.6640000000001,
       "display": "0.4 s",
       "score": 1,
       "unit": "ms"
     },
     "mainthread-work-breakdown": {
-      "numeric": 816.1159999999999,
+      "numeric": 783.1760000000005,
       "display": "0.8 s",
       "score": 1,
       "unit": "ms"
@@ -80,13 +80,13 @@
     {
       "id": "render-blocking-resources",
       "title": "Eliminate render-blocking resources",
-      "savingsMs": 90
+      "savingsMs": 81
     },
     {
       "id": "unused-javascript",
       "title": "Reduce unused JavaScript",
-      "savingsMs": 0,
-      "savingsBytes": 34192
+      "savingsMs": 150,
+      "savingsBytes": 49234
     },
     {
       "id": "legacy-javascript",

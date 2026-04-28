@@ -8,9 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "perf": "playwright test",
-    "perf:prod": "cross-env BASE_URL=https://obreasy.com.br playwright test",
+    "perf:prod": "cross-env BASE_URL=https://www.obreasy.com.br playwright test",
     "perf:local": "cross-env BASE_URL=http://localhost:3000 playwright test",
-    "perf:baseline": "cross-env UPDATE_BASELINE=1 BASE_URL=https://obreasy.com.br playwright test",
+    "perf:baseline": "cross-env UPDATE_BASELINE=1 BASE_URL=https://www.obreasy.com.br playwright test",
     "perf:report": "playwright show-report"
   },
   "dependencies": {

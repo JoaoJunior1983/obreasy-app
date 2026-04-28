@@ -67,7 +67,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
-        <Script src="/lasy-bridge.js" strategy="beforeInteractive" />
+        <Script src="/lasy-bridge.js" strategy="lazyOnload" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#0B3064" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

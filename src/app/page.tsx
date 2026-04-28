@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useRef } from "react"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import {
   CheckCircle2,
@@ -346,16 +347,20 @@ function NewLPCarousel() {
             }}
           >
             <div style={{
+              position: "relative",
               borderRadius: "8px",
               border: "1px solid rgba(255,255,255,0.1)",
               overflow: "hidden",
               aspectRatio: "16/9",
               width: "100%",
             }}>
-              <img
+              <Image
                 src={img.src}
                 alt={img.label}
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                fill
+                sizes="(max-width: 768px) 92vw, 70vw"
+                priority={i === 0}
+                style={{ objectFit: "cover" }}
               />
             </div>
           </div>
@@ -552,10 +557,12 @@ export default function NewLPPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           {/* Logo */}
           <a href="#" className="flex items-center gap-2">
-            <img
+            <Image
               src="https://blietvjzchjrzbmkitha.supabase.co/storage/v1/object/public/images/icon.png"
               alt="OBREASY"
-              className="w-8 h-8 rounded-md object-contain"
+              width={32}
+              height={32}
+              className="rounded-md object-contain"
             />
             <span className="font-bold text-lg tracking-tight text-[#F2F2F2]">
               OBREASY
@@ -1129,7 +1136,7 @@ export default function NewLPPage() {
             {/* Brand */}
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-4">
-                <img src="https://blietvjzchjrzbmkitha.supabase.co/storage/v1/object/public/images/icon.png" alt="OBREASY" className="w-8 h-8 rounded-md object-cover" />
+                <Image src="https://blietvjzchjrzbmkitha.supabase.co/storage/v1/object/public/images/icon.png" alt="OBREASY" width={32} height={32} className="rounded-md object-cover" />
                 <span className="font-bold text-lg text-[#F2F2F2]">OBREASY</span>
               </div>
               <p className="text-sm text-[#999999] leading-relaxed max-w-xs">

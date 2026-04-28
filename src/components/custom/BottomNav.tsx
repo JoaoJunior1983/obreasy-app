@@ -31,7 +31,7 @@ const navItems = [
   },
 ]
 
-const HIDDEN_PATHS = ["/relatorio", "/imprimir", "/preview", "/lp", "/reset-password", "/test-supabase"]
+const HIDDEN_PATHS = ["/relatorio", "/imprimir", "/preview", "/reset-password", "/test-supabase"]
 
 export function BottomNav() {
   const router = useRouter()

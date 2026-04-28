@@ -29,7 +29,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
     const isAuthenticated = localStorage.getItem("isAuthenticated")
 
     // Rotas onde o header NÃO deve aparecer
-    const noHeaderRoutes = ["/", "/login", "/reset-password", "/lp", "/newlp", "/em-breve", "/relatorios/imprimir"]
+    const noHeaderRoutes = ["/", "/login", "/reset-password", "/em-breve", "/relatorios/imprimir"]
 
     // Proteção adicional: Se estiver na landing/login mas autenticado, redirecionar
     if ((pathname === "/" || pathname === "/login") && isAuthenticated === "true") {

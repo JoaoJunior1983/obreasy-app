@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       target_url:
-        description: "URL alvo (default: https://obreasy.com.br)"
+        description: "URL alvo (default: https://www.obreasy.com.br)"
         required: false
-        default: "https://obreasy.com.br"
+        default: "https://www.obreasy.com.br"
 
 permissions:
   contents: read
@@ -34,7 +34,7 @@ jobs:
 
       - name: Run perf suite
         env:
-          BASE_URL: ${{ github.event.inputs.target_url || 'https://obreasy.com.br' }}
+          BASE_URL: ${{ github.event.inputs.target_url || 'https://www.obreasy.com.br' }}
           PERF_TEST_EMAIL: ${{ secrets.PERF_TEST_EMAIL }}
           PERF_TEST_PASSWORD: ${{ secrets.PERF_TEST_PASSWORD }}
         run: npm run perf

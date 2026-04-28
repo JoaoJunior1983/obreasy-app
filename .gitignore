@@ -55,3 +55,4 @@ perf/reports/
 playwright-report/
 test-results/
 .auth/
+.playwright-mcp/

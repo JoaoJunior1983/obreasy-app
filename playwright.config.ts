@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const BASE_URL = process.env.BASE_URL || "https://obreasy.com.br";
+const BASE_URL = process.env.BASE_URL || "https://www.obreasy.com.br";
 const IS_LOCAL = BASE_URL.includes("localhost") || BASE_URL.includes("127.0.0.1");
 
 export default defineConfig({
