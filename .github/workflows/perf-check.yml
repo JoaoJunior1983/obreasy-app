@@ -32,9 +32,10 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Run perf suite
+      - name: Run perf suite (mediana de 3 rodadas)
         env:
           BASE_URL: ${{ github.event.inputs.target_url || 'https://www.obreasy.com.br' }}
+          PERF_RUNS: "3"
           PERF_TEST_EMAIL: ${{ secrets.PERF_TEST_EMAIL }}
           PERF_TEST_PASSWORD: ${{ secrets.PERF_TEST_PASSWORD }}
         run: npm run perf

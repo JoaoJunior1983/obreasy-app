@@ -10,7 +10,6 @@ const inputCls = "w-full pl-11 pr-4 py-3.5 bg-[#2a2d35] border border-white/[0.0
 
 export default function LoginPage() {
   const router = useRouter()
-  const [mounted, setMounted] = useState(false)
   const [isRedirecting, setIsRedirecting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -19,25 +18,18 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const [formData, setFormData] = useState({ email: "", password: "" })
 
-  useEffect(() => { setMounted(true) }, [])
-
   useEffect(() => {
-    if (!mounted) return
-    if (typeof window === "undefined") return
-
-    // Detect password recovery tokens and redirect to /reset-password
     const hash = window.location.hash
     if (hash && hash.includes("type=recovery")) {
       window.location.href = `/reset-password${hash}`
       return
     }
 
-    const isAuthenticated = localStorage.getItem("isAuthenticated")
-    if (isAuthenticated === "true") {
+    if (localStorage.getItem("isAuthenticated") === "true") {
       setIsRedirecting(true)
       setTimeout(() => router.replace("/dashboard"), 50)
     }
-  }, [router, mounted])
+  }, [router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -81,8 +73,8 @@ export default function LoginPage() {
     }
   }
 
-  if (!mounted || isRedirecting) {
-    return <LoadingScreen message={isRedirecting ? "Redirecionando..." : "Carregando..."} />
+  if (isRedirecting) {
+    return <LoadingScreen message="Redirecionando..." />
   }
 
   if (showCadastro) {

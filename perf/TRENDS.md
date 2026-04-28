@@ -1,5 +1,800 @@
 # Perf Trends
 
+## login — 2026-04-28T22:30:34.968Z
+URL: https://www.obreasy.com.br/login
+
+| Score | Value |
+|---|---|
+| Performance | **91** |
+| Accessibility | 83 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 834ms | 810ms | ⬆ 24ms |
+| largest-contentful-paint | 1.37s | 1.23s | ⬆ 145ms |
+| total-blocking-time | 390ms | 161ms | ⬆ 229ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.22s | 835ms | ⬆ 381ms |
+| interactive | 1.52s | 1.24s | ⬆ 274ms |
+| server-response-time | 43ms | 35ms | ⬆ 8ms |
+| total-byte-weight | 0KB | 0KB | • 0KB |
+| dom-size | 56 | 55 | ⬆ 1 |
+| bootup-time | 359ms | 469ms | ⬇ 110ms |
+| mainthread-work-breakdown | 1.65s | 901ms | ⬆ 750ms |
+
+### Top opportunities
+- **Avoid serving legacy JavaScript to modern browsers** 
+
+---
+## landing — 2026-04-28T22:30:19.367Z
+URL: https://www.obreasy.com.br/
+
+| Score | Value |
+|---|---|
+| Performance | **76** |
+| Accessibility | 89 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 996ms | 949ms | ⬆ 46ms |
+| largest-contentful-paint | 1.21s | 1.22s | ⬇ 6ms |
+| total-blocking-time | 1.17s | 66ms | ⬆ 1.11s |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.14s | 949ms | ⬆ 192ms |
+| interactive | 2.44s | 1.22s | ⬆ 1.22s |
+| server-response-time | 8ms | 6ms | ⬆ 1ms |
+| total-byte-weight | 104KB | 1.66MB | ⬇ 1.56MB |
+| dom-size | 604 | 603 | ⬆ 1 |
+| bootup-time | 431ms | 298ms | ⬆ 133ms |
+| mainthread-work-breakdown | 3.37s | 1.29s | ⬆ 2.08s |
+
+### Top opportunities
+- **Avoid serving legacy JavaScript to modern browsers** 
+
+---
+## cadastro — 2026-04-28T22:30:00.050Z
+URL: https://www.obreasy.com.br/cadastro
+
+| Score | Value |
+|---|---|
+| Performance | **94** |
+| Accessibility | 83 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.09s | 1.07s | ⬆ 13ms |
+| largest-contentful-paint | 2.89s | 2.72s | ⬆ 163ms |
+| total-blocking-time | 136ms | 133ms | ⬆ 3ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.09s | 1.07s | ⬆ 13ms |
+| interactive | 2.89s | 2.72s | ⬆ 163ms |
+| server-response-time | 10ms | 6ms | ⬆ 3ms |
+| total-byte-weight | 390KB | 392KB | ⬇ 2KB |
+| dom-size | 75 | 74 | ⬆ 1 |
+| bootup-time | 459ms | 430ms | ⬆ 29ms |
+| mainthread-work-breakdown | 990ms | 783ms | ⬆ 206ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** → -70ms
+- **Reduce unused JavaScript** → -150ms / -33KB
+- **Avoid serving legacy JavaScript to modern browsers**  / -7KB
+
+---
+## login — 2026-04-28T22:24:59.047Z
+URL: https://www.obreasy.com.br/login
+
+| Score | Value |
+|---|---|
+| Performance | **96** |
+| Accessibility | 83 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.09s | 810ms | ⬆ 278ms |
+| largest-contentful-paint | 2.74s | 1.23s | ⬆ 1.51s |
+| total-blocking-time | 79ms | 161ms | ⬇ 82ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.09s | 835ms | ⬆ 253ms |
+| interactive | 2.74s | 1.24s | ⬆ 1.50s |
+| server-response-time | 8ms | 35ms | ⬇ 27ms |
+| total-byte-weight | 401KB | 0KB | ⬆ 401KB |
+| dom-size | 56 | 55 | ⬆ 1 |
+| bootup-time | 325ms | 469ms | ⬇ 144ms |
+| mainthread-work-breakdown | 649ms | 901ms | ⬇ 252ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** 
+- **Reduce unused JavaScript** → -150ms / -33KB
+- **Avoid serving legacy JavaScript to modern browsers**  / -10KB
+
+---
+## landing — 2026-04-28T22:24:46.729Z
+URL: https://www.obreasy.com.br/
+
+| Score | Value |
+|---|---|
+| Performance | **96** |
+| Accessibility | 89 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.24s | 949ms | ⬆ 287ms |
+| largest-contentful-paint | 2.74s | 1.22s | ⬆ 1.52s |
+| total-blocking-time | 45ms | 66ms | ⬇ 21ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.24s | 949ms | ⬆ 287ms |
+| interactive | 2.77s | 1.22s | ⬆ 1.55s |
+| server-response-time | 9ms | 6ms | ⬆ 2ms |
+| total-byte-weight | 422KB | 1.66MB | ⬇ 1.25MB |
+| dom-size | 604 | 603 | ⬆ 1 |
+| bootup-time | 359ms | 298ms | ⬆ 61ms |
+| mainthread-work-breakdown | 1.42s | 1.29s | ⬆ 135ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** 
+- **Avoid serving legacy JavaScript to modern browsers**  / -6KB
+
+---
+## cadastro — 2026-04-28T22:24:29.404Z
+URL: https://www.obreasy.com.br/cadastro
+
+| Score | Value |
+|---|---|
+| Performance | **95** |
+| Accessibility | 83 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.08s | 1.07s | ⬆ 3ms |
+| largest-contentful-paint | 2.88s | 2.72s | ⬆ 153ms |
+| total-blocking-time | 74ms | 133ms | ⬇ 59ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.08s | 1.07s | ⬆ 3ms |
+| interactive | 2.88s | 2.72s | ⬆ 153ms |
+| server-response-time | 7ms | 6ms | ⬆ 1ms |
+| total-byte-weight | 390KB | 392KB | ⬇ 2KB |
+| dom-size | 75 | 74 | ⬆ 1 |
+| bootup-time | 317ms | 430ms | ⬇ 112ms |
+| mainthread-work-breakdown | 605ms | 783ms | ⬇ 178ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** 
+- **Reduce unused JavaScript** → -300ms / -48KB
+- **Avoid serving legacy JavaScript to modern browsers**  / -6KB
+
+---
+## login — 2026-04-28T22:24:14.101Z
+URL: https://www.obreasy.com.br/login
+
+| Score | Value |
+|---|---|
+| Performance | **97** |
+| Accessibility | 83 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.07s | 810ms | ⬆ 264ms |
+| largest-contentful-paint | 2.57s | 1.23s | ⬆ 1.35s |
+| total-blocking-time | 85ms | 161ms | ⬇ 77ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.07s | 835ms | ⬆ 239ms |
+| interactive | 2.69s | 1.24s | ⬆ 1.45s |
+| server-response-time | 8ms | 35ms | ⬇ 28ms |
+| total-byte-weight | 401KB | 0KB | ⬆ 401KB |
+| dom-size | 56 | 55 | ⬆ 1 |
+| bootup-time | 341ms | 469ms | ⬇ 128ms |
+| mainthread-work-breakdown | 649ms | 901ms | ⬇ 252ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** 
+- **Reduce unused JavaScript**  / -73KB
+- **Avoid serving legacy JavaScript to modern browsers**  / -14KB
+
+---
+## landing — 2026-04-28T22:24:01.267Z
+URL: https://www.obreasy.com.br/
+
+| Score | Value |
+|---|---|
+| Performance | **97** |
+| Accessibility | 89 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.23s | 949ms | ⬆ 283ms |
+| largest-contentful-paint | 2.51s | 1.22s | ⬆ 1.29s |
+| total-blocking-time | 54ms | 66ms | ⬇ 13ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.23s | 949ms | ⬆ 283ms |
+| interactive | 2.81s | 1.22s | ⬆ 1.59s |
+| server-response-time | 14ms | 6ms | ⬆ 8ms |
+| total-byte-weight | 423KB | 1.66MB | ⬇ 1.25MB |
+| dom-size | 604 | 603 | ⬆ 1 |
+| bootup-time | 365ms | 298ms | ⬆ 67ms |
+| mainthread-work-breakdown | 1.46s | 1.29s | ⬆ 176ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** 
+- **Avoid serving legacy JavaScript to modern browsers**  / -6KB
+
+---
+## cadastro — 2026-04-28T22:23:41.987Z
+URL: https://www.obreasy.com.br/cadastro
+
+| Score | Value |
+|---|---|
+| Performance | **96** |
+| Accessibility | 83 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.09s | 1.07s | ⬆ 13ms |
+| largest-contentful-paint | 2.59s | 2.72s | ⬇ 137ms |
+| total-blocking-time | 124ms | 133ms | ⬇ 9ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.09s | 1.07s | ⬆ 13ms |
+| interactive | 2.71s | 2.72s | ⬇ 13ms |
+| server-response-time | 8ms | 6ms | ⬆ 2ms |
+| total-byte-weight | 390KB | 392KB | ⬇ 2KB |
+| dom-size | 75 | 74 | ⬆ 1 |
+| bootup-time | 401ms | 430ms | ⬇ 29ms |
+| mainthread-work-breakdown | 751ms | 783ms | ⬇ 32ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** 
+- **Avoid serving legacy JavaScript to modern browsers**  / -7KB
+
+---
+## login — 2026-04-28T22:23:23.881Z
+URL: https://www.obreasy.com.br/login
+
+| Score | Value |
+|---|---|
+| Performance | **97** |
+| Accessibility | 83 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.09s | 810ms | ⬆ 276ms |
+| largest-contentful-paint | 2.44s | 1.23s | ⬆ 1.21s |
+| total-blocking-time | 112ms | 161ms | ⬇ 50ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.09s | 835ms | ⬆ 251ms |
+| interactive | 2.45s | 1.24s | ⬆ 1.21s |
+| server-response-time | 12ms | 35ms | ⬇ 23ms |
+| total-byte-weight | 400KB | 0KB | ⬆ 400KB |
+| dom-size | 56 | 55 | ⬆ 1 |
+| bootup-time | 326ms | 469ms | ⬇ 143ms |
+| mainthread-work-breakdown | 673ms | 901ms | ⬇ 228ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** 
+- **Reduce unused JavaScript** → -150ms / -33KB
+- **Avoid serving legacy JavaScript to modern browsers** 
+
+---
+## landing — 2026-04-28T22:23:09.469Z
+URL: https://www.obreasy.com.br/
+
+| Score | Value |
+|---|---|
+| Performance | **95** |
+| Accessibility | 89 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.24s | 949ms | ⬆ 295ms |
+| largest-contentful-paint | 2.97s | 1.22s | ⬆ 1.75s |
+| total-blocking-time | 45ms | 66ms | ⬇ 21ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.24s | 949ms | ⬆ 295ms |
+| interactive | 3.02s | 1.22s | ⬆ 1.81s |
+| server-response-time | 8ms | 6ms | ⬆ 1ms |
+| total-byte-weight | 422KB | 1.66MB | ⬇ 1.25MB |
+| dom-size | 604 | 603 | ⬆ 1 |
+| bootup-time | 434ms | 298ms | ⬆ 136ms |
+| mainthread-work-breakdown | 1.54s | 1.29s | ⬆ 249ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** 
+- **Avoid serving legacy JavaScript to modern browsers** → -150ms / -10KB
+
+---
+## cadastro — 2026-04-28T22:22:50.178Z
+URL: https://www.obreasy.com.br/cadastro
+
+| Score | Value |
+|---|---|
+| Performance | **95** |
+| Accessibility | 83 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.08s | 1.07s | ⬆ 5ms |
+| largest-contentful-paint | 2.73s | 2.72s | ⬆ 5ms |
+| total-blocking-time | 140ms | 133ms | ⬆ 7ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.08s | 1.07s | ⬆ 5ms |
+| interactive | 2.73s | 2.72s | ⬆ 5ms |
+| server-response-time | 7ms | 6ms | ⬆ 0ms |
+| total-byte-weight | 390KB | 392KB | ⬇ 2KB |
+| dom-size | 75 | 74 | ⬆ 1 |
+| bootup-time | 413ms | 430ms | ⬇ 17ms |
+| mainthread-work-breakdown | 976ms | 783ms | ⬆ 193ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** 
+- **Reduce unused JavaScript** → -300ms / -60KB
+- **Avoid serving legacy JavaScript to modern browsers**  / -14KB
+
+---
+## login — 2026-04-28T22:00:40.923Z
+URL: https://www.obreasy.com.br/login
+
+| Score | Value |
+|---|---|
+| Performance | **93** |
+| Accessibility | 83 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.10s | 810ms | ⬆ 289ms |
+| largest-contentful-paint | 2.90s | 1.23s | ⬆ 1.67s |
+| total-blocking-time | 158ms | 161ms | ⬇ 3ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.10s | 835ms | ⬆ 263ms |
+| interactive | 2.90s | 1.24s | ⬆ 1.66s |
+| server-response-time | 8ms | 35ms | ⬇ 28ms |
+| total-byte-weight | 400KB | 0KB | ⬆ 400KB |
+| dom-size | 56 | 55 | ⬆ 1 |
+| bootup-time | 381ms | 469ms | ⬇ 89ms |
+| mainthread-work-breakdown | 723ms | 901ms | ⬇ 178ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** → -119ms
+- **Reduce unused JavaScript** → -300ms / -59KB
+- **Avoid serving legacy JavaScript to modern browsers** → -150ms / -14KB
+
+---
+## landing — 2026-04-28T22:00:24.498Z
+URL: https://www.obreasy.com.br/
+
+| Score | Value |
+|---|---|
+| Performance | **94** |
+| Accessibility | 89 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.26s | 949ms | ⬆ 309ms |
+| largest-contentful-paint | 2.98s | 1.22s | ⬆ 1.77s |
+| total-blocking-time | 58ms | 66ms | ⬇ 9ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.33s | 949ms | ⬆ 378ms |
+| interactive | 3.01s | 1.22s | ⬆ 1.79s |
+| server-response-time | 7ms | 6ms | ⬆ 1ms |
+| total-byte-weight | 423KB | 1.66MB | ⬇ 1.25MB |
+| dom-size | 604 | 603 | ⬆ 1 |
+| bootup-time | 451ms | 298ms | ⬆ 154ms |
+| mainthread-work-breakdown | 1.84s | 1.29s | ⬆ 554ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** 
+- **Avoid serving legacy JavaScript to modern browsers** → -150ms / -10KB
+
+---
+## cadastro — 2026-04-28T22:00:02.076Z
+URL: https://www.obreasy.com.br/cadastro
+
+| Score | Value |
+|---|---|
+| Performance | **95** |
+| Accessibility | 83 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.09s | 1.07s | ⬆ 12ms |
+| largest-contentful-paint | 2.74s | 2.72s | ⬆ 12ms |
+| total-blocking-time | 114ms | 133ms | ⬇ 19ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.09s | 1.07s | ⬆ 12ms |
+| interactive | 2.74s | 2.72s | ⬆ 12ms |
+| server-response-time | 7ms | 6ms | ⬆ 1ms |
+| total-byte-weight | 390KB | 392KB | ⬇ 2KB |
+| dom-size | 75 | 74 | ⬆ 1 |
+| bootup-time | 365ms | 430ms | ⬇ 65ms |
+| mainthread-work-breakdown | 761ms | 783ms | ⬇ 22ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** 
+- **Reduce unused JavaScript** → -150ms / -33KB
+- **Avoid serving legacy JavaScript to modern browsers** → -150ms / -10KB
+
+---
+## login — 2026-04-28T21:59:42.286Z
+URL: https://www.obreasy.com.br/login
+
+| Score | Value |
+|---|---|
+| Performance | **80** |
+| Accessibility | 83 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.10s | 810ms | ⬆ 294ms |
+| largest-contentful-paint | 2.90s | 1.23s | ⬆ 1.67s |
+| total-blocking-time | 600ms | 161ms | ⬆ 439ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.85s | 835ms | ⬆ 1.01s |
+| interactive | 2.90s | 1.24s | ⬆ 1.66s |
+| server-response-time | 8ms | 35ms | ⬇ 27ms |
+| total-byte-weight | 401KB | 0KB | ⬆ 401KB |
+| dom-size | 56 | 55 | ⬆ 1 |
+| bootup-time | 596ms | 469ms | ⬆ 126ms |
+| mainthread-work-breakdown | 1.77s | 901ms | ⬆ 866ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** → -114ms
+- **Avoid serving legacy JavaScript to modern browsers** → -150ms / -6KB
+
+---
+## landing — 2026-04-28T21:59:24.665Z
+URL: https://www.obreasy.com.br/
+
+| Score | Value |
+|---|---|
+| Performance | **67** |
+| Accessibility | 89 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.20s | 949ms | ⬆ 253ms |
+| largest-contentful-paint | 2.96s | 1.22s | ⬆ 1.74s |
+| total-blocking-time | 1.90s | 66ms | ⬆ 1.83s |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.81s | 949ms | ⬆ 859ms |
+| interactive | 3.41s | 1.22s | ⬆ 2.19s |
+| server-response-time | 8ms | 6ms | ⬆ 1ms |
+| total-byte-weight | 423KB | 1.66MB | ⬇ 1.25MB |
+| dom-size | 604 | 603 | ⬆ 1 |
+| bootup-time | 800ms | 298ms | ⬆ 502ms |
+| mainthread-work-breakdown | 4.41s | 1.29s | ⬆ 3.12s |
+
+### Top opportunities
+- **Eliminate render-blocking resources** 
+- **Avoid serving legacy JavaScript to modern browsers** → -150ms / -2KB
+
+---
+## cadastro — 2026-04-28T21:58:44.729Z
+URL: https://www.obreasy.com.br/cadastro
+
+| Score | Value |
+|---|---|
+| Performance | **95** |
+| Accessibility | 83 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.10s | 1.07s | ⬆ 22ms |
+| largest-contentful-paint | 2.60s | 2.72s | ⬇ 128ms |
+| total-blocking-time | 167ms | 133ms | ⬆ 34ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.10s | 1.07s | ⬆ 22ms |
+| interactive | 2.84s | 2.72s | ⬆ 113ms |
+| server-response-time | 10ms | 6ms | ⬆ 4ms |
+| total-byte-weight | 390KB | 392KB | ⬇ 2KB |
+| dom-size | 75 | 74 | ⬆ 1 |
+| bootup-time | 460ms | 430ms | ⬆ 30ms |
+| mainthread-work-breakdown | 819ms | 783ms | ⬆ 36ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** 
+- **Avoid serving legacy JavaScript to modern browsers**  / -6KB
+
+---
+## login — 2026-04-28T21:57:31.164Z
+URL: https://www.obreasy.com.br/login
+
+| Score | Value |
+|---|---|
+| Performance | **87** |
+| Accessibility | 83 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.10s | 810ms | ⬆ 293ms |
+| largest-contentful-paint | 2.90s | 1.23s | ⬆ 1.67s |
+| total-blocking-time | 341ms | 161ms | ⬆ 180ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.51s | 835ms | ⬆ 676ms |
+| interactive | 2.90s | 1.24s | ⬆ 1.66s |
+| server-response-time | 15ms | 35ms | ⬇ 20ms |
+| total-byte-weight | 401KB | 0KB | ⬆ 401KB |
+| dom-size | 56 | 55 | ⬆ 1 |
+| bootup-time | 442ms | 469ms | ⬇ 27ms |
+| mainthread-work-breakdown | 1.39s | 901ms | ⬆ 489ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** → -63ms
+- **Reduce unused JavaScript** → -300ms / -59KB
+- **Avoid serving legacy JavaScript to modern browsers** → -150ms / -14KB
+
+---
+## landing — 2026-04-28T21:57:08.458Z
+URL: https://www.obreasy.com.br/
+
+| Score | Value |
+|---|---|
+| Performance | **96** |
+| Accessibility | 89 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.17s | 949ms | ⬆ 221ms |
+| largest-contentful-paint | 2.56s | 1.22s | ⬆ 1.34s |
+| total-blocking-time | 109ms | 66ms | ⬆ 43ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.17s | 949ms | ⬆ 221ms |
+| interactive | 2.91s | 1.22s | ⬆ 1.69s |
+| server-response-time | 8ms | 6ms | ⬆ 2ms |
+| total-byte-weight | 423KB | 1.66MB | ⬇ 1.25MB |
+| dom-size | 604 | 603 | ⬆ 1 |
+| bootup-time | 556ms | 298ms | ⬆ 258ms |
+| mainthread-work-breakdown | 2.26s | 1.29s | ⬆ 973ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** 
+- **Avoid serving legacy JavaScript to modern browsers**  / -7KB
+
+---
+## cadastro — 2026-04-28T21:56:39.645Z
+URL: https://www.obreasy.com.br/cadastro
+
+| Score | Value |
+|---|---|
+| Performance | **82** |
+| Accessibility | 83 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.12s | 1.07s | ⬆ 45ms |
+| largest-contentful-paint | 2.49s | 2.72s | ⬇ 236ms |
+| total-blocking-time | 627ms | 133ms | ⬆ 494ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.12s | 1.07s | ⬆ 45ms |
+| interactive | 2.95s | 2.72s | ⬆ 222ms |
+| server-response-time | 14ms | 6ms | ⬆ 7ms |
+| total-byte-weight | 390KB | 392KB | ⬇ 2KB |
+| dom-size | 75 | 74 | ⬆ 1 |
+| bootup-time | 951ms | 430ms | ⬆ 521ms |
+| mainthread-work-breakdown | 1.26s | 783ms | ⬆ 474ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** 
+- **Reduce unused JavaScript**  / -30KB
+- **Avoid serving legacy JavaScript to modern browsers**  / -2KB
+
+---
+## login — 2026-04-28T21:55:30.513Z
+URL: https://www.obreasy.com.br/login
+
+| Score | Value |
+|---|---|
+| Performance | **91** |
+| Accessibility | 83 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.08s | 810ms | ⬆ 272ms |
+| largest-contentful-paint | 2.88s | 1.23s | ⬆ 1.65s |
+| total-blocking-time | 237ms | 161ms | ⬆ 76ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.08s | 835ms | ⬆ 246ms |
+| interactive | 2.88s | 1.24s | ⬆ 1.64s |
+| server-response-time | 6ms | 35ms | ⬇ 29ms |
+| total-byte-weight | 401KB | 0KB | ⬆ 401KB |
+| dom-size | 56 | 55 | ⬆ 1 |
+| bootup-time | 469ms | 469ms | ⬇ 0ms |
+| mainthread-work-breakdown | 883ms | 901ms | ⬇ 18ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** 
+- **Reduce unused JavaScript** → -300ms / -48KB
+- **Avoid serving legacy JavaScript to modern browsers**  / -6KB
+
+---
+## landing — 2026-04-28T21:55:16.363Z
+URL: https://www.obreasy.com.br/
+
+| Score | Value |
+|---|---|
+| Performance | **96** |
+| Accessibility | 89 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.24s | 949ms | ⬆ 291ms |
+| largest-contentful-paint | 2.74s | 1.22s | ⬆ 1.52s |
+| total-blocking-time | 57ms | 66ms | ⬇ 9ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.24s | 949ms | ⬆ 291ms |
+| interactive | 2.78s | 1.22s | ⬆ 1.57s |
+| server-response-time | 7ms | 6ms | ⬆ 1ms |
+| total-byte-weight | 423KB | 1.66MB | ⬇ 1.25MB |
+| dom-size | 604 | 603 | ⬆ 1 |
+| bootup-time | 388ms | 298ms | ⬆ 90ms |
+| mainthread-work-breakdown | 1.44s | 1.29s | ⬆ 148ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** 
+- **Avoid serving legacy JavaScript to modern browsers**  / -2KB
+
+---
+## cadastro — 2026-04-28T21:54:57.721Z
+URL: https://www.obreasy.com.br/cadastro
+
+| Score | Value |
+|---|---|
+| Performance | **98** |
+| Accessibility | 83 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.07s | 1.07s | ⬇ 2ms |
+| largest-contentful-paint | 2.27s | 2.72s | ⬇ 452ms |
+| total-blocking-time | 81ms | 133ms | ⬇ 53ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.07s | 1.07s | ⬇ 2ms |
+| interactive | 2.31s | 2.72s | ⬇ 419ms |
+| server-response-time | 7ms | 6ms | ⬆ 0ms |
+| total-byte-weight | 390KB | 392KB | ⬇ 2KB |
+| dom-size | 75 | 74 | ⬆ 1 |
+| bootup-time | 331ms | 430ms | ⬇ 99ms |
+| mainthread-work-breakdown | 673ms | 783ms | ⬇ 110ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** 
+- **Reduce unused JavaScript** → -300ms / -48KB
+- **Avoid serving legacy JavaScript to modern browsers**  / -10KB
+
+---
+## login — 2026-04-28T21:54:28.946Z
+URL: https://www.obreasy.com.br/login
+
+| Score | Value |
+|---|---|
+| Performance | **90** |
+| Accessibility | 83 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.08s | 810ms | ⬆ 271ms |
+| largest-contentful-paint | 2.88s | 1.23s | ⬆ 1.65s |
+| total-blocking-time | 264ms | 161ms | ⬆ 103ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.45s | 835ms | ⬆ 610ms |
+| interactive | 3.07s | 1.24s | ⬆ 1.83s |
+| server-response-time | 7ms | 35ms | ⬇ 29ms |
+| total-byte-weight | 401KB | 0KB | ⬆ 401KB |
+| dom-size | 56 | 55 | ⬆ 1 |
+| bootup-time | 627ms | 469ms | ⬆ 158ms |
+| mainthread-work-breakdown | 1.46s | 901ms | ⬆ 561ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** 
+- **Reduce unused JavaScript** → -150ms / -33KB
+- **Avoid serving legacy JavaScript to modern browsers**  / -10KB
+
+---
+## landing — 2026-04-28T21:54:10.028Z
+URL: https://www.obreasy.com.br/
+
+| Score | Value |
+|---|---|
+| Performance | **95** |
+| Accessibility | 89 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.23s | 949ms | ⬆ 282ms |
+| largest-contentful-paint | 2.96s | 1.22s | ⬆ 1.74s |
+| total-blocking-time | 50ms | 66ms | ⬇ 17ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.23s | 949ms | ⬆ 282ms |
+| interactive | 3.09s | 1.22s | ⬆ 1.88s |
+| server-response-time | 9ms | 6ms | ⬆ 3ms |
+| total-byte-weight | 423KB | 1.66MB | ⬇ 1.25MB |
+| dom-size | 604 | 603 | ⬆ 1 |
+| bootup-time | 368ms | 298ms | ⬆ 70ms |
+| mainthread-work-breakdown | 1.67s | 1.29s | ⬆ 377ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** 
+- **Avoid serving legacy JavaScript to modern browsers**  / -10KB
+
+---
+## cadastro — 2026-04-28T21:53:48.386Z
+URL: https://www.obreasy.com.br/cadastro
+
+| Score | Value |
+|---|---|
+| Performance | **97** |
+| Accessibility | 83 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+| Metric | Current | Baseline | Δ |
+|---|---|---|---|
+| first-contentful-paint | 1.07s | 1.07s | ⬇ 9ms |
+| largest-contentful-paint | 2.42s | 2.72s | ⬇ 309ms |
+| total-blocking-time | 89ms | 133ms | ⬇ 45ms |
+| cumulative-layout-shift | 0.000 | 0.000 | • 0.000 |
+| speed-index | 1.07s | 1.07s | ⬇ 9ms |
+| interactive | 2.61s | 2.72s | ⬇ 115ms |
+| server-response-time | 8ms | 6ms | ⬆ 1ms |
+| total-byte-weight | 390KB | 392KB | ⬇ 2KB |
+| dom-size | 75 | 74 | ⬆ 1 |
+| bootup-time | 380ms | 430ms | ⬇ 50ms |
+| mainthread-work-breakdown | 914ms | 783ms | ⬆ 131ms |
+
+### Top opportunities
+- **Eliminate render-blocking resources** 
+- **Reduce unused JavaScript**  / -33KB
+- **Avoid serving legacy JavaScript to modern browsers** → -150ms / -10KB
+
+---
 ## login — 2026-04-28T21:34:46.810Z
 URL: https://www.obreasy.com.br/login
 

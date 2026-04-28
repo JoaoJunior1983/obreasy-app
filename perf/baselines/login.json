@@ -1,30 +1,30 @@
 {
   "route": "login",
   "url": "https://www.obreasy.com.br/login",
-  "timestamp": "2026-04-28T21:34:46.810Z",
+  "timestamp": "2026-04-28T22:30:34.968Z",
   "scores": {
-    "performance": 98,
+    "performance": 91,
     "accessibility": 83,
     "bestPractices": 100,
     "seo": 100
   },
   "metrics": {
     "first-contentful-paint": {
-      "numeric": 810,
+      "numeric": 834,
       "display": "0.8 s",
       "score": 1,
       "unit": "ms"
     },
     "largest-contentful-paint": {
-      "numeric": 1229,
-      "display": "1.2 s",
+      "numeric": 1373.5,
+      "display": "1.4 s",
       "score": 1,
       "unit": "ms"
     },
     "total-blocking-time": {
-      "numeric": 161,
-      "display": "160 ms",
-      "score": 0.93,
+      "numeric": 389.5,
+      "display": "390 ms",
+      "score": 0.69,
       "unit": "ms"
     },
     "cumulative-layout-shift": {
@@ -34,19 +34,19 @@
       "unit": "score"
     },
     "speed-index": {
-      "numeric": 835.4913415055883,
-      "display": "0.8 s",
-      "score": 1,
-      "unit": "ms"
-    },
-    "interactive": {
-      "numeric": 1243,
+      "numeric": 1216.6320217643847,
       "display": "1.2 s",
       "score": 1,
       "unit": "ms"
     },
+    "interactive": {
+      "numeric": 1517.35,
+      "display": "1.5 s",
+      "score": 1,
+      "unit": "ms"
+    },
     "server-response-time": {
-      "numeric": 35.223000000000006,
+      "numeric": 43.246,
       "display": "Root document took 40 ms",
       "score": 1,
       "unit": "ms"
@@ -58,20 +58,20 @@
       "unit": "byte"
     },
     "dom-size": {
-      "numeric": 55,
-      "display": "55 elements",
+      "numeric": 56,
+      "display": "56 elements",
       "score": 1,
       "unit": "count"
     },
     "bootup-time": {
-      "numeric": 469.36000000000007,
-      "display": "0.5 s",
+      "numeric": 359.42400000000004,
+      "display": "0.4 s",
       "score": 1,
       "unit": "ms"
     },
     "mainthread-work-breakdown": {
-      "numeric": 900.9359999999999,
-      "display": "0.9 s",
+      "numeric": 1650.7840000000003,
+      "display": "1.7 s",
       "score": 1,
       "unit": "ms"
     }

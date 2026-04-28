@@ -1,0 +1,17 @@
+{
+  "thresholds": {
+    "performance": 75,
+    "accessibility": 90,
+    "best-practices": 85,
+    "seo": 70
+  },
+  "metrics": {
+    "largest-contentful-paint": 3000,
+    "first-contentful-paint": 2200,
+    "total-blocking-time": 400,
+    "cumulative-layout-shift": 0.1,
+    "speed-index": 4500,
+    "interactive": 5000,
+    "total-byte-weight": 2500000
+  }
+}

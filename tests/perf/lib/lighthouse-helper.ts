@@ -66,19 +66,11 @@ const OPPORTUNITY_AUDIT_IDS = [
   "font-display",
 ];
 
-export async function runAudit(opts: {
-  page: Page;
-  route: string;
-  url: string;
-  reportsDir: string;
-}): Promise<AuditSummary> {
-  const { page, route, url, reportsDir } = opts;
-
+async function runOnce(opts: { page: Page; route: string; url: string; reportsDir: string; runIndex: number; totalRuns: number }) {
+  const { page, route, url, reportsDir, runIndex, totalRuns } = opts;
   await page.goto(url, { waitUntil: "networkidle", timeout: 60_000 });
-
-  fs.mkdirSync(reportsDir, { recursive: true });
-
-  const result = await playAudit({
+  const suffix = totalRuns > 1 ? `${route}-run${runIndex + 1}` : route;
+  return await playAudit({
     page,
     port: 9222,
     thresholds: { performance: 0 },
@@ -90,9 +82,33 @@ export async function runAudit(opts: {
     reports: {
       formats: { json: true, html: true },
       directory: reportsDir,
-      name: route,
+      name: suffix,
     },
   });
+}
+
+export async function runAudit(opts: {
+  page: Page;
+  route: string;
+  url: string;
+  reportsDir: string;
+}): Promise<AuditSummary> {
+  const { route, reportsDir } = opts;
+  const runs = Math.max(1, Number(process.env.PERF_RUNS) || 1);
+
+  fs.mkdirSync(reportsDir, { recursive: true });
+
+  const results: { lhr: any }[] = [];
+  for (let i = 0; i < runs; i++) {
+    const r = await runOnce({ ...opts, runIndex: i, totalRuns: runs });
+    results.push(r);
+  }
+
+  // pega a mediana pelo performance score (já robusto contra ruído de rede)
+  results.sort(
+    (a, b) => (a.lhr.categories.performance?.score ?? 0) - (b.lhr.categories.performance?.score ?? 0),
+  );
+  const result = results[Math.floor(results.length / 2)];
 
   const lhr = result.lhr;
   const audit = (id: string) => lhr.audits[id];

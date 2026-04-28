@@ -119,28 +119,28 @@ function DespesasPageContent() {
 
         setObra(obraAtiva)
 
-        // Carregar profissionais do Supabase
-        const { getProfissionaisSupabase } = await import("@/lib/storage")
-        const profissionaisSupabase = await getProfissionaisSupabase(obraAtiva.id, user.id)
-        setProfissionais(profissionaisSupabase)
+        // Paralelizar 3 queries independentes — antes eram sequenciais
+        const { getProfissionaisSupabase, getDespesasSupabase } = await import("@/lib/storage")
+        const [profissionaisRes, despesasRes, pagamentosRes] = await Promise.allSettled([
+          getProfissionaisSupabase(obraAtiva.id, user.id),
+          getDespesasSupabase(obraAtiva.id, user.id),
+          supabase
+            .from("pagamentos")
+            .select("id, valor, profissional_id, data, data_pagamento")
+            .eq("obra_id", obraAtiva.id)
+            .eq("user_id", user.id),
+        ])
 
-        // Carregar despesas do Supabase
-        const { getDespesasSupabase } = await import("@/lib/storage")
-        const despesasSupabase = await getDespesasSupabase(obraAtiva.id, user.id)
-        setDespesas(despesasSupabase)
+        setProfissionais(profissionaisRes.status === "fulfilled" ? profissionaisRes.value : [])
+        setDespesas(despesasRes.status === "fulfilled" ? despesasRes.value : [])
 
-        // Carregar pagamentos a profissionais do Supabase
-        const { data: pagamentosData } = await supabase
-          .from("pagamentos")
-          .select("*")
-          .eq("obra_id", obraAtiva.id)
-          .eq("user_id", user.id)
-
+        const pagamentosData =
+          pagamentosRes.status === "fulfilled" ? pagamentosRes.value.data : null
         const pagamentosCarregados: Pagamento[] = (pagamentosData || []).map((p: any) => ({
           id: p.id,
           valor: parseFloat(p.valor) || 0,
           profissionalId: p.profissional_id,
-          data: p.data || p.data_pagamento || ""
+          data: p.data || p.data_pagamento || "",
         }))
         setPagamentos(pagamentosCarregados)
 
