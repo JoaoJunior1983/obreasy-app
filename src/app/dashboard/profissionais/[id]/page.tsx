@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react"
 import { useRouter, useParams, useSearchParams } from "next/navigation"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { FileText, Save, X, Edit, Trash2, Plus, DollarSign, Pencil } from "lucide-react"
 import { goToObraDashboard } from "@/lib/navigation"
 import { deletePagamento } from "@/lib/storage"
@@ -66,6 +67,7 @@ interface Obra {
 
 function ProfissionalDetalhePageContent() {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const params = useParams()
   const searchParams = useSearchParams()
   const id = params.id as string
@@ -140,25 +142,78 @@ function ProfissionalDetalhePageContent() {
     anexo: null as string | null
   })
 
+  // Refresh: invalida cache do React Query — substitui o getUser+fetch antigo
   const carregarPagamentos = async () => {
-    try {
-      const { supabase } = await import("@/lib/supabase")
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+    await queryClient.invalidateQueries({ queryKey: ["pagamentos-prof", id] })
+  }
 
+  // ── React Query: auth + profissional + obra + pagamentos com cache ──
+  const { data: authUser, isError: authError } = useQuery({
+    queryKey: ["auth-user"],
+    staleTime: 5 * 60_000,
+    retry: false,
+    queryFn: async () => {
+      const { supabase } = await import("@/lib/supabase")
+      const { data, error } = await supabase.auth.getUser()
+      if (error || !data.user) throw new Error("not authenticated")
+      return data.user
+    },
+  })
+
+  useEffect(() => {
+    if (authError) router.push("/login")
+  }, [authError, router])
+
+  const { data: profissionalQuery, isError: profError } = useQuery({
+    queryKey: ["profissional", id, authUser?.id],
+    enabled: !!id && !!authUser?.id,
+    staleTime: 60_000,
+    retry: false,
+    queryFn: async (): Promise<Profissional> => {
+      const { supabase } = await import("@/lib/supabase")
+      const { data, error } = await supabase
+        .from("profissionais")
+        .select("*")
+        .eq("id", id)
+        .eq("user_id", authUser!.id)
+        .single()
+      if (error || !data) throw new Error("not found")
+      const p = data as any
+      return {
+        id: p.id,
+        obraId: p.obra_id,
+        nome: p.nome,
+        funcao: p.funcao,
+        telefone: p.telefone,
+        observacoes: p.observacoes,
+        valorPrevisto: p.valor_previsto,
+        contrato: p.contrato || undefined,
+      }
+    },
+  })
+
+  useEffect(() => {
+    if (profError) {
+      toast.error("Profissional não encontrado")
+      router.push("/dashboard/profissionais")
+    }
+  }, [profError, router])
+
+  // Pagamentos — paralelo com profissional (só depende de id+user)
+  const { data: pagamentosQuery } = useQuery({
+    queryKey: ["pagamentos-prof", id],
+    enabled: !!id && !!authUser?.id,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { supabase } = await import("@/lib/supabase")
       const { data, error } = await supabase
         .from("pagamentos")
-        .select("*")
+        .select("id, obra_id, data, valor, forma_pagamento, observacao, profissional_id, comprovante_url")
         .eq("profissional_id", id)
-        .eq("user_id", user.id)
+        .eq("user_id", authUser!.id)
         .order("data", { ascending: false })
-
-      if (error) {
-        console.error("[PAGAMENTOS] Erro ao carregar:", error)
-        return
-      }
-
-      setPagamentos((data || []).map((p: any) => ({
+      if (error) throw error
+      return ((data || []) as any[]).map((p): Despesa => ({
         id: p.id,
         obraId: p.obra_id,
         data: p.data,
@@ -169,133 +224,84 @@ function ProfissionalDetalhePageContent() {
         formaPagamento: p.forma_pagamento,
         observacao: p.observacao,
         profissionalId: p.profissional_id,
-        anexo: p.comprovante_url || null
-      })))
-    } catch (err) {
-      console.error("[PAGAMENTOS] Erro:", err)
-    }
-  }
+        anexo: p.comprovante_url || null,
+      }))
+    },
+  })
+
+  // Obra — depende do profissional carregado
+  const { data: obraQuery } = useQuery({
+    queryKey: ["obra", profissionalQuery?.obraId, authUser?.id],
+    enabled: !!profissionalQuery?.obraId && !!authUser?.id,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { supabase } = await import("@/lib/supabase")
+      const { data, error } = await supabase
+        .from("obras")
+        .select("id, nome, area")
+        .eq("id", profissionalQuery!.obraId)
+        .eq("user_id", authUser!.id)
+        .single()
+      if (error || !data) return null
+      const o = data as any
+      return { id: o.id, nome: o.nome, area: o.area } as Obra
+    },
+  })
+
+  // Sync queries → useStates locais (mantém todos os call-sites de setProfissional/setObra/setPagamentos no resto da página)
+  useEffect(() => {
+    if (profissionalQuery) setProfissional(profissionalQuery)
+  }, [profissionalQuery])
 
   useEffect(() => {
-    const carregarDados = async () => {
-      try {
-        // Verificar autenticação no Supabase
-        const { supabase } = await import("@/lib/supabase")
-        const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (obraQuery) setObra(obraQuery)
+  }, [obraQuery])
 
-        if (authError || !user) {
-          router.push("/login")
-          return
-        }
+  useEffect(() => {
+    if (pagamentosQuery) setPagamentos(pagamentosQuery)
+  }, [pagamentosQuery])
 
-        // CRÍTICO: Carregar profissional do Supabase (UUID real)
-        console.log("[PROFISSIONAL] Carregando profissional do Supabase. ID:", id)
+  useEffect(() => {
+    if (profissionalQuery) setLoading(false)
+  }, [profissionalQuery])
 
-        const { data: profData, error: profError } = await supabase
-          .from("profissionais")
-          .select("*")
-          .eq("id", id)
-          .eq("user_id", user.id)
-          .single()
+  // Inicializar formulário de edição quando profissional carregar
+  useEffect(() => {
+    const prof = profissionalQuery
+    if (!prof) return
 
-        if (profError || !profData) {
-          console.error("[PROFISSIONAL] Erro ao carregar profissional:", profError)
-          toast.error("Profissional não encontrado")
-          router.push("/dashboard/profissionais")
-          return
-        }
+    setEditForm({
+      nome: prof.nome,
+      funcao: prof.funcao,
+      telefone: prof.telefone || "",
+      observacoes: prof.observacoes || "",
+      contrato: (prof.contrato as any) || {
+        tipoContrato: "empreitada",
+        dataInicio: "",
+        dataTermino: "",
+        observacoes: "",
+        valorPrevisto: 0,
+        valorCombinado: 0,
+        diaria: 0,
+        qtdDiarias: 0,
+        valorM2: 0,
+        areaM2: 0,
+        valorUnidade: 0,
+        qtdUnidades: 0,
+        etapas: [],
+        anexo: null,
+      },
+    })
 
-        // Converter snake_case para camelCase
-        const dbProf = profData as any
-        const prof: Profissional = {
-          id: dbProf.id, // UUID real do Supabase
-          obraId: dbProf.obra_id,
-          nome: dbProf.nome,
-          funcao: dbProf.funcao,
-          telefone: dbProf.telefone,
-          observacoes: dbProf.observacoes,
-          valorPrevisto: dbProf.valor_previsto,
-          contrato: dbProf.contrato || undefined
-        }
-
-        console.log("[PROFISSIONAL] Profissional carregado com UUID real:", prof.id)
-        console.log("[PROFISSIONAL] Contrato carregado:", {
-          temContrato: !!prof.contrato,
-          tipoContrato: prof.contrato?.tipoContrato,
-          temAnexo: !!prof.contrato?.anexo,
-          anexoLength: prof.contrato?.anexo?.length || 0,
-          anexoPreview: prof.contrato?.anexo?.substring(0, 100) || 'null'
-        })
-
-        setProfissional(prof)
-
-        // Carregar obra do Supabase para ter dados atualizados
-        const { data: obraData, error: obraError } = await supabase
-          .from("obras")
-          .select("*")
-          .eq("id", prof.obraId)
-          .eq("user_id", user.id)
-          .single()
-
-        if (!obraError && obraData) {
-          const dbObra = obraData as any
-          setObra({
-            id: dbObra.id,
-            nome: dbObra.nome,
-            area: dbObra.area
-          })
-        }
-
-        // Inicializar formulário de edição
-        setEditForm({
-          nome: prof.nome,
-          funcao: prof.funcao,
-          telefone: prof.telefone || "",
-          observacoes: prof.observacoes || "",
-          contrato: (prof.contrato as any) || {
-            tipoContrato: "empreitada",
-            dataInicio: "",
-            dataTermino: "",
-            observacoes: "",
-            valorPrevisto: 0,
-            valorCombinado: 0,
-            diaria: 0,
-            qtdDiarias: 0,
-            valorM2: 0,
-            areaM2: 0,
-            valorUnidade: 0,
-            qtdUnidades: 0,
-            etapas: [],
-            anexo: null
-          }
-        })
-
-        if (prof.contrato?.valorCombinado) {
-          setValorCombinadoFormatado(formatarMoeda(prof.contrato.valorCombinado))
-        }
-        if (prof.contrato?.diaria) {
-          setValorDiariaFormatado(formatarMoeda(prof.contrato.diaria))
-        }
-        if (prof.contrato?.valorM2) {
-          setValorM2Formatado(formatarMoeda(prof.contrato.valorM2))
-        }
-        if (prof.contrato?.etapas) {
-          setEtapasFormatadas(prof.contrato.etapas.map((e: { nome: string; valor: number }) => formatarMoeda(e.valor)))
-        }
-        if (prof.contrato?.anexo) {
-          setAnexoContrato(prof.contrato.anexo)
-        }
-
-        await carregarPagamentos()
-        setLoading(false)
-      } catch (error) {
-        console.error("Erro ao carregar dados:", error)
-        setLoading(false)
-      }
+    if (prof.contrato?.valorCombinado) setValorCombinadoFormatado(formatarMoeda(prof.contrato.valorCombinado))
+    if (prof.contrato?.diaria) setValorDiariaFormatado(formatarMoeda(prof.contrato.diaria))
+    if (prof.contrato?.valorM2) setValorM2Formatado(formatarMoeda(prof.contrato.valorM2))
+    if (prof.contrato?.etapas) {
+      setEtapasFormatadas(prof.contrato.etapas.map((e: { nome: string; valor: number }) => formatarMoeda(e.valor)))
     }
-
-    carregarDados()
-  }, [id, router])
+    if (prof.contrato?.anexo) setAnexoContrato(prof.contrato.anexo)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profissionalQuery])
 
   // Verificar se deve abrir automaticamente o modal de contrato
   useEffect(() => {
