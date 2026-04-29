@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef, useCallback } from "react"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Camera, Plus, Trash2, Edit3, Share2, X, Calendar } from "lucide-react"
 import { toast } from "sonner"
@@ -384,13 +385,13 @@ export default function DiarioObraPage() {
                       onClick={() => handleTap(entry)}
                       onContextMenu={(e) => { e.preventDefault(); setMenuEntry(entry) }}
                     >
-                      <div className="aspect-square overflow-hidden">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                      <div className="relative aspect-square overflow-hidden">
+                        <Image
                           src={entry.foto_url}
                           alt={entry.descricao || "Foto da obra"}
-                          className="w-full h-full object-cover pointer-events-none"
-                          loading="lazy"
+                          fill
+                          sizes="(max-width: 640px) 50vw, 33vw"
+                          className="object-cover pointer-events-none"
                           draggable={false}
                           style={{ WebkitTouchCallout: "none", userSelect: "none" }}
                         />
@@ -426,8 +427,7 @@ export default function DiarioObraPage() {
               <div className="w-10 h-1 rounded-full bg-white/20" />
             </div>
             <div className="flex gap-3 items-center px-4 py-3 border-b border-white/[0.06]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={menuEntry.foto_url} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+              <Image src={menuEntry.foto_url} alt="" width={48} height={48} className="rounded-lg object-cover flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-white">{formatDatePT(menuEntry.data_registro)}</p>
                 <p className="text-xs text-gray-500 truncate">{menuEntry.descricao || "Sem descrição"}</p>
