@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useAuthUser } from "@/lib/queries/auth"
 import { Users, Plus, Trash2, Pencil, HandCoins } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -14,44 +16,44 @@ const formatarMoeda = (valor: number) =>
 
 export default function ClientesPage() {
   const router = useRouter()
-  const [loading, setLoading] = useState(true)
-  const showLoader = useDelayedLoading(loading, 400)
-  const [clientes, setClientes] = useState<Cliente[]>([])
+  const queryClient = useQueryClient()
   const [obraId, setObraId] = useState("")
   const [deletandoId, setDeletandoId] = useState<string | null>(null)
   const [confirmarDeleteId, setConfirmarDeleteId] = useState<string | null>(null)
 
   useEffect(() => {
-    const carregar = async () => {
-      const isAuthenticated = localStorage.getItem("isAuthenticated")
-      if (!isAuthenticated) { router.push("/login"); return }
-
-      const activeObraId = localStorage.getItem("activeObraId")
-      if (!activeObraId) { router.push("/obras"); return }
-
-      setObraId(activeObraId)
-
-      try {
-        const { supabase } = await import("@/lib/supabase")
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) { router.push("/login"); return }
-
-        const data = await getClientesSupabase(activeObraId, user.id)
-        setClientes(data)
-      } catch {
-        toast.error("Erro ao carregar clientes")
-      } finally {
-        setLoading(false)
-      }
-    }
-    carregar()
+    const isAuthenticated = localStorage.getItem("isAuthenticated")
+    if (!isAuthenticated) { router.push("/login"); return }
+    const activeObraId = localStorage.getItem("activeObraId")
+    if (!activeObraId) { router.push("/obras"); return }
+    setObraId(activeObraId)
   }, [router])
+
+  const { data: user, isError: authError } = useAuthUser()
+
+  useEffect(() => {
+    if (authError) router.push("/login")
+  }, [authError, router])
+
+  const { data: clientesQuery, isLoading } = useQuery({
+    queryKey: ["clientes", obraId, user?.id],
+    enabled: !!obraId && !!user?.id,
+    staleTime: 60_000,
+    queryFn: () => getClientesSupabase(obraId, user!.id),
+  })
+
+  const clientes = clientesQuery ?? []
+  const loading = !clientesQuery && isLoading
+  const showLoader = useDelayedLoading(loading, 400)
 
   const handleDelete = async (clienteId: string) => {
     setDeletandoId(clienteId)
     const ok = await deleteClienteSupabase(clienteId)
     if (ok) {
-      setClientes(prev => prev.filter(c => c.id !== clienteId))
+      queryClient.setQueryData(
+        ["clientes", obraId, user?.id],
+        (old: Cliente[] | undefined) => (old || []).filter((c) => c.id !== clienteId),
+      )
       toast.success("Cliente removido")
     } else {
       toast.error("Erro ao remover cliente")

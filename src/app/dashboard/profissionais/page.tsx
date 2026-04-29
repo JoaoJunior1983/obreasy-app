@@ -1,7 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useAuthUser } from "@/lib/queries/auth"
 import { Plus, Users, Trash2, FileText, Clock, X, MessageSquare } from "lucide-react"
 import { toast } from "sonner"
 import { getPagamentosByProfissional, getActiveObraId } from "@/lib/storage"
@@ -55,6 +57,8 @@ interface Obra {
 
 export default function ProfissionaisPage() {
   const router = useRouter()
+  const queryClient = useQueryClient()
+  const [activeObraId, setActiveObraId] = useState<string | null>(null)
   const [profissionais, setProfissionais] = useState<Profissional[]>([])
   const [obra, setObra] = useState<Obra | null>(null)
   const [loading, setLoading] = useState(true)
@@ -67,176 +71,141 @@ export default function ProfissionaisPage() {
   const [totalPagoPorProfissional, setTotalPagoPorProfissional] = useState<Record<string, number>>({})
   const [obsAberta, setObsAberta] = useState<Profissional | null>(null)
 
-  const carregarProfissionais = async () => {
-    try {
-      // Verificar autenticação no Supabase
-      const { supabase } = await import("@/lib/supabase")
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-      if (authError || !user) {
-        router.push("/login")
-        return []
-      }
-
-      // CRÍTICO: Usar activeObraId para manter contexto
-      const activeObraId = getActiveObraId()
-      if (!activeObraId) {
-        console.log("Nenhuma obra ativa, redirecionando para /obras")
-        router.push("/obras")
-        return []
-      }
-
-      // Carregar obra ativa do Supabase
-      const { data: obraData, error: obraError } = await supabase
-        .from("obras")
-        .select("*")
-        .eq("id", activeObraId)
-        .eq("user_id", user.id)
-        .single()
-
-      if (obraError || !obraData) {
-        console.error("Erro ao carregar obra:", obraError)
-        router.push("/obras")
-        return []
-      }
-
-      const dbObra = obraData as any
-      setObra({
-        id: dbObra.id,
-        nome: dbObra.nome,
-      })
-
-      // Carregar profissionais do Supabase
-      console.log("[PROFISSIONAIS] Buscando profissionais no Supabase. obra_id:", activeObraId, "user_id:", user.id)
-
-      const { getProfissionaisSupabase, isValidUUID } = await import("@/lib/storage")
-      const profissionaisSupabase = await getProfissionaisSupabase(activeObraId, user.id)
-
-      console.log(`[PROFISSIONAIS] ${profissionaisSupabase.length} profissionais carregados do Supabase`)
-      console.log("[PROFISSIONAIS] Profissionais retornados:", profissionaisSupabase.map(p => ({
-        id: p.id,
-        nome: p.nome,
-        funcao: p.funcao,
-        tem_contrato: !!p.contrato,
-        valor_previsto: p.valorPrevisto
-      })))
-
-      // CRÍTICO: Filtrar profissionais com IDs temporários (criados em versão antiga)
-      const profissionaisValidos = profissionaisSupabase.filter((prof: any) => {
-        const isValid = isValidUUID(prof.id)
-        if (!isValid) {
-          console.warn(`[PROFISSIONAIS] Profissional com ID inválido ignorado: ${prof.id} (${prof.nome})`)
-        }
-        return isValid
-      })
-
-      if (profissionaisValidos.length < profissionaisSupabase.length) {
-        const ignorados = profissionaisSupabase.length - profissionaisValidos.length
-        console.log(`[PROFISSIONAIS] ${ignorados} profissionais com IDs antigos foram ignorados`)
-      }
-
-      console.log(`[PROFISSIONAIS] ${profissionaisValidos.length} profissionais válidos disponíveis`)
-
-      return profissionaisValidos
-    } catch (error) {
-      console.error("Erro ao carregar profissionais:", error)
-      router.push("/obras")
-      return []
-    }
-  }
-
   useEffect(() => {
-    const carregarDados = async () => {
-      const profissionaisCarregados = await carregarProfissionais()
-      setProfissionais(profissionaisCarregados)
-
-      // Buscar último pagamento por profissional
-      try {
-        const { supabase } = await import("@/lib/supabase")
-        const { data: { user } } = await supabase.auth.getUser()
-        const activeObraId = localStorage.getItem("activeObraId")
-
-        if (user && activeObraId) {
-          const { data: pagamentosData, error: pagErr } = await supabase
-            .from("pagamentos")
-            .select("*")
-            .eq("obra_id", activeObraId)
-            .eq("user_id", user.id)
-            .order("data", { ascending: false })
-
-          if (pagErr) console.error("Erro ao buscar pagamentos:", pagErr)
-
-          if (pagamentosData && pagamentosData.length > 0) {
-            const ultimoMap: Record<string, { valor: number; data: string; criadoEm: string }> = {}
-            const totalMap: Record<string, number> = {}
-
-            pagamentosData.forEach((p: any) => {
-              if (!p.profissional_id) return
-              // Último pagamento (já vem ordenado desc por data)
-              if (!ultimoMap[p.profissional_id]) {
-                ultimoMap[p.profissional_id] = {
-                  valor: parseFloat(p.valor) || 0,
-                  data: p.data || p.data_pagamento || "",
-                  criadoEm: p.criado_em || p.created_at || "",
-                }
-              }
-              // Total pago acumulado
-              totalMap[p.profissional_id] = (totalMap[p.profissional_id] || 0) + (parseFloat(p.valor) || 0)
-            })
-
-            setUltimosPagamentos(ultimoMap)
-            setTotalPagoPorProfissional(totalMap)
-          }
-        }
-      } catch (err) {
-        console.error("Erro ao buscar últimos pagamentos:", err)
-      }
-
-      setLoading(false)
+    const id = getActiveObraId()
+    if (!id) {
+      router.push("/obras")
+      return
     }
-
-    carregarDados()
+    setActiveObraId(id)
   }, [router])
 
-  // Recarregar profissionais quando a página receber foco (volta de outra página)
+  const { data: user, isError: authError } = useAuthUser()
+
   useEffect(() => {
-    const handleFocus = async () => {
-      const profissionaisAtualizados = await carregarProfissionais()
-      setProfissionais(profissionaisAtualizados)
-    }
+    if (authError) router.push("/login")
+  }, [authError, router])
 
-    // Listener para mudanças no localStorage (quando pagamento é salvo em outra aba/página)
-    const handleStorageChange = async (e: Event) => {
-      const storageEvent = e as StorageEvent
-      if (storageEvent.key === "despesas") {
-        const profissionaisAtualizados = await carregarProfissionais()
-        setProfissionais(profissionaisAtualizados)
+  const { data: obraQuery, isError: obraError } = useQuery({
+    queryKey: ["obra", activeObraId, user?.id],
+    enabled: !!activeObraId && !!user?.id,
+    staleTime: 60_000,
+    retry: false,
+    queryFn: async (): Promise<Obra> => {
+      const { supabase } = await import("@/lib/supabase")
+      const { data, error } = await supabase
+        .from("obras")
+        .select("id, nome")
+        .eq("id", activeObraId!)
+        .eq("user_id", user!.id)
+        .single()
+      if (error || !data) throw new Error("not found")
+      const o = data as any
+      return { id: o.id, nome: o.nome }
+    },
+  })
+
+  useEffect(() => {
+    if (obraError) router.push("/obras")
+  }, [obraError, router])
+
+  // Profissionais e pagamentos disparam em paralelo após obra+user prontos
+  const { data: profissionaisQuery } = useQuery({
+    queryKey: ["profissionais", obraQuery?.id, user?.id],
+    enabled: !!obraQuery?.id && !!user?.id,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { getProfissionaisSupabase, isValidUUID } = await import("@/lib/storage")
+      const list = await getProfissionaisSupabase(obraQuery!.id, user!.id)
+      return (list as Profissional[]).filter((p) => isValidUUID(p.id))
+    },
+  })
+
+  const { data: pagamentosQuery } = useQuery({
+    queryKey: ["pagamentos", obraQuery?.id, user?.id],
+    enabled: !!obraQuery?.id && !!user?.id,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { supabase } = await import("@/lib/supabase")
+      const { data } = await supabase
+        .from("pagamentos")
+        .select("id, valor, profissional_id, data, data_pagamento, criado_em, created_at")
+        .eq("obra_id", obraQuery!.id)
+        .eq("user_id", user!.id)
+        .order("data", { ascending: false })
+      return (data || []) as any[]
+    },
+  })
+
+  // Sync queries → useStates locais
+  useEffect(() => { if (obraQuery) setObra(obraQuery) }, [obraQuery])
+  useEffect(() => { if (profissionaisQuery) setProfissionais(profissionaisQuery) }, [profissionaisQuery])
+  useEffect(() => { if (obraQuery) setLoading(false) }, [obraQuery])
+
+  // Derivações de pagamentos: último pagamento por profissional + total acumulado
+  useEffect(() => {
+    if (!pagamentosQuery) return
+    if (pagamentosQuery.length === 0) {
+      setUltimosPagamentos({})
+      setTotalPagoPorProfissional({})
+      return
+    }
+    const ultimoMap: Record<string, { valor: number; data: string; criadoEm: string }> = {}
+    const totalMap: Record<string, number> = {}
+    for (const p of pagamentosQuery) {
+      if (!p.profissional_id) continue
+      if (!ultimoMap[p.profissional_id]) {
+        ultimoMap[p.profissional_id] = {
+          valor: parseFloat(p.valor) || 0,
+          data: p.data || p.data_pagamento || "",
+          criadoEm: p.criado_em || p.created_at || "",
+        }
       }
+      totalMap[p.profissional_id] = (totalMap[p.profissional_id] || 0) + (parseFloat(p.valor) || 0)
+    }
+    setUltimosPagamentos(ultimoMap)
+    setTotalPagoPorProfissional(totalMap)
+  }, [pagamentosQuery])
+
+  // Refresh: invalida cache do React Query — substitui o getUser+fetch antigo
+  const carregarProfissionais = useCallback(async () => {
+    await queryClient.invalidateQueries({
+      predicate: (q) => {
+        const k = q.queryKey[0] as string
+        return k === "profissionais" || k === "pagamentos"
+      },
+    })
+    return profissionaisQuery || []
+  }, [queryClient, profissionaisQuery])
+
+  // Listeners: invalida o cache quando a página recupera foco ou um pagamento é salvo
+  useEffect(() => {
+    const invalidate = () => {
+      queryClient.invalidateQueries({
+        predicate: (q) => {
+          const k = q.queryKey[0] as string
+          return k === "profissionais" || k === "pagamentos"
+        },
+      })
     }
 
-    // Listener para eventos customizados de pagamento
-    const handlePagamentoSalvo = async () => {
-      const profissionaisAtualizados = await carregarProfissionais()
-      setProfissionais(profissionaisAtualizados)
+    const handleStorageChange = (e: Event) => {
+      const storageEvent = e as StorageEvent
+      if (storageEvent.key === "despesas") invalidate()
     }
 
-    const handlePagamentoAtualizado = async () => {
-      const profissionaisAtualizados = await carregarProfissionais()
-      setProfissionais(profissionaisAtualizados)
-    }
-
-    window.addEventListener("focus", handleFocus)
+    window.addEventListener("focus", invalidate)
     window.addEventListener("storage", handleStorageChange)
-    window.addEventListener("pagamentoSalvo", handlePagamentoSalvo)
-    window.addEventListener("pagamentoAtualizado", handlePagamentoAtualizado)
+    window.addEventListener("pagamentoSalvo", invalidate)
+    window.addEventListener("pagamentoAtualizado", invalidate)
 
     return () => {
-      window.removeEventListener("focus", handleFocus)
+      window.removeEventListener("focus", invalidate)
       window.removeEventListener("storage", handleStorageChange)
-      window.removeEventListener("pagamentoSalvo", handlePagamentoSalvo)
-      window.removeEventListener("pagamentoAtualizado", handlePagamentoAtualizado)
+      window.removeEventListener("pagamentoSalvo", invalidate)
+      window.removeEventListener("pagamentoAtualizado", invalidate)
     }
-  }, [])
+  }, [queryClient])
 
   const formatarMoeda = (valor: number): string => {
     return valor.toLocaleString("pt-BR", {
