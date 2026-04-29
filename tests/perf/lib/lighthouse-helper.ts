@@ -93,7 +93,7 @@ export async function runAudit(opts: {
   url: string;
   reportsDir: string;
 }): Promise<AuditSummary> {
-  const { route, reportsDir } = opts;
+  const { route, url, reportsDir } = opts;
   const runs = Math.max(1, Number(process.env.PERF_RUNS) || 1);
 
   fs.mkdirSync(reportsDir, { recursive: true });
