@@ -544,6 +544,8 @@ export type Database = {
           last_active_at: string | null
           last_name: string
           lead_source: string | null
+          marketing_optin: boolean
+          marketing_optin_at: string | null
           next_cycle_at: string | null
           overdue_since: string | null
           payment_method: string | null
@@ -571,6 +573,8 @@ export type Database = {
           last_active_at?: string | null
           last_name: string
           lead_source?: string | null
+          marketing_optin?: boolean
+          marketing_optin_at?: string | null
           next_cycle_at?: string | null
           overdue_since?: string | null
           payment_method?: string | null
@@ -598,6 +602,8 @@ export type Database = {
           last_active_at?: string | null
           last_name?: string
           lead_source?: string | null
+          marketing_optin?: boolean
+          marketing_optin_at?: string | null
           next_cycle_at?: string | null
           overdue_since?: string | null
           payment_method?: string | null

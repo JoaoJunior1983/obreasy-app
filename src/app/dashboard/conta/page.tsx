@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { User, Camera, Save, X, Eye, EyeOff, Home, Briefcase, AlertCircle, CheckCircle2 } from "lucide-react"
+import { User, Camera, Save, X, Eye, EyeOff, Home, Briefcase, AlertCircle, CheckCircle2, Trash2, Loader2 } from "lucide-react"
 import { getUserProfile, setUserProfile, type UserProfile as UserProfileType } from "@/lib/storage"
 import { supabase } from "@/lib/supabase"
 import { validatePassword, validatePasswordMatch } from "@/lib/password-validation"
@@ -50,6 +50,16 @@ export default function MinhaContaPage() {
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [selectedNewProfile, setSelectedNewProfile] = useState<UserProfileType>(null)
 
+  // Marketing opt-in
+  const [marketingOptin, setMarketingOptin] = useState(false)
+  const [marketingSaving, setMarketingSaving] = useState(false)
+
+  // Excluir conta
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState("")
+  const [deletePassword, setDeletePassword] = useState("")
+  const [deleting, setDeleting] = useState(false)
+
   useEffect(() => {
     // Verificar autenticação
     const isAuthenticated = localStorage.getItem("isAuthenticated")
@@ -88,6 +98,7 @@ export default function MinhaContaPage() {
 
           setFormData(userData)
           setOriginalData(userData)
+          setMarketingOptin(Boolean((profile as any).marketing_optin))
           return
         }
       }
@@ -473,6 +484,90 @@ export default function MinhaContaPage() {
     return "Não definido"
   }
 
+  const handleMarketingToggle = async (next: boolean) => {
+    setMarketingSaving(true)
+    const previous = marketingOptin
+    setMarketingOptin(next)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error("not-authenticated")
+
+      const { error: updErr } = await supabase
+        .from('user_profiles')
+        .update({
+          marketing_optin: next,
+          marketing_optin_at: next ? new Date().toISOString() : null,
+        } as any)
+        .eq('id', user.id)
+
+      if (updErr) throw updErr
+      showMessage(
+        next ? "✓ Você passará a receber ofertas de parceiros." : "✓ Você não receberá mais ofertas de parceiros.",
+        "success"
+      )
+    } catch (err) {
+      console.error("Erro ao salvar preferência de marketing:", err)
+      setMarketingOptin(previous)
+      showMessage("Não foi possível salvar a preferência. Tente novamente.", "error")
+    } finally {
+      setMarketingSaving(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText.trim().toUpperCase() !== "EXCLUIR") {
+      showMessage('Digite "EXCLUIR" para confirmar.', "error")
+      return
+    }
+    if (!deletePassword) {
+      showMessage("Informe sua senha para confirmar a exclusão.", "error")
+      return
+    }
+
+    setDeleting(true)
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const session = sessionData?.session
+      if (!session) {
+        showMessage("Sessão expirada. Faça login novamente.", "error")
+        setDeleting(false)
+        return
+      }
+
+      const { error: signInErr } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: deletePassword,
+      })
+      if (signInErr) {
+        showMessage("Senha incorreta. Verifique e tente novamente.", "error")
+        setDeleting(false)
+        return
+      }
+
+      const res = await fetch("/api/conta/excluir", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        showMessage(body?.error || "Não foi possível excluir a conta. Tente novamente.", "error")
+        setDeleting(false)
+        return
+      }
+
+      try { await supabase.auth.signOut() } catch {}
+      try {
+        localStorage.clear()
+      } catch {}
+      router.replace("/")
+    } catch (err) {
+      console.error("Erro ao excluir conta:", err)
+      showMessage("Erro inesperado ao excluir a conta.", "error")
+      setDeleting(false)
+    }
+  }
+
   const inputCls = "w-full h-11 px-3 bg-[#2a2d35] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-[#0B3064]/60 transition-colors"
   const labelCls = "block text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5"
 
@@ -580,7 +675,150 @@ export default function MinhaContaPage() {
           )}
         </button>
 
+        {/* Comunicações */}
+        <p className={labelCls + " mt-3"}>Comunicações</p>
+        <div className="bg-[#1f2228]/80 border border-white/[0.08] rounded-xl p-3 flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm text-white">Receber ofertas de parceiros</p>
+            <p className="text-[11px] text-gray-500 mt-0.5">
+              Promoções e ofertas de parceiros do setor de construção. Você pode alterar a qualquer momento.
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={marketingOptin}
+            disabled={marketingSaving}
+            onClick={() => handleMarketingToggle(!marketingOptin)}
+            className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 ${
+              marketingOptin ? "bg-[#0B3064]" : "bg-[#2a2d35] border border-white/[0.08]"
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                marketingOptin ? "translate-x-5" : "translate-x-0.5"
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Documentos legais */}
+        <p className={labelCls + " mt-3"}>Documentos</p>
+        <div className="bg-[#1f2228]/80 border border-white/[0.08] rounded-xl overflow-hidden">
+          <a
+            href="/termos"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between px-3 py-3 border-b border-white/[0.06] hover:bg-white/[0.02] transition-colors"
+          >
+            <span className="text-sm text-white">Termos de Uso</span>
+            <span className="text-xs text-gray-500">↗</span>
+          </a>
+          <a
+            href="/privacidade"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between px-3 py-3 hover:bg-white/[0.02] transition-colors"
+          >
+            <span className="text-sm text-white">Política de Privacidade</span>
+            <span className="text-xs text-gray-500">↗</span>
+          </a>
+        </div>
+
+        {/* Zona perigosa */}
+        <p className={labelCls + " mt-3 text-red-400/80"}>Zona perigosa</p>
+        <div className="bg-[#1f2228]/80 border border-red-500/20 rounded-xl p-4">
+          <p className="text-sm font-semibold text-white">Excluir minha conta</p>
+          <p className="text-[11px] text-gray-500 mt-1 leading-relaxed">
+            Esta ação é permanente. Todos os seus dados (obras, despesas, profissionais, pagamentos) serão excluídos
+            e não poderão ser recuperados.
+          </p>
+          <button
+            type="button"
+            onClick={() => { setShowDeleteModal(true); setDeleteConfirmText(""); setDeletePassword("") }}
+            className="mt-3 w-full flex items-center justify-center gap-2 h-10 bg-red-600/10 hover:bg-red-600/20 border border-red-500/40 text-red-300 text-sm font-semibold rounded-xl transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+            Excluir minha conta
+          </button>
+        </div>
+
       </div>
+
+      {/* Modal de confirmação de exclusão */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#13151a] border border-white/[0.08] rounded-2xl w-full max-w-sm shadow-2xl relative">
+            {!deleting && (
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+
+            <div className="p-6">
+              <div className="w-10 h-10 rounded-full bg-red-500/15 border border-red-500/30 flex items-center justify-center mb-4">
+                <AlertCircle className="w-5 h-5 text-red-400" />
+              </div>
+
+              <h2 className="text-base font-semibold text-white">Excluir minha conta</h2>
+              <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+                Esta ação é <strong className="text-white">permanente</strong> e não pode ser desfeita.
+                Todas as suas obras, despesas, profissionais e pagamentos serão removidos.
+              </p>
+
+              <div className="mt-5 space-y-3">
+                <div>
+                  <label className="block text-[11px] text-gray-500 mb-1.5">
+                    Digite <span className="text-red-400 font-semibold">EXCLUIR</span> para confirmar
+                  </label>
+                  <input
+                    type="text"
+                    value={deleteConfirmText}
+                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                    disabled={deleting}
+                    placeholder="EXCLUIR"
+                    className={inputCls}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] text-gray-500 mb-1.5">Sua senha</label>
+                  <input
+                    type="password"
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    disabled={deleting}
+                    placeholder="••••••••"
+                    className={inputCls}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-5 grid grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={deleting}
+                  className="h-10 bg-[#1f2228] hover:bg-[#262932] border border-white/[0.08] rounded-xl text-sm font-medium text-white transition-colors disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteAccount}
+                  disabled={deleting || deleteConfirmText.trim().toUpperCase() !== "EXCLUIR" || !deletePassword}
+                  className="h-10 bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-sm font-semibold text-white transition-colors flex items-center justify-center gap-2"
+                >
+                  {deleting ? <><Loader2 className="w-4 h-4 animate-spin" /> Excluindo...</> : "Excluir conta"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
