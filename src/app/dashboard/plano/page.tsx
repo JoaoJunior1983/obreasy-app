@@ -126,34 +126,28 @@ function PlanoPageInner() {
   const handleConfirmarCancelamento = async () => {
     setCancelLoading(true)
     try {
-      const planoAtual = isProfissional ? "Profissional" : "Essencial"
-      const cicloAtual = billingCycle === "annual" ? "Anual" : "Mensal"
-      const proximaCobranca = formatarDataPtBr(cycleEndDate)
+      const { supabase } = await import("@/lib/supabase")
+      const { data: sessionData } = await supabase.auth.getSession()
+      const session = sessionData?.session
+      if (!session) {
+        toast.error("Sessão expirada. Faça login novamente.")
+        setCancelLoading(false)
+        return
+      }
 
-      const mensagem = `Solicitação de cancelamento de assinatura.
-
-Usuário: ${userName || "—"}
-E-mail: ${userEmail}
-Plano atual: ${planoAtual}
-Ciclo: ${cicloAtual}
-Próxima cobrança: ${proximaCobranca}
-
-Motivo informado pelo cliente:
-${cancelReason || "(não informado)"}`
-
-      const res = await fetch("/api/suporte", {
+      const res = await fetch("/api/plano/cancelar", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: userEmail,
-          assunto: "Cancelamento de assinatura",
-          mensagem,
-        }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ comment: cancelReason }),
       })
 
+      const data = await res.json().catch(() => ({}))
+
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error(data?.error || "Falha ao solicitar cancelamento")
+        throw new Error(data?.error || "Falha ao cancelar assinatura")
       }
 
       try {
@@ -164,7 +158,7 @@ ${cancelReason || "(não informado)"}`
       trackEvent("plan_cancelled", { plano, billing_cycle: billingCycle, requested: true }).catch(() => {})
     } catch (e: any) {
       console.error(e)
-      toast.error(e?.message || "Erro ao solicitar cancelamento")
+      toast.error(e?.message || "Erro ao cancelar assinatura")
     } finally {
       setCancelLoading(false)
     }
@@ -354,13 +348,13 @@ ${cancelReason || "(não informado)"}`
             </div>
           )}
 
-          {/* Mensagem após solicitação de cancelamento */}
+          {/* Mensagem após cancelamento */}
           {cancellationRequested && (
             <div className="px-4 py-2.5 border-t border-white/[0.06] bg-amber-500/5">
               <p className="text-[10px] text-amber-300/80 leading-relaxed">
-                Cancelamento solicitado. Seu acesso permanecerá ativo até{" "}
+                Assinatura cancelada. Seu acesso permanecerá ativo até{" "}
                 <span className="font-semibold text-amber-300">{formatarDataPtBr(cycleEndDate)}</span>.
-                Você receberá uma confirmação por e-mail em até 1 dia útil.
+                Após essa data, sua conta retornará ao modo gratuito.
               </p>
             </div>
           )}
@@ -748,12 +742,12 @@ ${cancelReason || "(não informado)"}`
                   <h3 className="text-lg font-bold text-white">Cancelamento agendado</h3>
                 </div>
                 <p className="text-sm text-gray-300 leading-relaxed mb-1.5">
-                  Sua solicitação foi registrada. Nossa equipe processa em até 1 dia útil.
+                  Sua assinatura foi cancelada e não será renovada no próximo ciclo.
                 </p>
                 <p className="text-xs text-gray-500 leading-relaxed mb-5">
                   Seu acesso permanecerá ativo até{" "}
                   <span className="text-gray-300 font-semibold">{formatarDataPtBr(cycleEndDate)}</span>.
-                  Você receberá um e-mail de confirmação em <span className="text-gray-300">{userEmail}</span>.
+                  Após essa data, sua conta retornará ao modo gratuito.
                 </p>
                 <button
                   onClick={() => setCancelModalStep(null)}
