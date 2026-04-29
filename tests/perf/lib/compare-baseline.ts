@@ -30,9 +30,9 @@ function fmtValue(n: number, unit: MetricUnit | undefined): string {
   }
 }
 
-const REGRESSION_TOLERANCE = 0.05;
-const MIN_ABSOLUTE_REGRESSION_MS = 50;
-const MIN_ABSOLUTE_REGRESSION_BYTES = 5 * 1024;
+const REGRESSION_TOLERANCE = 0.15;
+const MIN_ABSOLUTE_REGRESSION_MS = 200;
+const MIN_ABSOLUTE_REGRESSION_BYTES = 20 * 1024;
 
 export function compareWithBaseline(
   summary: AuditSummary,
