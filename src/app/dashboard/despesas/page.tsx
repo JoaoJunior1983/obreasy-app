@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Eye, Pencil, Trash2, FileText, Search, ArrowUpDown, ArrowUp, ArrowDown, Plus } from "lucide-react"
 import { goToObraDashboard } from "@/lib/navigation"
 import { toast } from "sonner"
@@ -52,12 +53,9 @@ interface Obra {
 function DespesasPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const queryClient = useQueryClient()
 
-  const [despesas, setDespesas] = useState<Despesa[]>([])
-  const [pagamentos, setPagamentos] = useState<Pagamento[]>([])
-  const [profissionais, setProfissionais] = useState<Profissional[]>([])
-  const [obra, setObra] = useState<Obra | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [activeObraId, setActiveObraId] = useState<string | null>(null)
   const [excluindo, setExcluindo] = useState<string | null>(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [despesaToDelete, setDespesaToDelete] = useState<Despesa | null>(null)
@@ -75,87 +73,105 @@ function DespesasPageContent() {
   const [categoriaFiltro, setCategoriaFiltro] = useState<string>("todas")
 
   useEffect(() => {
-    const carregarDados = async () => {
-      try {
-        // Verificar autenticação no Supabase
-        const { supabase } = await import("@/lib/supabase")
-        const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-        if (authError || !user) {
-          router.push("/login")
-          return
-        }
-
-        // CRÍTICO: Usar activeObraId para manter contexto
-        const activeObraId = localStorage.getItem("activeObraId")
-
-        if (!activeObraId) {
-          console.log("Nenhuma obra ativa, redirecionando para /obras")
-          router.push("/obras")
-          return
-        }
-
-        // Carregar obra ativa do Supabase
-        const { data: obraData, error: obraError } = await supabase
-          .from("obras")
-          .select("*")
-          .eq("id", activeObraId)
-          .eq("user_id", user.id)
-          .single()
-
-        if (obraError || !obraData) {
-          console.error("Erro ao carregar obra:", obraError)
-          router.push("/obras")
-          return
-        }
-
-        const dbObra = obraData as any
-        const obraAtiva = {
-          id: dbObra.id,
-          nome: dbObra.nome,
-          orcamentoTotalObra: dbObra.orcamento || 0,
-          userId: dbObra.user_id,
-        } as Obra
-
-        setObra(obraAtiva)
-
-        // Paralelizar 3 queries independentes — antes eram sequenciais
-        const { getProfissionaisSupabase, getDespesasSupabase } = await import("@/lib/storage")
-        const [profissionaisRes, despesasRes, pagamentosRes] = await Promise.allSettled([
-          getProfissionaisSupabase(obraAtiva.id, user.id),
-          getDespesasSupabase(obraAtiva.id, user.id),
-          supabase
-            .from("pagamentos")
-            .select("id, valor, profissional_id, data, data_pagamento")
-            .eq("obra_id", obraAtiva.id)
-            .eq("user_id", user.id),
-        ])
-
-        setProfissionais(profissionaisRes.status === "fulfilled" ? profissionaisRes.value : [])
-        setDespesas(despesasRes.status === "fulfilled" ? despesasRes.value : [])
-
-        const pagamentosData =
-          pagamentosRes.status === "fulfilled" ? pagamentosRes.value.data : null
-        const pagamentosCarregados: Pagamento[] = (pagamentosData || []).map((p: any) => ({
-          id: p.id,
-          valor: parseFloat(p.valor) || 0,
-          profissionalId: p.profissional_id,
-          data: p.data || p.data_pagamento || "",
-        }))
-        setPagamentos(pagamentosCarregados)
-
-        setLoading(false)
-      } catch (error: any) {
-        console.error("Erro ao carregar dados:", error)
-        // Só redireciona se não for erro de localStorage (quota)
-        if (error?.name !== "QuotaExceededError") {
-          router.push("/obras")
-        }
-      }
+    const id = localStorage.getItem("activeObraId")
+    if (!id) {
+      router.push("/obras")
+      return
     }
-
-    carregarDados()
+    setActiveObraId(id)
   }, [router])
+
+  // Auth — cacheado 5min, compartilhado entre todas as páginas autenticadas
+  const { data: user, isError: authError } = useQuery({
+    queryKey: ["auth-user"],
+    staleTime: 5 * 60_000,
+    retry: false,
+    queryFn: async () => {
+      const { supabase } = await import("@/lib/supabase")
+      const { data, error } = await supabase.auth.getUser()
+      if (error || !data.user) throw new Error("not authenticated")
+      return data.user
+    },
+  })
+
+  useEffect(() => {
+    if (authError) router.push("/login")
+  }, [authError, router])
+
+  // Obra — cacheado 60s
+  const { data: obra, isError: obraError } = useQuery({
+    queryKey: ["obra", activeObraId, user?.id],
+    enabled: !!activeObraId && !!user?.id,
+    staleTime: 60_000,
+    retry: false,
+    queryFn: async (): Promise<Obra> => {
+      const { supabase } = await import("@/lib/supabase")
+      const { data, error } = await supabase
+        .from("obras")
+        .select("id, nome, orcamento, user_id")
+        .eq("id", activeObraId!)
+        .eq("user_id", user!.id)
+        .single()
+      if (error || !data) throw new Error("obra not found")
+      const o = data as any
+      return {
+        id: o.id,
+        nome: o.nome,
+        orcamentoTotalObra: o.orcamento || 0,
+        userId: o.user_id,
+      }
+    },
+  })
+
+  useEffect(() => {
+    if (obraError) router.push("/obras")
+  }, [obraError, router])
+
+  // Paralelo: profissionais, despesas, pagamentos — disparam juntos quando obra+user prontos
+  const { data: profissionaisData } = useQuery({
+    queryKey: ["profissionais", obra?.id, user?.id],
+    enabled: !!obra?.id && !!user?.id,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { getProfissionaisSupabase } = await import("@/lib/storage")
+      return await getProfissionaisSupabase(obra!.id, user!.id)
+    },
+  })
+
+  const { data: despesasData } = useQuery({
+    queryKey: ["despesas", obra?.id, user?.id],
+    enabled: !!obra?.id && !!user?.id,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { getDespesasSupabase } = await import("@/lib/storage")
+      return await getDespesasSupabase(obra!.id, user!.id)
+    },
+  })
+
+  const { data: pagamentosData } = useQuery({
+    queryKey: ["pagamentos", obra?.id, user?.id],
+    enabled: !!obra?.id && !!user?.id,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { supabase } = await import("@/lib/supabase")
+      const { data } = await supabase
+        .from("pagamentos")
+        .select("id, valor, profissional_id, data, data_pagamento")
+        .eq("obra_id", obra!.id)
+        .eq("user_id", user!.id)
+      return ((data || []) as any[]).map((p): Pagamento => ({
+        id: p.id,
+        valor: parseFloat(p.valor) || 0,
+        profissionalId: p.profissional_id,
+        data: p.data || p.data_pagamento || "",
+      }))
+    },
+  })
+
+  const profissionais = (profissionaisData ?? []) as Profissional[]
+  const despesas = (despesasData ?? []) as Despesa[]
+  const pagamentos = pagamentosData ?? []
+  const loading = !obra
 
   const handleOpenDeleteModal = (e: React.MouseEvent, despesa: Despesa) => {
     e.preventDefault()
@@ -183,7 +199,11 @@ function DespesasPageContent() {
           toast.error("Erro ao excluir pagamento. Tente novamente.")
           return
         }
-        setPagamentos(prev => prev.filter(p => p.id !== despesaToDelete.id))
+        queryClient.setQueryData(
+          ["pagamentos", obra?.id, user?.id],
+          (old: Pagamento[] | undefined) =>
+            (old || []).filter((p) => p.id !== despesaToDelete.id),
+        )
         toast.success("Pagamento excluído com sucesso!")
       } else {
         // É uma despesa comum
@@ -192,7 +212,11 @@ function DespesasPageContent() {
           toast.error("Erro ao excluir despesa. Tente novamente.")
           return
         }
-        setDespesas(prev => prev.filter(d => d.id !== despesaToDelete.id))
+        queryClient.setQueryData(
+          ["despesas", obra?.id, user?.id],
+          (old: Despesa[] | undefined) =>
+            (old || []).filter((d) => d.id !== despesaToDelete.id),
+        )
         toast.success("Despesa excluída com sucesso!")
       }
       handleCloseDeleteModal()

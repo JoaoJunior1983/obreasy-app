@@ -7,6 +7,7 @@ import { Toaster } from "sonner";
 import { Toaster as UIToaster } from "@/components/ui/toaster";
 import AuthenticatedLayout from "@/components/AuthenticatedLayout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import QueryProvider from "@/components/QueryProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -95,11 +96,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
       >
         <ErrorBoundary>
-          <AuthenticatedLayout>
-            {children}
-          </AuthenticatedLayout>
-          <Toaster position="top-right" richColors />
-          <UIToaster />
+          <QueryProvider>
+            <AuthenticatedLayout>
+              {children}
+            </AuthenticatedLayout>
+            <Toaster position="top-right" richColors />
+            <UIToaster />
+          </QueryProvider>
         </ErrorBoundary>
       </body>
     </html>
