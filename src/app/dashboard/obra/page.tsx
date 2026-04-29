@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useAuthUser } from "@/lib/queries/auth"
 import { ArrowLeft, TrendingUp, Wallet, PiggyBank, Home, Plus, Users, FileText, AlertCircle, CheckCircle, AlertTriangle, MoreVertical, Pencil, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown, HandCoins, Edit3, Camera, CreditCard, X, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -194,17 +195,7 @@ export default function DashboardObraPage() {
     setActiveObraId(id)
   }, [router])
 
-  const { data: authUser, isError: authError } = useQuery({
-    queryKey: ["auth-user"],
-    staleTime: 5 * 60_000,
-    retry: false,
-    queryFn: async () => {
-      const { supabase } = await import("@/lib/supabase")
-      const { data, error } = await supabase.auth.getUser()
-      if (error || !data.user) throw new Error("not authenticated")
-      return data.user
-    },
-  })
+  const { data: authUser, isError: authError } = useAuthUser()
 
   useEffect(() => {
     if (authError) router.push("/login")

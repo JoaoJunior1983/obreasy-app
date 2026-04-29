@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useAuthUser } from "@/lib/queries/auth"
 import { Eye, Pencil, Trash2, FileText, Search, ArrowUpDown, ArrowUp, ArrowDown, Plus } from "lucide-react"
 import { goToObraDashboard } from "@/lib/navigation"
 import { toast } from "sonner"
@@ -81,18 +82,7 @@ function DespesasPageContent() {
     setActiveObraId(id)
   }, [router])
 
-  // Auth — cacheado 5min, compartilhado entre todas as páginas autenticadas
-  const { data: user, isError: authError } = useQuery({
-    queryKey: ["auth-user"],
-    staleTime: 5 * 60_000,
-    retry: false,
-    queryFn: async () => {
-      const { supabase } = await import("@/lib/supabase")
-      const { data, error } = await supabase.auth.getUser()
-      if (error || !data.user) throw new Error("not authenticated")
-      return data.user
-    },
-  })
+  const { data: user, isError: authError } = useAuthUser()
 
   useEffect(() => {
     if (authError) router.push("/login")

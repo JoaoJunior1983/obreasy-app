@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react"
 import { useRouter, useParams, useSearchParams } from "next/navigation"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useAuthUser } from "@/lib/queries/auth"
 import { FileText, Save, X, Edit, Trash2, Plus, DollarSign, Pencil } from "lucide-react"
 import { goToObraDashboard } from "@/lib/navigation"
 import { deletePagamento } from "@/lib/storage"
@@ -148,17 +149,7 @@ function ProfissionalDetalhePageContent() {
   }
 
   // ── React Query: auth + profissional + obra + pagamentos com cache ──
-  const { data: authUser, isError: authError } = useQuery({
-    queryKey: ["auth-user"],
-    staleTime: 5 * 60_000,
-    retry: false,
-    queryFn: async () => {
-      const { supabase } = await import("@/lib/supabase")
-      const { data, error } = await supabase.auth.getUser()
-      if (error || !data.user) throw new Error("not authenticated")
-      return data.user
-    },
-  })
+  const { data: authUser, isError: authError } = useAuthUser()
 
   useEffect(() => {
     if (authError) router.push("/login")
