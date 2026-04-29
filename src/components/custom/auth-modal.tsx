@@ -43,6 +43,7 @@ export default function AuthModal({ onClose, hasQuizData = false, quizData, onSu
     password: "",
     confirmPassword: ""
   })
+  const [marketingOptin, setMarketingOptin] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false)
@@ -175,6 +176,8 @@ export default function AuthModal({ onClose, hasQuizData = false, quizData, onSu
             plano_expira_em: trialExpiraEm,
             status: "trial",
             lead_source: leadSource,
+            marketing_optin: marketingOptin,
+            marketing_optin_at: marketingOptin ? new Date().toISOString() : null,
           } as any)
         } catch {}
 
@@ -605,6 +608,31 @@ export default function AuthModal({ onClose, hasQuizData = false, quizData, onSu
                         </div>
                       </div>
                     )}
+
+                    {/* Opt-in marketing (default desmarcado, exigência LGPD) */}
+                    <label className="flex items-start gap-2.5 pt-1 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={marketingOptin}
+                        onChange={(e) => setMarketingOptin(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 rounded border-white/[0.15] bg-[#2a2d35] accent-[#0B3064] cursor-pointer flex-shrink-0"
+                      />
+                      <span className="text-xs text-[#888] leading-snug">
+                        Desejo receber ofertas e promoções de parceiros do setor de construção
+                      </span>
+                    </label>
+
+                    <p className="text-[11px] text-[#666] leading-snug pt-1">
+                      Ao criar conta, você aceita os{" "}
+                      <a href="/termos" target="_blank" rel="noopener noreferrer" className="text-[#7eaaee] hover:underline">
+                        Termos de Uso
+                      </a>{" "}
+                      e a{" "}
+                      <a href="/privacidade" target="_blank" rel="noopener noreferrer" className="text-[#7eaaee] hover:underline">
+                        Política de Privacidade
+                      </a>
+                      .
+                    </p>
 
                     <button
                       type="submit"
