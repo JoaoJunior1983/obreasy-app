@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useRouter, useParams, useSearchParams } from "next/navigation"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useAuthUser } from "@/lib/queries/auth"
 import {
   ArrowLeft, Save, Pencil, Trash2, DollarSign,
   MessageSquare, User, Eye, X as XIcon, FileText
@@ -49,6 +51,7 @@ const formatarData = (data: string) => {
 
 export default function ClienteDetailPage() {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const params = useParams()
   const searchParams = useSearchParams()
   const clienteId = params.id as string
@@ -100,47 +103,77 @@ export default function ClienteDetailPage() {
     return url.toLowerCase().includes(".pdf")
   }
 
-  const carregarDados = useCallback(async () => {
-    try {
-      const { supabase } = await import("@/lib/supabase")
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push("/login"); return }
+  const { data: user, isError: authError } = useAuthUser()
 
-      const activeObraId = localStorage.getItem("activeObraId") || ""
-      setObraId(activeObraId)
-      setUserId(user.id)
-
-      // Carregar cliente
-      const clientes = await getClientesSupabase(activeObraId, user.id)
-      const c = clientes.find(x => x.id === clienteId)
-      if (!c) { toast.error("Cliente não encontrado"); router.push("/dashboard/clientes"); return }
-
-      setCliente(c)
-      setEditNome(c.nome)
-      setEditContratoValor(c.contratoValor ? c.contratoValor.toString() : "")
-      setEditContratoValorFmt(c.contratoValor
-        ? c.contratoValor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-        : "")
-      setEditObservacoes(c.observacoes || "")
-      setEditContratoAnexo(c.contratoUrl || null)
-
-      // Carregar recebimentos
-      const recs = await getRecebimentosByClienteSupabase(clienteId, user.id)
-      setRecebimentos(recs)
-    } catch {
-      toast.error("Erro ao carregar dados")
-    } finally {
-      setLoading(false)
-    }
-  }, [clienteId, router])
+  useEffect(() => {
+    if (authError) router.push("/login")
+  }, [authError, router])
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("isAuthenticated")
     if (!isAuthenticated) { router.push("/login"); return }
     const activeObraId = localStorage.getItem("activeObraId")
     if (!activeObraId) { router.push("/obras"); return }
-    carregarDados()
-  }, [carregarDados, router])
+    setObraId(activeObraId)
+  }, [router])
+
+  useEffect(() => {
+    if (user?.id) setUserId(user.id)
+  }, [user?.id])
+
+  // Clientes e recebimentos disparam em paralelo após auth+obra
+  const { data: clientesQuery } = useQuery({
+    queryKey: ["clientes", obraId, user?.id],
+    enabled: !!obraId && !!user?.id,
+    staleTime: 60_000,
+    queryFn: () => getClientesSupabase(obraId, user!.id),
+  })
+
+  const { data: recebimentosQuery } = useQuery({
+    queryKey: ["recebimentos-cliente", clienteId, user?.id],
+    enabled: !!clienteId && !!user?.id,
+    staleTime: 30_000,
+    queryFn: () => getRecebimentosByClienteSupabase(clienteId, user!.id),
+  })
+
+  // Sync: cliente derivado dos clientes carregados
+  useEffect(() => {
+    if (!clientesQuery) return
+    const c = clientesQuery.find((x) => x.id === clienteId)
+    if (!c) {
+      toast.error("Cliente não encontrado")
+      router.push("/dashboard/clientes")
+      return
+    }
+    setCliente(c)
+    setEditNome(c.nome)
+    setEditContratoValor(c.contratoValor ? c.contratoValor.toString() : "")
+    setEditContratoValorFmt(
+      c.contratoValor
+        ? c.contratoValor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        : "",
+    )
+    setEditObservacoes(c.observacoes || "")
+    setEditContratoAnexo(c.contratoUrl || null)
+  }, [clientesQuery, clienteId, router])
+
+  useEffect(() => {
+    if (recebimentosQuery) setRecebimentos(recebimentosQuery)
+  }, [recebimentosQuery])
+
+  useEffect(() => {
+    if (clientesQuery && recebimentosQuery !== undefined) setLoading(false)
+  }, [clientesQuery, recebimentosQuery])
+
+  // Refresh: invalida cache do React Query
+  const carregarDados = useCallback(async () => {
+    await queryClient.invalidateQueries({
+      predicate: (q) => {
+        const k = q.queryKey[0] as string
+        return k === "clientes" || k === "recebimentos-cliente"
+      },
+    })
+  }, [queryClient])
 
   // ── Salvar edição do cliente ──
   const handleSalvarCliente = async () => {
