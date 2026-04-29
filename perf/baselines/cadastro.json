@@ -1,30 +1,30 @@
 {
   "route": "cadastro",
   "url": "https://www.obreasy.com.br/cadastro",
-  "timestamp": "2026-04-28T23:03:40.607Z",
+  "timestamp": "2026-04-29T01:07:28.025Z",
   "scores": {
-    "performance": 100,
+    "performance": 99,
     "accessibility": 83,
     "bestPractices": 100,
     "seo": 100
   },
   "metrics": {
     "first-contentful-paint": {
-      "numeric": 802.4853,
+      "numeric": 819.488,
       "display": "0.8 s",
       "score": 1,
       "unit": "ms"
     },
     "largest-contentful-paint": {
-      "numeric": 963.4853,
-      "display": "1.0 s",
+      "numeric": 1067.488,
+      "display": "1.1 s",
       "score": 1,
       "unit": "ms"
     },
     "total-blocking-time": {
-      "numeric": 61,
-      "display": "60 ms",
-      "score": 1,
+      "numeric": 98,
+      "display": "100 ms",
+      "score": 0.98,
       "unit": "ms"
     },
     "cumulative-layout-shift": {
@@ -34,26 +34,26 @@
       "unit": "score"
     },
     "speed-index": {
-      "numeric": 802.4853,
+      "numeric": 819.488,
       "display": "0.8 s",
       "score": 1,
       "unit": "ms"
     },
     "interactive": {
-      "numeric": 963.4853,
-      "display": "1.0 s",
+      "numeric": 1067.488,
+      "display": "1.1 s",
       "score": 1,
       "unit": "ms"
     },
     "server-response-time": {
-      "numeric": 11.704,
+      "numeric": 8.352,
       "display": "Root document took 10 ms",
       "score": 1,
       "unit": "ms"
     },
     "total-byte-weight": {
-      "numeric": 7612,
-      "display": "Total size was 7 KiB",
+      "numeric": 166,
+      "display": "Total size was 0 KiB",
       "score": 1,
       "unit": "byte"
     },
@@ -64,14 +64,14 @@
       "unit": "count"
     },
     "bootup-time": {
-      "numeric": 222.1480000000002,
-      "display": "0.2 s",
+      "numeric": 290.0160000000001,
+      "display": "0.3 s",
       "score": 1,
       "unit": "ms"
     },
     "mainthread-work-breakdown": {
-      "numeric": 579.5360000000003,
-      "display": "0.6 s",
+      "numeric": 800.3600000000004,
+      "display": "0.8 s",
       "score": 1,
       "unit": "ms"
     }

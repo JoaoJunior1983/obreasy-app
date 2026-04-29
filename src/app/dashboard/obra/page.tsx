@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { ArrowLeft, TrendingUp, Wallet, PiggyBank, Home, Plus, Users, FileText, AlertCircle, CheckCircle, AlertTriangle, MoreVertical, Pencil, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown, HandCoins, Edit3, Camera, CreditCard, X, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -109,6 +110,8 @@ const areaParaNumero = (areaFormatada: string): number => {
 
 export default function DashboardObraPage() {
   const router = useRouter()
+  const queryClient = useQueryClient()
+  const [activeObraId, setActiveObraId] = useState<string | null>(null)
   const [obra, setObra] = useState<Obra | null>(null)
   const [despesas, setDespesas] = useState<Despesa[]>([])
   const [pagamentos, setPagamentos] = useState<{ valor: number; data?: string }[]>([])
@@ -181,180 +184,206 @@ export default function DashboardObraPage() {
   const [diarioFotos, setDiarioFotos] = useState<{ id: string; foto_url: string }[]>([])
   const [diarioTotal, setDiarioTotal] = useState(0)
 
-  // Função para carregar/recarregar dados da obra do SUPABASE
-  const carregarDadosObra = async () => {
-    try {
-      // Verificar autenticação no Supabase
+  // ── React Query: cache + dedupe + paralelismo automático entre páginas autenticadas ──
+  useEffect(() => {
+    const id = localStorage.getItem("activeObraId")
+    if (!id) {
+      router.push("/obras")
+      return
+    }
+    setActiveObraId(id)
+  }, [router])
+
+  const { data: authUser, isError: authError } = useQuery({
+    queryKey: ["auth-user"],
+    staleTime: 5 * 60_000,
+    retry: false,
+    queryFn: async () => {
       const { supabase } = await import("@/lib/supabase")
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      const { data, error } = await supabase.auth.getUser()
+      if (error || !data.user) throw new Error("not authenticated")
+      return data.user
+    },
+  })
 
-      if (authError || !user) {
-        router.push("/login")
-        return
-      }
+  useEffect(() => {
+    if (authError) router.push("/login")
+  }, [authError, router])
 
-      // Obter ID da obra ativa
-      const activeObraId = localStorage.getItem("activeObraId")
-
-      if (!activeObraId) {
-        console.log("Nenhuma obra ativa encontrada, redirecionando para /obras")
-        setLoading(false)
-        router.push("/obras")
-        return
-      }
-
-      // Carregar obra do Supabase
-      const { data: obraData, error: obraError } = await supabase
+  const { data: obraQuery, isError: obraError } = useQuery({
+    queryKey: ["obra", activeObraId, authUser?.id],
+    enabled: !!activeObraId && !!authUser?.id,
+    staleTime: 60_000,
+    retry: false,
+    queryFn: async (): Promise<Obra> => {
+      const { supabase } = await import("@/lib/supabase")
+      const { data, error } = await supabase
         .from("obras")
         .select("*")
-        .eq("id", activeObraId)
-        .eq("user_id", user.id)
+        .eq("id", activeObraId!)
+        .eq("user_id", authUser!.id)
         .single()
-
-      if (obraError || !obraData) {
-        console.error("Erro ao carregar obra:", obraError)
-        console.log("Obra não encontrada, redirecionando para /obras")
-        setLoading(false)
-        router.push("/obras")
-        return
+      if (error || !data) throw new Error("not found")
+      const o = data as any
+      return {
+        id: o.id,
+        userId: o.user_id,
+        nome: o.nome,
+        nomeCliente: o.nome_cliente || undefined,
+        tipo: o.tipo,
+        area: o.area,
+        localizacao: o.localizacao,
+        orcamento: o.orcamento,
+        valorContratado: o.valor_contratado || null,
+        dataInicio: o.data_inicio || null,
+        dataTermino: o.data_termino || null,
+        criadaEm: o.criada_em,
       }
+    },
+  })
 
-      // Converter obra para formato da interface
-      const dbObra = obraData as any
-      const obraAtiva: Obra = {
-        id: dbObra.id,
-        userId: dbObra.user_id,
-        nome: dbObra.nome,
-        nomeCliente: dbObra.nome_cliente || undefined,
-        tipo: dbObra.tipo,
-        area: dbObra.area,
-        localizacao: dbObra.localizacao,
-        orcamento: dbObra.orcamento,
-        valorContratado: dbObra.valor_contratado || null,
-        dataInicio: dbObra.data_inicio || null,
-        dataTermino: dbObra.data_termino || null,
-        criadaEm: dbObra.criada_em,
-      }
+  useEffect(() => {
+    if (obraError) router.push("/obras")
+  }, [obraError, router])
 
-      setObra(obraAtiva)
-      router.prefetch(`/dashboard/obras/${obraAtiva.id}/relatorio`)
-
-      // Paralelizar queries independentes — antes eram 7 sequenciais
+  const { data: despesasQuery } = useQuery({
+    queryKey: ["despesas", obraQuery?.id, authUser?.id],
+    enabled: !!obraQuery?.id && !!authUser?.id,
+    staleTime: 30_000,
+    queryFn: async () => {
       const { getDespesasSupabase } = await import("@/lib/storage")
-      const [
-        despesasRes,
-        profissionaisRes,
-        pagamentosRes,
-        recebimentosRes,
-        clientesRes,
-        diarioFotosRes,
-        diarioCountRes,
-      ] = await Promise.allSettled([
-        getDespesasSupabase(obraAtiva.id, user.id),
-        supabase
-          .from("profissionais")
-          .select("*")
-          .eq("obra_id", obraAtiva.id)
-          .eq("user_id", dbObra.user_id),
-        supabase
-          .from("pagamentos")
-          .select("id, valor, profissional_id, data, comprovante_url")
-          .eq("obra_id", obraAtiva.id),
-        supabase
-          .from("recebimentos")
-          .select("valor")
-          .eq("obra_id", obraAtiva.id)
-          .eq("user_id", user.id),
-        getClientesSupabase(obraAtiva.id, user.id),
-        supabase
-          .from("diario_obra")
-          .select("id, foto_url")
-          .eq("obra_id", obraAtiva.id)
-          .eq("user_id", user.id)
-          .order("data_registro", { ascending: false })
-          .order("criado_em", { ascending: false })
-          .limit(4),
-        supabase
-          .from("diario_obra")
-          .select("id", { count: "exact", head: true })
-          .eq("obra_id", obraAtiva.id)
-          .eq("user_id", user.id),
-      ])
+      const list = await getDespesasSupabase(obraQuery!.id, authUser!.id)
+      return (list as Despesa[]).slice().sort((a: any, b: any) => {
+        const dataA = new Date(a.data || 0).getTime()
+        const dataB = new Date(b.data || 0).getTime()
+        if (dataB !== dataA) return dataB - dataA
+        return parseInt(b.id || "0") - parseInt(a.id || "0")
+      })
+    },
+  })
 
-      // Despesas
-      const despesasObra: Despesa[] = despesasRes.status === "fulfilled"
-        ? (despesasRes.value as Despesa[]).slice().sort((a: any, b: any) => {
-            const dataA = new Date(a.data || 0).getTime()
-            const dataB = new Date(b.data || 0).getTime()
-            if (dataB !== dataA) return dataB - dataA
-            return parseInt(b.id || "0") - parseInt(a.id || "0")
-          })
-        : []
-      setDespesas(despesasObra)
+  const { data: profissionaisQuery } = useQuery({
+    queryKey: ["profissionais", obraQuery?.id, authUser?.id],
+    enabled: !!obraQuery?.id && !!authUser?.id,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { supabase } = await import("@/lib/supabase")
+      const { data } = await supabase
+        .from("profissionais")
+        .select("*")
+        .eq("obra_id", obraQuery!.id)
+        .eq("user_id", obraQuery!.userId)
+      return (data || []) as Profissional[]
+    },
+  })
 
-      // Profissionais
-      const profissionaisObra: Profissional[] =
-        profissionaisRes.status === "fulfilled" && profissionaisRes.value.data
-          ? (profissionaisRes.value.data as Profissional[])
-          : []
-      setProfissionais(profissionaisObra)
+  const { data: pagamentosQuery } = useQuery({
+    queryKey: ["pagamentos", obraQuery?.id, authUser?.id],
+    enabled: !!obraQuery?.id && !!authUser?.id,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { supabase } = await import("@/lib/supabase")
+      const { data } = await supabase
+        .from("pagamentos")
+        .select("id, valor, profissional_id, data, comprovante_url")
+        .eq("obra_id", obraQuery!.id)
+      return ((data || []) as any[]).map((p) => ({
+        valor: parseFloat(p.valor) || 0,
+        data: p.data,
+      }))
+    },
+  })
 
-      // Pagamentos
-      const pagamentosObra =
-        pagamentosRes.status === "fulfilled" && pagamentosRes.value.data
-          ? (pagamentosRes.value.data as any[]).map((p) => ({
-              id: p.id,
-              valor: parseFloat(p.valor) || 0,
-              profissional_id: p.profissional_id,
-              data: p.data,
-              comprovante_url: p.comprovante_url,
-            }))
-          : []
-      setPagamentos(pagamentosObra)
+  const { data: recebimentosQuery } = useQuery({
+    queryKey: ["recebimentos", obraQuery?.id, authUser?.id],
+    enabled: !!obraQuery?.id && !!authUser?.id,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { supabase } = await import("@/lib/supabase")
+      const { data } = await supabase
+        .from("recebimentos")
+        .select("valor")
+        .eq("obra_id", obraQuery!.id)
+        .eq("user_id", authUser!.id)
+      return ((data || []) as any[]).map((r) => ({ valor: parseFloat(r.valor) || 0 }))
+    },
+  })
 
-      // Recebimentos
-      const recebimentos =
-        recebimentosRes.status === "fulfilled" && recebimentosRes.value.data
-          ? (recebimentosRes.value.data as any[]).map((r) => ({ valor: parseFloat(r.valor) || 0 }))
-          : []
-      setRecebimentosDB(recebimentos)
+  const { data: clientesQuery } = useQuery({
+    queryKey: ["clientes", obraQuery?.id, authUser?.id],
+    enabled: !!obraQuery?.id && !!authUser?.id,
+    staleTime: 60_000,
+    queryFn: () => getClientesSupabase(obraQuery!.id, authUser!.id),
+  })
 
-      // Clientes
-      if (clientesRes.status === "fulfilled") {
-        const clientesData = clientesRes.value
-        setNumClientes(clientesData.length)
-        setTotalContratoClientes(clientesData.reduce((acc, c) => acc + (c.contratoValor || 0), 0))
-      } else {
-        setNumClientes(0)
-        setTotalContratoClientes(0)
-      }
+  const { data: diarioFotosQuery } = useQuery({
+    queryKey: ["diario-fotos", obraQuery?.id, authUser?.id],
+    enabled: !!obraQuery?.id && !!authUser?.id,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { supabase } = await import("@/lib/supabase")
+      const { data } = await supabase
+        .from("diario_obra")
+        .select("id, foto_url")
+        .eq("obra_id", obraQuery!.id)
+        .eq("user_id", authUser!.id)
+        .order("data_registro", { ascending: false })
+        .order("criado_em", { ascending: false })
+        .limit(4)
+      return (data || []) as { id: string; foto_url: string }[]
+    },
+  })
 
-      // Diário (preview + count)
-      if (diarioFotosRes.status === "fulfilled" && diarioFotosRes.value.data) {
-        setDiarioFotos(diarioFotosRes.value.data)
-      }
-      if (diarioCountRes.status === "fulfilled" && typeof diarioCountRes.value.count === "number") {
-        setDiarioTotal(diarioCountRes.value.count)
-      }
+  const { data: diarioCountQuery } = useQuery({
+    queryKey: ["diario-count", obraQuery?.id, authUser?.id],
+    enabled: !!obraQuery?.id && !!authUser?.id,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { supabase } = await import("@/lib/supabase")
+      const { count } = await supabase
+        .from("diario_obra")
+        .select("id", { count: "exact", head: true })
+        .eq("obra_id", obraQuery!.id)
+        .eq("user_id", authUser!.id)
+      return count || 0
+    },
+  })
 
-      const totalDespesas = despesasObra.reduce((acc: number, d: Despesa) => acc + (d.valor ?? 0), 0)
-      const totalPagamentos = pagamentosObra.reduce((acc: number, p) => acc + p.valor, 0)
-      const totalGasto = totalDespesas + totalPagamentos
-      verificarTodosAlertas(obraAtiva.id, obraAtiva.orcamento || 0, totalGasto)
-      loadAlertasStatus(obraAtiva.id)
-      inicializarAvisos(obraAtiva.id)
-      checkBudgetAlertsForObra(obraAtiva, despesasObra, profissionaisObra, pagamentosObra)
-
-      setLoading(false)
-
-      // Disparar evento para atualizar o Header
-      window.dispatchEvent(new Event("obraAtualizada"))
-    } catch (error) {
-      console.error("Erro ao carregar dados da obra:", error)
-      setLoading(false)
-      router.push("/obras")
+  // Sync queries → useStates locais (mantém compatibilidade com setters existentes em outros pontos)
+  useEffect(() => { if (obraQuery) setObra(obraQuery) }, [obraQuery])
+  useEffect(() => { if (despesasQuery) setDespesas(despesasQuery) }, [despesasQuery])
+  useEffect(() => { if (profissionaisQuery) setProfissionais(profissionaisQuery) }, [profissionaisQuery])
+  useEffect(() => { if (pagamentosQuery) setPagamentos(pagamentosQuery) }, [pagamentosQuery])
+  useEffect(() => { if (recebimentosQuery) setRecebimentosDB(recebimentosQuery) }, [recebimentosQuery])
+  useEffect(() => {
+    if (clientesQuery) {
+      setNumClientes(clientesQuery.length)
+      setTotalContratoClientes(clientesQuery.reduce((acc, c) => acc + (c.contratoValor || 0), 0))
     }
-  }
+  }, [clientesQuery])
+  useEffect(() => { if (diarioFotosQuery) setDiarioFotos(diarioFotosQuery) }, [diarioFotosQuery])
+  useEffect(() => { if (diarioCountQuery !== undefined) setDiarioTotal(diarioCountQuery) }, [diarioCountQuery])
+  useEffect(() => { if (obraQuery) setLoading(false) }, [obraQuery])
+  useEffect(() => {
+    if (obraQuery) router.prefetch(`/dashboard/obras/${obraQuery.id}/relatorio`)
+  }, [obraQuery, router])
+
+  // Refresh: invalida o cache do React Query e deixa as queries refazerem o fetch
+  const carregarDadosObra = useCallback(async () => {
+    const TARGETS = new Set([
+      "obra",
+      "despesas",
+      "profissionais",
+      "pagamentos",
+      "recebimentos",
+      "clientes",
+      "diario-fotos",
+      "diario-count",
+    ])
+    await queryClient.invalidateQueries({
+      predicate: (q) => TARGETS.has(q.queryKey[0] as string),
+    })
+  }, [queryClient])
 
   useEffect(() => {
     // Carregar perfil do usuário
@@ -362,9 +391,6 @@ export default function DashboardObraPage() {
     console.log("🔍 PERFIL CARREGADO:", profile)
     console.log("🔍 DADOS DO USUÁRIO NO LOCALSTORAGE:", localStorage.getItem("user"))
     setUserProfile(profile)
-
-    // Carregar dados iniciais
-    carregarDadosObra()
 
     // Listener para recarregar quando houver nova despesa/pagamento/profissional
     const handleDespesaAtualizada = () => {
@@ -478,6 +504,20 @@ export default function DashboardObraPage() {
 
     setCurrentBudgetAlert(alert)
   }
+
+  // Pós-load: dispara verificações de alerta + evento global "obraAtualizada"
+  // Roda quando os 4 datasets críticos chegam ou mudam.
+  useEffect(() => {
+    if (!obraQuery || !despesasQuery || !profissionaisQuery || !pagamentosQuery) return
+    const totalDespesas = despesasQuery.reduce((acc: number, d: Despesa) => acc + (d.valor ?? 0), 0)
+    const totalPagamentos = pagamentosQuery.reduce((acc, p) => acc + p.valor, 0)
+    verificarTodosAlertas(obraQuery.id, obraQuery.orcamento || 0, totalDespesas + totalPagamentos)
+    loadAlertasStatus(obraQuery.id)
+    inicializarAvisos(obraQuery.id)
+    checkBudgetAlertsForObra(obraQuery, despesasQuery, profissionaisQuery, pagamentosQuery)
+    window.dispatchEvent(new Event("obraAtualizada"))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [obraQuery, despesasQuery, profissionaisQuery, pagamentosQuery])
 
   const formatarMoedaDisplay = (valor: number): string => {
     return valor.toLocaleString("pt-BR", {

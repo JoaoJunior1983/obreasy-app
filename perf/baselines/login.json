@@ -1,30 +1,30 @@
 {
   "route": "login",
   "url": "https://www.obreasy.com.br/login",
-  "timestamp": "2026-04-28T23:04:52.525Z",
+  "timestamp": "2026-04-29T01:08:34.204Z",
   "scores": {
-    "performance": 99,
+    "performance": 100,
     "accessibility": 83,
     "bestPractices": 100,
     "seo": 100
   },
   "metrics": {
     "first-contentful-paint": {
-      "numeric": 826,
+      "numeric": 801.3314,
       "display": "0.8 s",
       "score": 1,
       "unit": "ms"
     },
     "largest-contentful-paint": {
-      "numeric": 1072,
-      "display": "1.1 s",
+      "numeric": 970.3314,
+      "display": "1.0 s",
       "score": 1,
       "unit": "ms"
     },
     "total-blocking-time": {
-      "numeric": 104,
-      "display": "100 ms",
-      "score": 0.98,
+      "numeric": 69,
+      "display": "70 ms",
+      "score": 0.99,
       "unit": "ms"
     },
     "cumulative-layout-shift": {
@@ -34,25 +34,25 @@
       "unit": "score"
     },
     "speed-index": {
-      "numeric": 826,
+      "numeric": 801.3314,
       "display": "0.8 s",
       "score": 1,
       "unit": "ms"
     },
     "interactive": {
-      "numeric": 1072,
-      "display": "1.1 s",
+      "numeric": 970.3314,
+      "display": "1.0 s",
       "score": 1,
       "unit": "ms"
     },
     "server-response-time": {
-      "numeric": 38.853,
-      "display": "Root document took 40 ms",
+      "numeric": 6.979000000000001,
+      "display": "Root document took 10 ms",
       "score": 1,
       "unit": "ms"
     },
     "total-byte-weight": {
-      "numeric": 0,
+      "numeric": 166,
       "display": "Total size was 0 KiB",
       "score": 1,
       "unit": "byte"
@@ -64,13 +64,13 @@
       "unit": "count"
     },
     "bootup-time": {
-      "numeric": 262.87200000000007,
-      "display": "0.3 s",
+      "numeric": 230.44400000000005,
+      "display": "0.2 s",
       "score": 1,
       "unit": "ms"
     },
     "mainthread-work-breakdown": {
-      "numeric": 635.48,
+      "numeric": 598.5240000000002,
       "display": "0.6 s",
       "score": 1,
       "unit": "ms"
