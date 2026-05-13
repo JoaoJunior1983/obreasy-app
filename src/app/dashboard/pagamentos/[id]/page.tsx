@@ -101,7 +101,7 @@ export default function DetalhesPagamentoPage() {
           id: p.id,
           obraId: p.obra_id,
           profissionalId: p.profissional_id,
-          data: p.data || p.data_pagamento || "",
+          data: p.data || "",
           valor: parseFloat(p.valor) || 0,
           formaPagamento: p.forma_pagamento || undefined,
           observacao: p.observacao || undefined,

@@ -129,7 +129,7 @@ export default function ProfissionaisPage() {
       const { supabase } = await import("@/lib/supabase")
       const { data } = await supabase
         .from("pagamentos")
-        .select("id, valor, profissional_id, data, data_pagamento, criado_em, created_at")
+        .select("id, valor, profissional_id, data, criada_em")
         .eq("obra_id", obraQuery!.id)
         .eq("user_id", user!.id)
         .order("data", { ascending: false })
@@ -157,8 +157,8 @@ export default function ProfissionaisPage() {
       if (!ultimoMap[p.profissional_id]) {
         ultimoMap[p.profissional_id] = {
           valor: parseFloat(p.valor) || 0,
-          data: p.data || p.data_pagamento || "",
-          criadoEm: p.criado_em || p.created_at || "",
+          data: p.data || "",
+          criadoEm: p.criada_em || "",
         }
       }
       totalMap[p.profissional_id] = (totalMap[p.profissional_id] || 0) + (parseFloat(p.valor) || 0)

@@ -1293,8 +1293,8 @@ export async function getPagamentosSupabase(obraId: string, profissionalId: stri
       data: p.data,
       formaPagamento: p.forma_pagamento,
       observacao: p.observacao,
-      criadoEm: p.criado_em,
-      atualizadoEm: p.atualizado_em
+      criadoEm: p.criada_em,
+      atualizadoEm: p.atualizada_em
     }))
   } catch (error) {
     console.error("Erro ao carregar pagamentos:", error)

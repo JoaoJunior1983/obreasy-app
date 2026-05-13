@@ -92,7 +92,7 @@ export default function PagamentosProfissionalPage() {
         const mapped: Pagamento[] = pagamentosData.map((p: any) => ({
           id: p.id,
           obraId: p.obra_id,
-          data: p.data || p.data_pagamento || "",
+          data: p.data || "",
           valor: parseFloat(p.valor) || 0,
           formaPagamento: p.forma_pagamento || p.formaPagamento || "",
           observacao: p.observacao || p.observacoes || "",

@@ -146,14 +146,14 @@ function DespesasPageContent() {
       const { supabase } = await import("@/lib/supabase")
       const { data } = await supabase
         .from("pagamentos")
-        .select("id, valor, profissional_id, data, data_pagamento")
+        .select("id, valor, profissional_id, data")
         .eq("obra_id", obra!.id)
         .eq("user_id", user!.id)
       return ((data || []) as any[]).map((p): Pagamento => ({
         id: p.id,
         valor: parseFloat(p.valor) || 0,
         profissionalId: p.profissional_id,
-        data: p.data || p.data_pagamento || "",
+        data: p.data || "",
       }))
     },
   })
