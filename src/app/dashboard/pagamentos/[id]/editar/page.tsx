@@ -94,58 +94,65 @@ export default function EditarPagamentoPage() {
   })
 
   useEffect(() => {
-    const isAuthenticated = localStorage.getItem("isAuthenticated")
-    if (!isAuthenticated) {
-      router.push("/login")
-      return
+    const carregar = async () => {
+      const { supabase } = await import("@/lib/supabase")
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user) {
+        router.push("/login")
+        return
+      }
+
+      // Carregar pagamento direto do Supabase (não depende de localStorage)
+      const { data: pagData, error: pagError } = await supabase
+        .from("pagamentos")
+        .select("*")
+        .eq("id", pagamentoId)
+        .eq("user_id", user.id)
+        .single()
+
+      if (pagError || !pagData) {
+        toast.error("Pagamento não encontrado")
+        router.push("/dashboard/obra")
+        return
+      }
+
+      const p = pagData as any
+      setObraId(p.obra_id)
+
+      // Carregar profissionais da obra desse pagamento (não do activeObraId)
+      const { getProfissionaisSupabase } = await import("@/lib/storage")
+      const profsList = await getProfissionaisSupabase(p.obra_id, user.id)
+      setProfissionais(profsList as Profissional[])
+
+      const valorNum = parseFloat(p.valor) || 0
+      const pagamentoCarregado: Pagamento = {
+        id: p.id,
+        obraId: p.obra_id,
+        data: p.data || "",
+        valor: valorNum,
+        formaPagamento: p.forma_pagamento || "Pix",
+        observacao: p.observacao || "",
+        profissionalId: p.profissional_id,
+        anexo: p.comprovante_url || null,
+      }
+
+      setPagamentoOriginal(pagamentoCarregado)
+      setFormData({
+        data: pagamentoCarregado.data,
+        profissionalId: pagamentoCarregado.profissionalId || "",
+        valor: valorNum.toString(),
+        formaPagamento: pagamentoCarregado.formaPagamento || "Pix",
+        observacao: pagamentoCarregado.observacao || ""
+      })
+      setValorFormatado(numeroParaFormatado(valorNum))
+      setComprovanteAnexo(pagamentoCarregado.anexo || null)
+      setLoadingPagamento(false)
     }
-
-    const userData = localStorage.getItem("user")
-    if (!userData) {
-      router.push("/login")
-      return
-    }
-
-    const activeObraId = localStorage.getItem("activeObraId")
-    if (!activeObraId) {
-      router.push("/obras")
-      return
-    }
-
-    setObraId(activeObraId)
-
-    // Carregar profissionais da obra ativa
-    const todosProfissionais = JSON.parse(localStorage.getItem("profissionais") || "[]")
-    const profissionaisObra = todosProfissionais.filter((p: Profissional) => p.obraId === activeObraId)
-    setProfissionais(profissionaisObra)
-
-    // Carregar dados do pagamento
-    const todasDespesas = JSON.parse(localStorage.getItem("despesas") || "[]")
-    const pagamento = todasDespesas.find((d: Pagamento) => d.id === pagamentoId)
-
-    if (!pagamento) {
-      toast.error("Pagamento não encontrado")
+    carregar().catch((err) => {
+      console.error("Erro ao carregar pagamento:", err)
+      toast.error("Erro ao carregar pagamento")
       router.push("/dashboard/obra")
-      return
-    }
-
-    setPagamentoOriginal(pagamento)
-
-    // Preencher formulário com dados do pagamento
-    const profId = pagamento.profissionalId || pagamento.professionalId || ""
-    const obs = pagamento.observacao || pagamento.observacoes || ""
-
-    setFormData({
-      data: pagamento.data,
-      profissionalId: profId,
-      valor: pagamento.valor.toString(),
-      formaPagamento: pagamento.formaPagamento || "Pix",
-      observacao: obs
     })
-
-    setValorFormatado(numeroParaFormatado(pagamento.valor))
-    setComprovanteAnexo(pagamento.anexo || null)
-    setLoadingPagamento(false)
   }, [router, pagamentoId])
 
   const handleValorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -208,76 +215,55 @@ export default function EditarPagamentoPage() {
         return
       }
 
-      console.log("[EDIÇÃO] Validação de UUIDs OK")
-
-      // Buscar nome do profissional
-      const profissional = profissionais.find(p => p.id === formData.profissionalId)
-      const nomeProfissional = profissional ? profissional.nome : "Profissional"
-
-      const pagamentoAtualizado = {
-        ...pagamentoOriginal,
-        id: pagamentoId,
-        obraId: obraId,
+      // Atualizar pagamento no Supabase (fonte de verdade)
+      const { supabase } = await import("@/lib/supabase")
+      const updatePayload: Record<string, any> = {
         data: formData.data,
-        category: "mao_obra",
-        categoria: "mao_obra",
-        descricao: `Pagamento - ${nomeProfissional}`,
         valor: parseFloat(formData.valor),
-        formaPagamento: formData.formaPagamento,
-        profissionalId: formData.profissionalId,
-        professionalId: formData.profissionalId,
-        observacao: formData.observacao || undefined,
-        observacoes: formData.observacao || undefined,
-        anexo: comprovanteAnexo || undefined
+        forma_pagamento: formData.formaPagamento,
+        profissional_id: formData.profissionalId,
+        observacao: formData.observacao || null,
+        comprovante_url: comprovanteAnexo || null,
       }
 
-      // Verificar alerta de orçamento ANTES de salvar
-      const despesasExistentes = JSON.parse(localStorage.getItem("despesas") || "[]")
-      const index = despesasExistentes.findIndex((d: Pagamento) => d.id === pagamentoId)
+      const { error: updateError } = await supabase
+        .from("pagamentos")
+        .update(updatePayload)
+        .eq("id", pagamentoId)
 
-      if (index !== -1) {
-        const despesasExcluindoAtual = despesasExistentes.filter((_: any, i: number) => i !== index)
-
-        const obras = JSON.parse(localStorage.getItem("obras") || "[]")
-        const obraAtual = obras.find((o: any) => o.id === obraId)
-
-        if (obraAtual && obraAtual.orcamento > 0) {
-          const alert = checkBudgetAfterTransaction(
-            obraId,
-            pagamentoAtualizado,
-            despesasExcluindoAtual,
-            profissionais,
-            obraAtual.orcamento
-          )
-
-          if (alert) {
-            // Exibir modal de alerta e pausar o salvamento
-            setPagamentoPendente({ ...pagamentoAtualizado, index })
-            setBudgetAlert(alert)
-            setLoading(false)
-            return
-          }
-        }
-
-        // Se não houver alerta, atualizar normalmente
-        despesasExistentes[index] = pagamentoAtualizado
-        localStorage.setItem("despesas", JSON.stringify(despesasExistentes))
-
-        // Disparar evento de pagamento atualizado
-        window.dispatchEvent(new CustomEvent("pagamentoAtualizado", {
-          detail: { profissionalId: formData.profissionalId }
-        }))
-
-        toast.success("Pagamento atualizado com sucesso!")
-
-        // Voltar para a página de pagamentos do profissional
-        setTimeout(() => {
-          router.push(`/dashboard/profissionais/${formData.profissionalId}/pagamentos`)
-        }, 500)
-      } else {
-        toast.error("Erro ao atualizar pagamento")
+      if (updateError) {
+        console.error("Erro ao atualizar pagamento no Supabase:", updateError)
+        toast.error("Erro ao atualizar pagamento. Tente novamente.")
         setLoading(false)
+        return
       }
+
+      // Manter localStorage espelhado para compatibilidade com telas legadas
+      try {
+        const despesasExistentes = JSON.parse(localStorage.getItem("despesas") || "[]")
+        const idx = despesasExistentes.findIndex((d: Pagamento) => d.id === pagamentoId)
+        if (idx !== -1) {
+          despesasExistentes[idx] = {
+            ...despesasExistentes[idx],
+            data: formData.data,
+            valor: parseFloat(formData.valor),
+            formaPagamento: formData.formaPagamento,
+            profissionalId: formData.profissionalId,
+            observacao: formData.observacao || undefined,
+            anexo: comprovanteAnexo || undefined,
+          }
+          localStorage.setItem("despesas", JSON.stringify(despesasExistentes))
+        }
+      } catch { /* não crítico */ }
+
+      window.dispatchEvent(new CustomEvent("pagamentoAtualizado", {
+        detail: { profissionalId: formData.profissionalId }
+      }))
+
+      toast.success("Pagamento atualizado com sucesso!")
+      setTimeout(() => {
+        router.push(`/dashboard/profissionais/${formData.profissionalId}/pagamentos`)
+      }, 500)
 
     } catch (error) {
       console.error("Erro ao atualizar pagamento:", error)

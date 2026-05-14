@@ -517,7 +517,7 @@ function RelatorioPreviewPageContent() {
           <div className="bg-[#1f2228]/80 border border-white/[0.08] rounded-xl overflow-hidden">
             {[
               { label: "Obra", value: obra.nome },
-              { label: "Localização", value: `${obra.localizacao.cidade} / ${obra.localizacao.estado}` },
+              { label: "Localização", value: obra.localizacao?.cidade && obra.localizacao?.estado ? `${obra.localizacao.cidade} / ${obra.localizacao.estado}` : "—" },
               { label: "Tipo", value: obra.tipo === "construcao" ? "Construção" : "Reforma" },
               { label: "Área", value: `${obra.area} m²` },
               { label: "Data do relatório", value: formatarData(new Date().toISOString()) },

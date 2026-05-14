@@ -833,9 +833,9 @@ export default function DashboardObraPage() {
       nomeCliente: obra.nomeCliente || "",
       tipo: obra.tipo,
       area: obra.area.toString(),
-      estado: obra.localizacao.estado,
-      cidade: obra.localizacao.cidade,
-      bairro: obra.localizacao.bairro || "",
+      estado: obra.localizacao?.estado || "",
+      cidade: obra.localizacao?.cidade || "",
+      bairro: obra.localizacao?.bairro || "",
       orcamento: obra.orcamento?.toString() || "",
       dataInicio: obra.dataInicio || "",
       dataTermino: obra.dataTermino || ""
@@ -1203,7 +1203,10 @@ export default function DashboardObraPage() {
                   {obra.nome}
                 </h1>
                 <p className="text-xs text-gray-400 mb-0.5">
-                  {obra.tipo === "construcao" ? "Construção" : "Reforma"} · {obra.localizacao.cidade}/{obra.localizacao.estado}
+                  {obra.tipo === "construcao" ? "Construção" : "Reforma"}
+                  {obra.localizacao?.cidade && obra.localizacao?.estado
+                    ? ` · ${obra.localizacao.cidade}/${obra.localizacao.estado}`
+                    : ""}
                   {obra.area ? ` · ${obra.area} m²` : ""}
                   {prazoInfo && (
                     <span className="text-gray-500">

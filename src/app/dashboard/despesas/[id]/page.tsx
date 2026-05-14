@@ -105,9 +105,37 @@ export default function DetalhesDespesaPage() {
         const despesasSupabase = await getDespesasSupabase(activeObraId, user.id)
 
         // Encontrar a despesa específica
-        const despesaEncontrada = despesasSupabase.find((d: Despesa) => d.id === despesaId)
+        let despesaEncontrada = despesasSupabase.find((d: Despesa) => d.id === despesaId)
 
+        // Fallback: se não achou em despesas, tentar como pagamento (mão de obra) em outra tabela
         if (!despesaEncontrada) {
+          const { data: pagData } = await supabase
+            .from("pagamentos")
+            .select("*")
+            .eq("id", despesaId)
+            .eq("user_id", user.id)
+            .single()
+          if (pagData) {
+            const p = pagData as any
+            despesaEncontrada = {
+              id: p.id,
+              obraId: p.obra_id,
+              data: p.data || "",
+              valor: parseFloat(p.valor) || 0,
+              descricao: "Pagamento de profissional",
+              category: "mao_obra",
+              categoria: "mao_obra",
+              tipo: "mao_obra",
+              formaPagamento: p.forma_pagamento || "",
+              observacao: p.observacao || "",
+              anexo: p.comprovante_url || null,
+              professionalId: p.profissional_id,
+            } as any
+            // Redirecionar para a página específica de pagamento (UX melhor)
+            router.replace(`/dashboard/pagamentos/${despesaId}`)
+            return
+          }
+
           toast.error("Despesa não encontrada!")
           router.push("/dashboard/despesas")
           return

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
-import { Plus, Pencil, Trash2, FileText, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react"
+import { Plus, Pencil, Trash2, FileText, ArrowUp, ArrowDown, ArrowUpDown, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 
@@ -226,7 +226,9 @@ export default function PagamentosProfissionalPage() {
           </div>
           <div className="bg-[#1f2228]/80 border border-white/[0.08] rounded-lg px-3 py-2 text-center">
             <p className="text-[10px] text-gray-500 mb-0.5">Saldo</p>
-            <p className={`text-xs font-bold ${saldoPagar < 0 ? "text-red-400" : "text-[#cccccc]"}`}>{formatarMoeda(saldoPagar)}</p>
+            <p className={`text-xs font-bold ${valorPrevisto > 0 ? (saldoPagar < 0 ? "text-red-400" : "text-[#cccccc]") : "text-gray-600"}`}>
+              {valorPrevisto > 0 ? formatarMoeda(saldoPagar) : "—"}
+            </p>
           </div>
         </div>
 
@@ -293,6 +295,13 @@ export default function PagamentosProfissionalPage() {
                         <FileText className="w-3.5 h-3.5" />
                       </button>
                     )}
+                    <button
+                      onClick={() => router.push(`/dashboard/pagamentos/${pagamento.id}`)}
+                      className="p-1.5 text-gray-500 hover:text-[#7eaaee] transition-colors rounded"
+                      title="Visualizar pagamento"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                    </button>
                     <button
                       onClick={() => router.push(`/dashboard/pagamentos/${pagamento.id}/editar`)}
                       className="p-1.5 text-gray-500 hover:text-[#7eaaee] transition-colors rounded"

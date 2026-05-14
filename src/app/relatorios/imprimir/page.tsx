@@ -423,7 +423,7 @@ function ImprimirRelatorioContent() {
           </h1>
           <div className="text-xs sm:text-sm text-gray-700 space-y-0.5 sm:space-y-1">
             <p><strong>Obra:</strong> {obra.nome}</p>
-            <p><strong>Localização:</strong> {obra.localizacao.cidade}/{obra.localizacao.estado}</p>
+            <p><strong>Localização:</strong> {obra.localizacao?.cidade && obra.localizacao?.estado ? `${obra.localizacao.cidade}/${obra.localizacao.estado}` : "—"}</p>
             <p><strong>Tipo:</strong> {obra.tipo === "construcao" ? "Construção" : "Reforma"}</p>
             <p><strong>Área:</strong> {obra.area} m²</p>
             <p><strong>Data do relatório:</strong> {formatarData(new Date().toISOString())}</p>
