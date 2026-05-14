@@ -89,6 +89,14 @@ export default function EditarDespesaPage() {
   useEffect(() => {
     const carregarDados = async () => {
       try {
+        // Validar UUID antes de qualquer query
+        const { isValidUUID, getDespesasSupabase } = await import("@/lib/storage")
+        if (!despesaId || !isValidUUID(despesaId)) {
+          toast.error("Despesa não encontrada")
+          router.push("/dashboard/despesas")
+          return
+        }
+
         // Verificar autenticação no Supabase
         const { supabase } = await import("@/lib/supabase")
         const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -110,7 +118,6 @@ export default function EditarDespesaPage() {
         setObraId(activeObraId)
 
         // Carregar despesas do Supabase
-        const { getDespesasSupabase } = await import("@/lib/storage")
         const despesasSupabase = await getDespesasSupabase(activeObraId, user.id)
 
         // Encontrar a despesa específica

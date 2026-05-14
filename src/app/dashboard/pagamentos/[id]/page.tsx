@@ -56,6 +56,14 @@ export default function DetalhesPagamentoPage() {
   useEffect(() => {
     const carregarDados = async () => {
       try {
+        // Validar UUID antes de qualquer query
+        const { isValidUUID } = await import("@/lib/storage")
+        if (!pagamentoId || !isValidUUID(pagamentoId)) {
+          toast.error("Pagamento não encontrado")
+          router.push("/dashboard/obra")
+          return
+        }
+
         const { supabase } = await import("@/lib/supabase")
         const { data: { user }, error: authError } = await supabase.auth.getUser()
 

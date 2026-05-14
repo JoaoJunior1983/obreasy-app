@@ -7,7 +7,7 @@ import { useAuthUser } from "@/lib/queries/auth"
 import { Eye, Pencil, Trash2, FileText, Search, ArrowUpDown, ArrowUp, ArrowDown, Plus } from "lucide-react"
 import { goToObraDashboard } from "@/lib/navigation"
 import { toast } from "sonner"
-import { deleteDespesa } from "@/lib/storage"
+import { deleteDespesa, isValidUUID } from "@/lib/storage"
 import { getAllCategorias, getCategoriaLabel, getCategoriaColor } from "@/lib/despesa-categorias"
 import { useDelayedLoading } from "@/hooks/use-delayed-loading"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -252,7 +252,10 @@ function DespesasPageContent() {
     }
   })
 
-  const todosItens = [...despesas, ...pagamentosAsDespesas]
+  // Filtrar entradas inválidas (sem id ou com id não-UUID) para evitar links /dashboard/despesas/undefined
+  const todosItens = [...despesas, ...pagamentosAsDespesas].filter(
+    (d) => typeof d.id === "string" && isValidUUID(d.id)
+  )
 
   // Filtrar despesas
   const despesasFiltradas = todosItens
