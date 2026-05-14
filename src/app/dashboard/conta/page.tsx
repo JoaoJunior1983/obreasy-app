@@ -690,7 +690,7 @@ export default function MinhaContaPage() {
             aria-checked={marketingOptin}
             disabled={marketingSaving}
             onClick={() => handleMarketingToggle(!marketingOptin)}
-            className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 ${
+            className={`no-min-height relative !w-11 !h-6 !min-w-[44px] rounded-full transition-colors flex-shrink-0 disabled:opacity-50 ${
               marketingOptin ? "bg-[#0B3064]" : "bg-[#2a2d35] border border-white/[0.08]"
             }`}
           >
