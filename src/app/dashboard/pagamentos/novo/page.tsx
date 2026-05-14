@@ -173,20 +173,6 @@ export default function NovoPagamentoPage() {
         comprovanteUrl
       }
 
-      try {
-        const [pagsProfRes, obraRes, pagsObraRes] = await Promise.all([
-          supabase.from("pagamentos").select("valor").eq("profissional_id", formData.profissionalId).eq("user_id", user.id),
-          supabase.from("obras").select("orcamento").eq("id", obraId).single(),
-          supabase.from("pagamentos").select("valor").eq("obra_id", obraId).eq("user_id", user.id)
-        ])
-        const totalPagoProfAntes = (pagsProfRes.data || []).reduce((s: number, p: any) => s + parseFloat(p.valor || '0'), 0)
-        const obraOrcamento = obraRes.data?.orcamento || 0
-        const totalPagamentosObra = (pagsObraRes.data || []).reduce((s: number, p: any) => s + parseFloat(p.valor || '0'), 0)
-        const despesasLocal = JSON.parse(localStorage.getItem("despesas") || "[]")
-        const totalDespesasObra = despesasLocal.filter((d: any) => d.obraId === obraId).reduce((s: number, d: any) => s + (d.valor || 0), 0)
-        preCheckRef.current = { totalPagoProfAntes, totalGastoObraAntes: totalPagamentosObra + totalDespesasObra, obraOrcamento }
-      } catch { /* não crítico */ }
-
       const despesasPagamento = {
         id: pagamentoIdLocal, obraId, data: formData.data, category: "mao_obra", categoria: "mao_obra",
         descricao: `Pagamento - ${nomeProfissional}`, valor: parseFloat(formData.valor),
@@ -199,7 +185,20 @@ export default function NovoPagamentoPage() {
       const obras = JSON.parse(localStorage.getItem("obras") || "[]")
       const obraAtual = obras.find((o: any) => o.id === obraId)
 
+      // Pré-checks de orçamento só rodam se a obra tem orçamento (evita 3 queries Supabase
+      // desnecessárias quando o usuário não usa alerta de orçamento)
       if (obraAtual?.orcamento > 0) {
+        try {
+          const [pagsProfRes, pagsObraRes] = await Promise.all([
+            supabase.from("pagamentos").select("valor").eq("profissional_id", formData.profissionalId).eq("user_id", user.id),
+            supabase.from("pagamentos").select("valor").eq("obra_id", obraId).eq("user_id", user.id)
+          ])
+          const totalPagoProfAntes = (pagsProfRes.data || []).reduce((s: number, p: any) => s + parseFloat(p.valor || '0'), 0)
+          const totalPagamentosObra = (pagsObraRes.data || []).reduce((s: number, p: any) => s + parseFloat(p.valor || '0'), 0)
+          const totalDespesasObra = despesasExistentes.filter((d: any) => d.obraId === obraId).reduce((s: number, d: any) => s + (d.valor || 0), 0)
+          preCheckRef.current = { totalPagoProfAntes, totalGastoObraAntes: totalPagamentosObra + totalDespesasObra, obraOrcamento: obraAtual.orcamento }
+        } catch { /* não crítico */ }
+
         const alert = checkBudgetAfterTransaction(obraId, despesasPagamento, despesasExistentes, profissionais, obraAtual.orcamento)
         if (alert) {
           setPagamentoPendente({ pagamento, despesaPagamento: despesasPagamento })
@@ -213,6 +212,7 @@ export default function NovoPagamentoPage() {
       if (!savedId) { toast.error("Erro ao salvar pagamento no banco de dados"); setLoading(false); return }
 
       const valorPrevisto = profissional?.valorPrevisto || (profissional?.contrato as any)?.valorPrevisto || (profissional?.contrato as any)?.valorTotalPrevisto || 0
+      // Fire-and-forget — não bloqueia o "Pagamento salvo!"
       checkAndShowPercentualNotifications({
         profissionalId: formData.profissionalId, profissionalNome: nomeProfissional, valorPrevisto,
         valorPagamento: parseFloat(formData.valor), totalPagoProfAntes: preCheckRef.current.totalPagoProfAntes,

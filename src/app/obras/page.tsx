@@ -347,9 +347,9 @@ export default function ObrasPage() {
       nome: obra.nome,
       tipo: obra.tipo,
       area: obra.area.toString(),
-      estado: obra.localizacao.estado,
-      cidade: obra.localizacao.cidade,
-      bairro: (obra.localizacao as any).bairro || "",
+      estado: obra.localizacao?.estado || "",
+      cidade: obra.localizacao?.cidade || "",
+      bairro: (obra.localizacao as any)?.bairro || "",
       orcamento: obra.orcamento?.toString() || "",
       nomeCliente: (obra as any).nome_cliente || (obra as any).nomeCliente || "",
     })
@@ -845,7 +845,9 @@ export default function ObrasPage() {
                       <div className="flex items-center gap-1 text-gray-400">
                         <MapPin className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                         <p className="text-[10px] sm:text-sm truncate leading-tight">
-                          {obra.localizacao.cidade}/{obra.localizacao.estado}
+                          {obra.localizacao?.cidade && obra.localizacao?.estado
+                            ? `${obra.localizacao.cidade}/${obra.localizacao.estado}`
+                            : "—"}
                         </p>
                       </div>
                     </div>

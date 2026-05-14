@@ -695,8 +695,8 @@ export default function MinhaContaPage() {
             }`}
           >
             <span
-              className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                marketingOptin ? "translate-x-5" : "translate-x-0.5"
+              className={`absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-white rounded-full shadow transition-[left] duration-200 ${
+                marketingOptin ? "left-[22px]" : "left-[2px]"
               }`}
             />
           </button>
