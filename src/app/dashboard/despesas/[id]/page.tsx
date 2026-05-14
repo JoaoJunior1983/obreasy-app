@@ -60,6 +60,14 @@ export default function DetalhesDespesaPage() {
   useEffect(() => {
     const carregarDados = async () => {
       try {
+        // Validar UUID antes de qualquer query (evita HTTP 400 com id="undefined")
+        const { isValidUUID } = await import("@/lib/storage")
+        if (!despesaId || !isValidUUID(despesaId)) {
+          toast.error("Despesa não encontrada")
+          router.push("/dashboard/despesas")
+          return
+        }
+
         // Verificar autenticação no Supabase
         const { supabase } = await import("@/lib/supabase")
         const { data: { user }, error: authError } = await supabase.auth.getUser()

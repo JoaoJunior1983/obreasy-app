@@ -26,8 +26,10 @@ export function recalcularAvisos(obraId: string): void {
     const obras = JSON.parse(localStorage.getItem('obras') || '[]')
     const obra = obras.find((o: any) => o.id === obraId)
 
+    // localStorage["obras"] é uma otimização — pode estar vazio em login novo,
+    // browser limpo, ou navegação direta. Os avisos só funcionam quando a obra
+    // está em cache local; quando não está, retornar silenciosamente.
     if (!obra) {
-      console.warn('[AlertManager] Obra não encontrada:', obraId)
       return
     }
 
