@@ -17,6 +17,7 @@ import { type BudgetAlert } from "@/lib/budget-alerts"
 import { getDataHoje } from "@/lib/utils"
 import Image from "next/image"
 import { toast } from "sonner"
+import { useInvalidateObra } from "@/lib/queries/invalidate"
 
 const FORMAS_PAGAMENTO = [
   "Pix",
@@ -71,6 +72,7 @@ const numeroParaFormatado = (valor: number): string => {
 
 export default function EditarPagamentoPage() {
   const router = useRouter()
+  const invalidate = useInvalidateObra()
   const params = useParams()
   const pagamentoId = params.id as string
 
@@ -264,6 +266,8 @@ export default function EditarPagamentoPage() {
         }
       } catch { /* não crítico */ }
 
+      await invalidate()
+
       window.dispatchEvent(new CustomEvent("pagamentoAtualizado", {
         detail: { profissionalId: formData.profissionalId }
       }))
@@ -280,7 +284,7 @@ export default function EditarPagamentoPage() {
     }
   }
 
-  const handleConfirmarPagamento = () => {
+  const handleConfirmarPagamento = async () => {
     if (!pagamentoPendente) return
 
     // Atualizar o pagamento pendente
@@ -288,6 +292,8 @@ export default function EditarPagamentoPage() {
     despesasExistentes[pagamentoPendente.index] = pagamentoPendente
 
     localStorage.setItem("despesas", JSON.stringify(despesasExistentes))
+
+    await invalidate()
 
     // Disparar evento de pagamento atualizado
     window.dispatchEvent(new CustomEvent("pagamentoAtualizado", {

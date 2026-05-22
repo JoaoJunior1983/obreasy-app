@@ -14,6 +14,7 @@ import { avisoAposCriarPagamento } from "@/lib/alert-manager"
 import { getDataHoje } from "@/lib/utils"
 import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useInvalidateObra } from "@/lib/queries/invalidate"
 
 const FORMAS_PAGAMENTO = ["Pix", "Dinheiro", "Cartão", "Boleto", "Transferência"]
 
@@ -43,6 +44,7 @@ const removerFormatacao = (valorFormatado: string): number => {
 
 export default function NovoPagamentoPage() {
   const router = useRouter()
+  const invalidate = useInvalidateObra()
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [obraId, setObraId] = useState("")
@@ -211,6 +213,10 @@ export default function NovoPagamentoPage() {
       const savedId = await savePagamentoSupabase(pagamentoSemId, user.id)
       if (!savedId) { toast.error("Erro ao salvar pagamento no banco de dados"); setLoading(false); return }
 
+      // Invalida o cache do React Query para que Profissionais/Despesas/Dashboard
+      // recarreguem os pagamentos imediatamente (sem esperar o staleTime).
+      await invalidate()
+
       const valorPrevisto = profissional?.valorPrevisto || (profissional?.contrato as any)?.valorPrevisto || (profissional?.contrato as any)?.valorTotalPrevisto || 0
       // Fire-and-forget — não bloqueia o "Pagamento salvo!"
       checkAndShowPercentualNotifications({
@@ -255,6 +261,8 @@ export default function NovoPagamentoPage() {
       const { id, ...pagamentoSemId } = pagamentoPendente.pagamento
       const savedId = await savePagamentoSupabase(pagamentoSemId, user.id)
       if (!savedId) { toast.error("Erro ao salvar pagamento."); setLoading(false); return }
+
+      await invalidate()
 
       const profissional = profissionais.find(p => p.id === pagamentoPendente.pagamento.profissionalId)
       const valorPrevisto = profissional?.valorPrevisto || (profissional?.contrato as any)?.valorPrevisto || (profissional?.contrato as any)?.valorTotalPrevisto || 0

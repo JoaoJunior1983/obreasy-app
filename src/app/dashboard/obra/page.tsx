@@ -4,6 +4,10 @@ import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuthUser } from "@/lib/queries/auth"
+import { useObra } from "@/lib/queries/obra"
+import { useProfissionais } from "@/lib/queries/profissionais"
+import { usePagamentos } from "@/lib/queries/pagamentos"
+import { useDespesas } from "@/lib/queries/despesas"
 import { ArrowLeft, TrendingUp, Wallet, PiggyBank, Home, Plus, Users, FileText, AlertCircle, CheckCircle, AlertTriangle, MoreVertical, Pencil, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown, HandCoins, Edit3, Camera, CreditCard, X, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -201,89 +205,16 @@ export default function DashboardObraPage() {
     if (authError) router.push("/login")
   }, [authError, router])
 
-  const { data: obraQuery, isError: obraError } = useQuery({
-    queryKey: ["obra", activeObraId, authUser?.id],
-    enabled: !!activeObraId && !!authUser?.id,
-    staleTime: 60_000,
-    retry: false,
-    queryFn: async (): Promise<Obra> => {
-      const { supabase } = await import("@/lib/supabase")
-      const { data, error } = await supabase
-        .from("obras")
-        .select("*")
-        .eq("id", activeObraId!)
-        .eq("user_id", authUser!.id)
-        .single()
-      if (error || !data) throw new Error("not found")
-      const o = data as any
-      return {
-        id: o.id,
-        userId: o.user_id,
-        nome: o.nome,
-        nomeCliente: o.nome_cliente || undefined,
-        tipo: o.tipo,
-        area: o.area,
-        localizacao: o.localizacao,
-        orcamento: o.orcamento,
-        valorContratado: o.valor_contratado || null,
-        dataInicio: o.data_inicio || null,
-        dataTermino: o.data_termino || null,
-        criadaEm: o.criada_em,
-      }
-    },
-  })
+  const { data: obraQuery, isError: obraError } = useObra(activeObraId || undefined, authUser?.id)
 
   useEffect(() => {
     if (obraError) router.push("/obras")
   }, [obraError, router])
 
-  const { data: despesasQuery } = useQuery({
-    queryKey: ["despesas", obraQuery?.id, authUser?.id],
-    enabled: !!obraQuery?.id && !!authUser?.id,
-    staleTime: 30_000,
-    queryFn: async () => {
-      const { getDespesasSupabase } = await import("@/lib/storage")
-      const list = await getDespesasSupabase(obraQuery!.id, authUser!.id)
-      return (list as Despesa[]).slice().sort((a: any, b: any) => {
-        const dataA = new Date(a.data || 0).getTime()
-        const dataB = new Date(b.data || 0).getTime()
-        if (dataB !== dataA) return dataB - dataA
-        return parseInt(b.id || "0") - parseInt(a.id || "0")
-      })
-    },
-  })
-
-  const { data: profissionaisQuery } = useQuery({
-    queryKey: ["profissionais", obraQuery?.id, authUser?.id],
-    enabled: !!obraQuery?.id && !!authUser?.id,
-    staleTime: 60_000,
-    queryFn: async () => {
-      const { supabase } = await import("@/lib/supabase")
-      const { data } = await supabase
-        .from("profissionais")
-        .select("*")
-        .eq("obra_id", obraQuery!.id)
-        .eq("user_id", obraQuery!.userId)
-      return (data || []) as Profissional[]
-    },
-  })
-
-  const { data: pagamentosQuery } = useQuery({
-    queryKey: ["pagamentos", obraQuery?.id, authUser?.id],
-    enabled: !!obraQuery?.id && !!authUser?.id,
-    staleTime: 30_000,
-    queryFn: async () => {
-      const { supabase } = await import("@/lib/supabase")
-      const { data } = await supabase
-        .from("pagamentos")
-        .select("id, valor, profissional_id, data, comprovante_url")
-        .eq("obra_id", obraQuery!.id)
-      return ((data || []) as any[]).map((p) => ({
-        valor: parseFloat(p.valor) || 0,
-        data: p.data,
-      }))
-    },
-  })
+  // Hooks canônicos — fonte única de verdade pelas queryKeys.
+  const { data: despesasQuery } = useDespesas(obraQuery?.id, authUser?.id)
+  const { data: profissionaisQuery } = useProfissionais(obraQuery?.id, authUser?.id)
+  const { data: pagamentosQuery } = usePagamentos(obraQuery?.id, authUser?.id)
 
   const { data: recebimentosQuery } = useQuery({
     queryKey: ["recebimentos", obraQuery?.id, authUser?.id],
@@ -1288,6 +1219,8 @@ export default function DashboardObraPage() {
               ].map(({ label, value, href, warn }) => (
                 <div
                   key={label}
+                  data-testid="fin-row"
+                  data-fin-label={label}
                   onClick={() => router.push(href)}
                   className="bg-white/[0.04] rounded-lg border border-white/[0.04] hover:bg-white/[0.08] hover:border-[#0B3064]/40 hover:shadow-md active:scale-[0.99] transition-all duration-200 cursor-pointer"
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px' }}
@@ -2036,6 +1969,7 @@ export default function DashboardObraPage() {
             <span>Despesa</span>
           </button>
           <button
+            data-testid="acao-novo-pagamento"
             onClick={() => router.push("/dashboard/pagamentos/novo")}
             className="flex-1 flex flex-col items-center justify-center gap-0.5 h-12 sm:flex-row sm:gap-1.5 sm:h-10 bg-[#2a2d35] hover:bg-white/[0.13] active:scale-95 text-gray-300 text-[9px] sm:text-xs font-medium rounded-lg border border-white/[0.08] transition-all duration-150"
           >

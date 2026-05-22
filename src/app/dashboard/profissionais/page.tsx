@@ -2,8 +2,11 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQueryClient } from "@tanstack/react-query"
 import { useAuthUser } from "@/lib/queries/auth"
+import { useObra } from "@/lib/queries/obra"
+import { useProfissionais } from "@/lib/queries/profissionais"
+import { usePagamentos } from "@/lib/queries/pagamentos"
 import { Plus, Users, Trash2, FileText, Clock, X, MessageSquare } from "lucide-react"
 import { toast } from "sonner"
 import { getPagamentosByProfissional, getActiveObraId } from "@/lib/storage"
@@ -86,56 +89,16 @@ export default function ProfissionaisPage() {
     if (authError) router.push("/login")
   }, [authError, router])
 
-  const { data: obraQuery, isError: obraError } = useQuery({
-    queryKey: ["obra", activeObraId, user?.id],
-    enabled: !!activeObraId && !!user?.id,
-    staleTime: 60_000,
-    retry: false,
-    queryFn: async (): Promise<Obra> => {
-      const { supabase } = await import("@/lib/supabase")
-      const { data, error } = await supabase
-        .from("obras")
-        .select("id, nome")
-        .eq("id", activeObraId!)
-        .eq("user_id", user!.id)
-        .single()
-      if (error || !data) throw new Error("not found")
-      const o = data as any
-      return { id: o.id, nome: o.nome }
-    },
-  })
+  // Hooks canônicos — fonte única de verdade. Toda tela usa as mesmas
+  // queryKeys com o mesmo formato de dado, eliminando a colisão de cache.
+  const { data: obraQuery, isError: obraError } = useObra(activeObraId || undefined, user?.id)
 
   useEffect(() => {
     if (obraError) router.push("/obras")
   }, [obraError, router])
 
-  // Profissionais e pagamentos disparam em paralelo após obra+user prontos
-  const { data: profissionaisQuery } = useQuery({
-    queryKey: ["profissionais", obraQuery?.id, user?.id],
-    enabled: !!obraQuery?.id && !!user?.id,
-    staleTime: 60_000,
-    queryFn: async () => {
-      const { getProfissionaisSupabase, isValidUUID } = await import("@/lib/storage")
-      const list = await getProfissionaisSupabase(obraQuery!.id, user!.id)
-      return (list as Profissional[]).filter((p) => isValidUUID(p.id))
-    },
-  })
-
-  const { data: pagamentosQuery } = useQuery({
-    queryKey: ["pagamentos", obraQuery?.id, user?.id],
-    enabled: !!obraQuery?.id && !!user?.id,
-    staleTime: 30_000,
-    queryFn: async () => {
-      const { supabase } = await import("@/lib/supabase")
-      const { data } = await supabase
-        .from("pagamentos")
-        .select("id, valor, profissional_id, data, criada_em")
-        .eq("obra_id", obraQuery!.id)
-        .eq("user_id", user!.id)
-        .order("data", { ascending: false })
-      return (data || []) as any[]
-    },
-  })
+  const { data: profissionaisQuery } = useProfissionais(obraQuery?.id, user?.id)
+  const { data: pagamentosQuery } = usePagamentos(obraQuery?.id, user?.id)
 
   // Sync queries → useStates locais
   useEffect(() => { if (obraQuery) setObra(obraQuery) }, [obraQuery])
@@ -153,15 +116,15 @@ export default function ProfissionaisPage() {
     const ultimoMap: Record<string, { valor: number; data: string; criadoEm: string }> = {}
     const totalMap: Record<string, number> = {}
     for (const p of pagamentosQuery) {
-      if (!p.profissional_id) continue
-      if (!ultimoMap[p.profissional_id]) {
-        ultimoMap[p.profissional_id] = {
-          valor: parseFloat(p.valor) || 0,
+      if (!p.profissionalId) continue
+      if (!ultimoMap[p.profissionalId]) {
+        ultimoMap[p.profissionalId] = {
+          valor: p.valor,
           data: p.data || "",
-          criadoEm: p.criada_em || "",
+          criadoEm: p.criadaEm || "",
         }
       }
-      totalMap[p.profissional_id] = (totalMap[p.profissional_id] || 0) + (parseFloat(p.valor) || 0)
+      totalMap[p.profissionalId] = (totalMap[p.profissionalId] || 0) + p.valor
     }
     setUltimosPagamentos(ultimoMap)
     setTotalPagoPorProfissional(totalMap)
@@ -349,7 +312,7 @@ export default function ProfissionaisPage() {
             const dataFmt = ts ? ts.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }) : ""
 
             return (
-              <div key={profissional.id} className="bg-[#1f2228]/80 border border-white/[0.08] rounded-xl overflow-hidden">
+              <div key={profissional.id} data-testid="prof-card" data-prof-nome={profissional.nome} className="bg-[#1f2228]/80 border border-white/[0.08] rounded-xl overflow-hidden">
                 {/* Nome + funcao + contrato */}
                 <div className="flex items-center justify-between px-3 pt-3 pb-2">
                   <div className="flex items-center gap-2 min-w-0">
@@ -394,7 +357,7 @@ export default function ProfissionaisPage() {
                   ].map(({ label, value, color }, i, arr) => (
                     <div key={label} className={`flex items-center justify-between px-3 py-2 ${i < arr.length - 1 ? "border-b border-white/[0.04]" : ""}`}>
                       <span className="text-[10px] text-gray-500 uppercase tracking-wide font-medium">{label}</span>
-                      <span className={`text-sm font-bold ${color}`}>{value}</span>
+                      <span data-testid={`prof-valor-${label.toLowerCase()}`} className={`text-sm font-bold ${color}`}>{value}</span>
                     </div>
                   ))}
                 </div>

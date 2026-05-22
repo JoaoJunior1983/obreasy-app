@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react"
 import { useRouter, useParams, useSearchParams } from "next/navigation"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuthUser } from "@/lib/queries/auth"
+import { useObra } from "@/lib/queries/obra"
 import { FileText, Save, X, Edit, Trash2, Plus, DollarSign, Pencil } from "lucide-react"
 import { goToObraDashboard } from "@/lib/navigation"
 import { deletePagamento } from "@/lib/storage"
@@ -220,24 +221,8 @@ function ProfissionalDetalhePageContent() {
     },
   })
 
-  // Obra — depende do profissional carregado
-  const { data: obraQuery } = useQuery({
-    queryKey: ["obra", profissionalQuery?.obraId, authUser?.id],
-    enabled: !!profissionalQuery?.obraId && !!authUser?.id,
-    staleTime: 60_000,
-    queryFn: async () => {
-      const { supabase } = await import("@/lib/supabase")
-      const { data, error } = await supabase
-        .from("obras")
-        .select("id, nome, area")
-        .eq("id", profissionalQuery!.obraId)
-        .eq("user_id", authUser!.id)
-        .single()
-      if (error || !data) return null
-      const o = data as any
-      return { id: o.id, nome: o.nome, area: o.area } as Obra
-    },
-  })
+  // Obra — hook canônico (mesma queryKey/formato que todas as outras telas).
+  const { data: obraQuery } = useObra(profissionalQuery?.obraId, authUser?.id)
 
   // Sync queries → useStates locais (mantém todos os call-sites de setProfissional/setObra/setPagamentos no resto da página)
   useEffect(() => {

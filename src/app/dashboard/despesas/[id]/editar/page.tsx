@@ -16,6 +16,7 @@ import { type BudgetAlert } from "@/lib/budget-alerts"
 import { toast } from "sonner"
 import { getAllCategorias, addCustomCategoria } from "@/lib/despesa-categorias"
 import { uploadComprovante } from "@/lib/upload-comprovante"
+import { useInvalidateObra } from "@/lib/queries/invalidate"
 
 const FORMAS_PAGAMENTO = [
   "Pix",
@@ -47,6 +48,7 @@ const numeroParaMoedaFormatada = (valor: number): string => {
 
 export default function EditarDespesaPage() {
   const router = useRouter()
+  const invalidate = useInvalidateObra()
   const params = useParams()
   const despesaId = params?.id as string
 
@@ -232,6 +234,9 @@ export default function EditarDespesaPage() {
         return
       }
 
+      // Invalida o cache para que as telas (Dashboard/Despesas/Profissionais) recarreguem.
+      await invalidate()
+
       // Disparar evento de atualização
       window.dispatchEvent(new CustomEvent("despesaAtualizada"))
 
@@ -275,6 +280,8 @@ export default function EditarDespesaPage() {
         toast.error(resultado.error || "Erro ao atualizar despesa")
         return
       }
+
+      await invalidate()
 
       // Disparar evento de atualização
       window.dispatchEvent(new CustomEvent("despesaAtualizada"))
