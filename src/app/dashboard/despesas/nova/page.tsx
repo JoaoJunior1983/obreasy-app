@@ -22,6 +22,7 @@ import { getDataHoje } from "@/lib/utils"
 import { toast } from "sonner"
 import { getAllCategorias, addCustomCategoria } from "@/lib/despesa-categorias"
 import { uploadComprovante } from "@/lib/upload-comprovante"
+import { useInvalidateObra } from "@/lib/queries/invalidate"
 
 const FORMAS_PAGAMENTO = [
   "Pix",
@@ -56,6 +57,7 @@ const removerFormatacao = (valorFormatado: string): number => {
 
 export default function NovaDespesaPage() {
   const router = useRouter()
+  const invalidate = useInvalidateObra()
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [obraId, setObraId] = useState("")
@@ -256,6 +258,9 @@ export default function NovaDespesaPage() {
         return
       }
 
+      // Invalida o cache para que as telas (Dashboard/Despesas/Profissionais) recarreguem.
+      await invalidate()
+
       // Usar o UUID retornado pelo Supabase para salvar no localStorage
       const despesaSalva = {
         ...despesa,
@@ -324,6 +329,8 @@ export default function NovaDespesaPage() {
         toast.error(result.error || "Erro ao salvar despesa no banco de dados")
         return
       }
+
+      await invalidate()
 
       // Usar o UUID retornado pelo Supabase
       const despesaSalva = {

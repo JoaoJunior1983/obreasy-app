@@ -11,7 +11,10 @@
     "perf:prod": "cross-env BASE_URL=https://www.obreasy.com.br playwright test",
     "perf:local": "cross-env BASE_URL=http://localhost:3000 playwright test",
     "perf:baseline": "cross-env UPDATE_BASELINE=1 BASE_URL=https://www.obreasy.com.br playwright test",
-    "perf:report": "playwright show-report"
+    "perf:report": "playwright show-report",
+    "e2e:seed": "node --env-file=.env.local tests/e2e/seed.mjs",
+    "e2e": "playwright test --config=playwright.e2e.config.ts",
+    "e2e:headed": "playwright test --config=playwright.e2e.config.ts --headed"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

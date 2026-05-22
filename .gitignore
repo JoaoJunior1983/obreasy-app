@@ -56,3 +56,6 @@ playwright-report/
 test-results/
 .auth/
 .playwright-mcp/
+
+# E2E — estado gerado pelo seed (ids da conta de teste)
+tests/e2e/.seed.json

@@ -2,8 +2,12 @@
 
 import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQueryClient } from "@tanstack/react-query"
 import { useAuthUser } from "@/lib/queries/auth"
+import { useObra } from "@/lib/queries/obra"
+import { useProfissionais } from "@/lib/queries/profissionais"
+import { useDespesas } from "@/lib/queries/despesas"
+import { usePagamentos } from "@/lib/queries/pagamentos"
 import { Eye, Pencil, Trash2, FileText, Search, ArrowUpDown, ArrowUp, ArrowDown, Plus } from "lucide-react"
 import { goToObraDashboard } from "@/lib/navigation"
 import { toast } from "sonner"
@@ -88,75 +92,26 @@ function DespesasPageContent() {
     if (authError) router.push("/login")
   }, [authError, router])
 
-  // Obra — cacheado 60s
-  const { data: obra, isError: obraError } = useQuery({
-    queryKey: ["obra", activeObraId, user?.id],
-    enabled: !!activeObraId && !!user?.id,
-    staleTime: 60_000,
-    retry: false,
-    queryFn: async (): Promise<Obra> => {
-      const { supabase } = await import("@/lib/supabase")
-      const { data, error } = await supabase
-        .from("obras")
-        .select("id, nome, orcamento, user_id")
-        .eq("id", activeObraId!)
-        .eq("user_id", user!.id)
-        .single()
-      if (error || !data) throw new Error("obra not found")
-      const o = data as any
-      return {
-        id: o.id,
-        nome: o.nome,
-        orcamentoTotalObra: o.orcamento || 0,
-        userId: o.user_id,
-      }
-    },
-  })
+  // Hooks canônicos — fonte única de verdade pelas queryKeys.
+  const { data: obraQuery, isError: obraError } = useObra(activeObraId || undefined, user?.id)
 
   useEffect(() => {
     if (obraError) router.push("/obras")
   }, [obraError, router])
 
-  // Paralelo: profissionais, despesas, pagamentos — disparam juntos quando obra+user prontos
-  const { data: profissionaisData } = useQuery({
-    queryKey: ["profissionais", obra?.id, user?.id],
-    enabled: !!obra?.id && !!user?.id,
-    staleTime: 60_000,
-    queryFn: async () => {
-      const { getProfissionaisSupabase } = await import("@/lib/storage")
-      return await getProfissionaisSupabase(obra!.id, user!.id)
-    },
-  })
+  // Mantém o formato legado de `obra` (com orcamentoTotalObra) que o resto da página usa.
+  const obra: Obra | undefined = obraQuery
+    ? {
+        id: obraQuery.id,
+        nome: obraQuery.nome,
+        orcamentoTotalObra: obraQuery.orcamento ?? 0,
+        userId: obraQuery.userId,
+      }
+    : undefined
 
-  const { data: despesasData } = useQuery({
-    queryKey: ["despesas", obra?.id, user?.id],
-    enabled: !!obra?.id && !!user?.id,
-    staleTime: 30_000,
-    queryFn: async () => {
-      const { getDespesasSupabase } = await import("@/lib/storage")
-      return await getDespesasSupabase(obra!.id, user!.id)
-    },
-  })
-
-  const { data: pagamentosData } = useQuery({
-    queryKey: ["pagamentos", obra?.id, user?.id],
-    enabled: !!obra?.id && !!user?.id,
-    staleTime: 30_000,
-    queryFn: async () => {
-      const { supabase } = await import("@/lib/supabase")
-      const { data } = await supabase
-        .from("pagamentos")
-        .select("id, valor, profissional_id, data")
-        .eq("obra_id", obra!.id)
-        .eq("user_id", user!.id)
-      return ((data || []) as any[]).map((p): Pagamento => ({
-        id: p.id,
-        valor: parseFloat(p.valor) || 0,
-        profissionalId: p.profissional_id,
-        data: p.data || "",
-      }))
-    },
-  })
+  const { data: profissionaisData } = useProfissionais(obraQuery?.id, user?.id)
+  const { data: despesasData } = useDespesas(obraQuery?.id, user?.id)
+  const { data: pagamentosData } = usePagamentos(obraQuery?.id, user?.id)
 
   const profissionais = (profissionaisData ?? []) as Profissional[]
   const despesas = (despesasData ?? []) as Despesa[]
