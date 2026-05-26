@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Save, X, User, DollarSign, MessageSquare, CheckCircle2 } from "lucide-react"
+import { Save, X, User, DollarSign, MessageSquare, CheckCircle2, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -117,20 +117,29 @@ export default function NovoClientePage() {
               <CheckCircle2 className="w-5 h-5 text-white" />
             </div>
             <p className="text-sm font-bold text-white mb-1">Cliente cadastrado!</p>
-            <p className="text-xs text-gray-400 mb-4">Agora você pode registrar recebimentos para este cliente.</p>
-            <div className="flex gap-2">
+            <p className="text-xs text-gray-400 mb-4">Agora você pode lançar o primeiro recebimento para este cliente.</p>
+            <div className="flex flex-col gap-2">
               <Button
-                onClick={() => router.push(`/dashboard/clientes/${savedId}`)}
-                className="flex-1 h-9 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-xs font-medium rounded-xl"
+                onClick={() => router.push(`/dashboard/clientes/${savedId}?novoRecebimento=1`)}
+                className="w-full h-10 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-semibold rounded-xl"
               >
-                Ver cliente
+                <Plus className="w-4 h-4 mr-1.5" />
+                Lançar primeiro recebimento
               </Button>
-              <Button
-                onClick={() => router.push("/dashboard/obra/extrato-recebimentos")}
-                className="flex-1 h-9 bg-[#2a2d35] hover:bg-white/[0.13] text-gray-300 border border-white/[0.1] rounded-xl text-xs"
-              >
-                Ver todos
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => router.push(`/dashboard/clientes/${savedId}`)}
+                  className="flex-1 h-9 bg-[#2a2d35] hover:bg-white/[0.13] text-gray-300 border border-white/[0.1] rounded-xl text-xs"
+                >
+                  Ver cliente
+                </Button>
+                <Button
+                  onClick={() => router.push("/dashboard/obra/extrato-recebimentos")}
+                  className="flex-1 h-9 bg-[#2a2d35] hover:bg-white/[0.13] text-gray-300 border border-white/[0.1] rounded-xl text-xs"
+                >
+                  Ver todos
+                </Button>
+              </div>
             </div>
           </Card>
         </div>

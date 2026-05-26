@@ -73,7 +73,7 @@ export default function ClienteDetailPage() {
   const [editContratoAnexo, setEditContratoAnexo] = useState<string | null>(null)
 
   // Novo recebimento
-  const [showNovoRecebimento, setShowNovoRecebimento] = useState(false)
+  const [showNovoRecebimento, setShowNovoRecebimento] = useState(searchParams.get("novoRecebimento") === "1")
   const [salvandoRecebimento, setSalvandoRecebimento] = useState(false)
   const [comprovanteFile, setComprovanteFile] = useState<File | null>(null)
   const [comprovanteAnexo, setComprovanteAnexo] = useState<string | null>(null)
@@ -164,6 +164,16 @@ export default function ClienteDetailPage() {
   useEffect(() => {
     if (clientesQuery && recebimentosQuery !== undefined) setLoading(false)
   }, [clientesQuery, recebimentosQuery])
+
+  // Scroll automático até o form de novo recebimento quando o usuário chega via CTA
+  useEffect(() => {
+    if (loading) return
+    if (searchParams.get("novoRecebimento") !== "1") return
+    const t = setTimeout(() => {
+      document.getElementById("novo-recebimento-form")?.scrollIntoView({ behavior: "smooth", block: "start" })
+    }, 100)
+    return () => clearTimeout(t)
+  }, [loading, searchParams])
 
   // Refresh: invalida cache do React Query
   const carregarDados = useCallback(async () => {
@@ -430,7 +440,7 @@ export default function ClienteDetailPage() {
 
           {/* Form novo recebimento */}
           {showNovoRecebimento && (
-            <Card className="p-3 bg-[#1f2228]/80 border border-green-500/30 rounded-xl space-y-2 mb-2">
+            <Card id="novo-recebimento-form" className="p-3 bg-[#1f2228]/80 border border-green-500/30 rounded-xl space-y-2 mb-2">
               <div className="flex items-center gap-2">
                 <p className="text-xs font-semibold text-green-400 uppercase tracking-wide">Novo recebimento para</p>
                 <span className="text-xs font-bold text-white bg-green-500/20 border border-green-500/30 px-2 py-0.5 rounded-full">{cliente.nome}</span>

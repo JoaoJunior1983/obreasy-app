@@ -6,14 +6,14 @@ export const metadata: Metadata = {
   description: "Termos de Uso do aplicativo Obreasy.",
 }
 
-const sectionCls = "mt-8"
-const h2Cls = "text-xl font-semibold mt-8 mb-3"
-const pCls = "text-sm leading-relaxed text-gray-700 mb-3"
-const ulCls = "list-disc pl-6 text-sm text-gray-700 space-y-1 mb-3"
+const sectionCls = "mt-6 sm:mt-8 first:mt-0"
+const h2Cls = "text-lg sm:text-xl font-semibold mb-3 text-[#7eaaee]"
+const pCls = "text-sm sm:text-base leading-relaxed text-gray-300 mb-3"
+const ulCls = "list-disc pl-6 text-sm sm:text-base text-gray-300 space-y-1 mb-3 marker:text-[#7eaaee]"
 
 export default function TermosPage() {
   return (
-    <LegalLayout title="Termos de Uso" lastUpdated="29/04/2026">
+    <LegalLayout title="Termos de Uso" lastUpdated="29/04/2026" icon="terms">
       <section className={sectionCls}>
         <h2 className={h2Cls}>1. Sobre o serviço</h2>
         <p className={pCls}>
@@ -94,7 +94,7 @@ export default function TermosPage() {
       <section className={sectionCls}>
         <h2 className={h2Cls}>10. Contato</h2>
         <p className={pCls}>
-          E-mail: <a href="mailto:suporte@obreasy.com.br" className="text-[#0B3064] underline">suporte@obreasy.com.br</a>
+          E-mail: <a href="mailto:suporte@obreasy.com.br" className="text-[#7eaaee] underline hover:text-white transition-colors">suporte@obreasy.com.br</a>
         </p>
       </section>
     </LegalLayout>

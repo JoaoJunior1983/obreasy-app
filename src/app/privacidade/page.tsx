@@ -6,15 +6,15 @@ export const metadata: Metadata = {
   description: "Política de Privacidade do aplicativo Obreasy.",
 }
 
-const sectionCls = "mt-8"
-const h2Cls = "text-xl font-semibold mt-8 mb-3"
-const h3Cls = "text-base font-semibold mt-4 mb-2"
-const pCls = "text-sm leading-relaxed text-gray-700 mb-3"
-const ulCls = "list-disc pl-6 text-sm text-gray-700 space-y-1 mb-3"
+const sectionCls = "mt-6 sm:mt-8 first:mt-0"
+const h2Cls = "text-lg sm:text-xl font-semibold mb-3 text-[#7eaaee]"
+const h3Cls = "text-base sm:text-lg font-semibold mt-5 mb-2 text-white"
+const pCls = "text-sm sm:text-base leading-relaxed text-gray-300 mb-3"
+const ulCls = "list-disc pl-6 text-sm sm:text-base text-gray-300 space-y-1 mb-3 marker:text-[#7eaaee]"
 
 export default function PrivacidadePage() {
   return (
-    <LegalLayout title="Política de Privacidade" lastUpdated="29/04/2026">
+    <LegalLayout title="Política de Privacidade" lastUpdated="29/04/2026" icon="privacy">
       <p className={pCls}>
         A sua privacidade é importante para nós. Esta Política descreve como o Obreasy coleta,
         utiliza, armazena e compartilha informações dos usuários.
@@ -77,7 +77,7 @@ export default function PrivacidadePage() {
 
         <h3 className={h3Cls}>4.1 Dados anonimizados</h3>
         <p className={pCls}>
-          Poderemos utilizar dados de forma <strong>anonimizada e agregada</strong>, sem identificação do usuário, para:
+          Poderemos utilizar dados de forma <strong className="text-white">anonimizada e agregada</strong>, sem identificação do usuário, para:
         </p>
         <ul className={ulCls}>
           <li>Estudos de mercado</li>
@@ -144,7 +144,7 @@ export default function PrivacidadePage() {
       <section className={sectionCls}>
         <h2 className={h2Cls}>10. Contato</h2>
         <p className={pCls}>
-          E-mail: <a href="mailto:suporte@obreasy.com.br" className="text-[#0B3064] underline">suporte@obreasy.com.br</a>
+          E-mail: <a href="mailto:suporte@obreasy.com.br" className="text-[#7eaaee] underline hover:text-white transition-colors">suporte@obreasy.com.br</a>
         </p>
       </section>
     </LegalLayout>

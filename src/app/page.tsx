@@ -171,21 +171,6 @@ const faqItems = [
       "Você tem acesso completo ao plano escolhido por 7 dias sem pagar nada. Não pedimos cartão de crédito para começar. Após os 7 dias, você decide se quer continuar.",
   },
   {
-    question: "Preciso instalar algum programa?",
-    answer:
-      "Não. O Obreasy funciona diretamente no navegador (web). Você pode acessar pelo celular, tablet ou computador a qualquer momento. Se preferir, também é possível adicionar o Obreasy à tela inicial do celular e utilizá-lo como um aplicativo.",
-  },
-  {
-    question: "Como baixar o aplicativo no Android?",
-    answer:
-      "Acesse o Obreasy pelo navegador do seu celular Android. Depois toque no menu do navegador (três pontos no canto superior) e selecione \"Adicionar à tela inicial\". Assim o Obreasy ficará disponível no seu celular como um aplicativo.",
-  },
-  {
-    question: "Como baixar o aplicativo no iOS (iPhone)?",
-    answer:
-      "Acesse o Obreasy pelo navegador Safari no seu iPhone. Depois toque no botão de compartilhar e selecione a opção \"Adicionar à tela de início\". Assim você poderá acessar o Obreasy diretamente da tela inicial do seu celular, como um aplicativo.",
-  },
-  {
     question: "Posso cancelar quando quiser?",
     answer:
       "Sim, sem burocracia. Você cancela a qualquer momento diretamente pelo painel, sem precisar falar com ninguém. Não há fidelidade mínima.",
