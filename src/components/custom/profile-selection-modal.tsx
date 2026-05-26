@@ -110,19 +110,19 @@ export default function ProfileSelectionModal({ onComplete, isChangingProfile = 
           )}
 
           {/* Cards de seleção */}
-          <div className="grid md:grid-cols-2 gap-3 sm:gap-6 mb-4 sm:mb-6">
+          <div className="grid md:grid-cols-2 gap-3 sm:gap-6 mb-4 sm:mb-6 items-stretch">
             {/* Dono da obra */}
             <button
               onClick={() => handleSelectProfile("owner")}
               disabled={isSubmitting}
-              className={`text-left p-4 sm:p-6 rounded-xl border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+              className={`h-full flex flex-col text-left p-4 sm:p-6 rounded-xl border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed !min-h-[180px] sm:!min-h-[220px] ${
                 selectedProfile === "owner"
                   ? "border-blue-500 bg-[#0B3064]/10 shadow-lg shadow-blue-500/20 scale-[1.02]"
                   : "border-white/[0.1] bg-[#1f2228]/80 hover:border-blue-400 hover:bg-slate-700/40"
               }`}
             >
               <div className="flex items-center gap-3 mb-2 sm:mb-4">
-                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-colors ${
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-colors flex-shrink-0 ${
                   selectedProfile === "owner" ? "bg-blue-500" : "bg-slate-600"
                 }`}>
                   <Home className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
@@ -133,7 +133,7 @@ export default function ProfileSelectionModal({ onComplete, isChangingProfile = 
                 Para quem quer acompanhar gastos, pagamentos e relatórios da própria obra.
               </p>
               {selectedProfile === "owner" && (
-                <div className="flex items-center gap-2 text-[#7eaaee] text-sm font-semibold animate-in slide-in-from-left-2 duration-200">
+                <div className="mt-auto flex items-center gap-2 text-[#7eaaee] text-sm font-semibold animate-in slide-in-from-left-2 duration-200">
                   <CheckCircle2 className="w-4 h-4" />
                   Selecionado
                 </div>
@@ -144,14 +144,14 @@ export default function ProfileSelectionModal({ onComplete, isChangingProfile = 
             <button
               onClick={() => handleSelectProfile("builder")}
               disabled={isSubmitting}
-              className={`text-left p-4 sm:p-6 rounded-xl border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+              className={`h-full flex flex-col text-left p-4 sm:p-6 rounded-xl border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed !min-h-[180px] sm:!min-h-[220px] ${
                 selectedProfile === "builder"
                   ? "border-blue-500 bg-[#0B3064]/10 shadow-lg shadow-blue-500/20 scale-[1.02]"
                   : "border-white/[0.1] bg-[#1f2228]/80 hover:border-blue-400 hover:bg-slate-700/40"
               }`}
             >
               <div className="flex items-center gap-3 mb-2 sm:mb-4">
-                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-colors ${
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-colors flex-shrink-0 ${
                   selectedProfile === "builder" ? "bg-blue-500" : "bg-slate-600"
                 }`}>
                   <Briefcase className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
@@ -162,7 +162,7 @@ export default function ProfileSelectionModal({ onComplete, isChangingProfile = 
                 Para quem gerencia múltiplas obras, acompanha despesas e controla os recebimentos de clientes.
               </p>
               {selectedProfile === "builder" && (
-                <div className="flex items-center gap-2 text-[#7eaaee] text-sm font-semibold animate-in slide-in-from-left-2 duration-200">
+                <div className="mt-auto flex items-center gap-2 text-[#7eaaee] text-sm font-semibold animate-in slide-in-from-left-2 duration-200">
                   <CheckCircle2 className="w-4 h-4" />
                   Selecionado
                 </div>
