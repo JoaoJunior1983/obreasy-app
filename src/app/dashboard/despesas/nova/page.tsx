@@ -437,6 +437,7 @@ export default function NovaDespesaPage() {
                     onChange={(e) => setFormData({ ...formData, data: e.target.value })}
                     required
                     className="flex-1 min-w-0 h-8 text-xs bg-[#1E293B] border border-[#334155] text-[#F8FAFC] rounded-lg px-2 focus:outline-none focus:border-[#3B82F6] transition-colors [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                    style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'block' }}
                   />
                 </div>
                 <div className="flex items-center gap-2">

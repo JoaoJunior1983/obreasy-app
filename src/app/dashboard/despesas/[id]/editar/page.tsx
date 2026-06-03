@@ -328,7 +328,7 @@ export default function EditarDespesaPage() {
         <form id="form-editar-despesa" onSubmit={handleSubmit}>
           <Card className="p-4 bg-[#0d1320] border border-white/[0.08] rounded-xl space-y-3">
             {/* Data e Valor */}
-            <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2">
               <div className="space-y-1 min-w-0">
                 <Label htmlFor="data" className="text-xs text-gray-400 flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-[#7eaaee]" />

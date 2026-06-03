@@ -416,7 +416,7 @@ export default function AdminTrialPage() {
           onChange={(e) => setSearch(e.target.value)}
           className="h-8 text-xs bg-slate-700 border-slate-600 text-white placeholder:text-gray-500"
         />
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-7 gap-2">
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
             className="bg-slate-700 border border-slate-600 text-white text-xs rounded-md px-2 h-8 cursor-pointer">
             <option value="todos">Todos os status</option>

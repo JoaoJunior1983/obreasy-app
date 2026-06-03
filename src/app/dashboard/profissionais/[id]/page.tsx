@@ -1491,6 +1491,7 @@ function ProfissionalDetalhePageContent() {
                       value={editForm.contrato.dataInicio}
                       onChange={(e) => handleContratoChange("dataInicio", e.target.value)}
                       className="flex-1 min-w-0 bg-[#1E293B] border border-[#334155] text-[#F8FAFC] text-xs h-9 px-2 rounded-md focus:outline-none focus:border-[#3B82F6] transition-colors [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                      style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'block' }}
                     />
                   </div>
                   <div className="flex items-center gap-2">
@@ -1501,6 +1502,7 @@ function ProfissionalDetalhePageContent() {
                       value={editForm.contrato.dataTermino}
                       onChange={(e) => handleContratoChange("dataTermino", e.target.value)}
                       className="flex-1 min-w-0 bg-[#1E293B] border border-[#334155] text-[#F8FAFC] text-xs h-9 px-2 rounded-md focus:outline-none focus:border-[#3B82F6] transition-colors [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                      style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'block' }}
                     />
                   </div>
                 </div>
@@ -1786,8 +1788,8 @@ function ProfissionalDetalhePageContent() {
 
             {/* Content */}
             <div className="overflow-y-auto flex-1 px-4 py-4 space-y-3">
-              {/* Valor + Data em grid */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Valor + Data — empilha em mobile, grid em sm+ (evita quebra visual do input date no iOS Safari) */}
+              <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3">
                 <div>
                   <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wide mb-1.5">Valor</p>
                   <div className="relative">
@@ -1810,7 +1812,7 @@ function ProfissionalDetalhePageContent() {
                       value={novoPagamentoForm.data}
                       onChange={(e) => setNovoPagamentoForm({...novoPagamentoForm, data: e.target.value})}
                       className="w-full h-10 px-3 bg-transparent text-sm text-white focus:outline-none transition-colors appearance-none"
-                      style={{ WebkitAppearance: 'none', fontSize: '13px', lineHeight: '40px', minWidth: 0, colorScheme: 'dark' }}
+                      style={{ WebkitAppearance: 'none', appearance: 'none', fontSize: '13px', lineHeight: '40px', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'block', colorScheme: 'dark' }}
                     />
                   </div>
                 </div>
@@ -1901,8 +1903,8 @@ function ProfissionalDetalhePageContent() {
 
             {/* Content */}
             <div className="overflow-y-auto flex-1 px-4 py-4 space-y-3">
-              {/* Valor + Data em grid */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Valor + Data — empilha em mobile, grid em sm+ (evita quebra visual do input date no iOS Safari) */}
+              <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3">
                 <div>
                   <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wide mb-1.5">Valor</p>
                   <div className="relative">
@@ -1925,7 +1927,7 @@ function ProfissionalDetalhePageContent() {
                       value={editarPagamentoForm.data}
                       onChange={(e) => setEditarPagamentoForm({...editarPagamentoForm, data: e.target.value})}
                       className="w-full h-10 px-3 bg-transparent text-sm text-white focus:outline-none focus:border-[#0B3064] transition-colors appearance-none"
-                      style={{ WebkitAppearance: 'none', fontSize: '13px', lineHeight: '40px', minWidth: 0, colorScheme: 'dark' }}
+                      style={{ WebkitAppearance: 'none', appearance: 'none', fontSize: '13px', lineHeight: '40px', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'block', colorScheme: 'dark' }}
                     />
                   </div>
                 </div>
