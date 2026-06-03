@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { FileUpload } from "@/components/custom/FileUpload"
 import { saveClienteSupabase, uploadFileToStorage } from "@/lib/storage"
+import { useInvalidateObra } from "@/lib/queries/invalidate"
 import { toast } from "sonner"
 
 const formatarMoeda = (valor: string): string => {
@@ -26,6 +27,7 @@ const removerFormatacao = (valorFormatado: string): number => {
 
 export default function NovoClientePage() {
   const router = useRouter()
+  const invalidateObra = useInvalidateObra()
   const [loading, setLoading] = useState(false)
   const [obraId, setObraId] = useState("")
   const [userId, setUserId] = useState("")
@@ -100,7 +102,13 @@ export default function NovoClientePage() {
         return
       }
 
+      // Confirma o sucesso ANTES de invalidar — invalidate é otimização e
+      // sua rejeição (refetch falhando em outra aba, RLS transitório, etc.)
+      // não pode derrubar a UX de save bem-sucedido nem induzir duplicidade.
       setSavedId(id)
+      // Fire-and-forget: garante que a próxima navegação encontre o cliente
+      // recém-criado em vez de servir lista cached sem ele.
+      invalidateObra().catch((err) => console.warn("[clientes/novo] invalidate falhou:", err))
     } catch {
       toast.error("Erro ao salvar cliente. Tente novamente.")
     } finally {
