@@ -1643,6 +1643,40 @@ export async function getClientesSupabase(obraId: string, userId: string): Promi
   }
 }
 
+export async function getClienteByIdSupabase(clienteId: string, userId: string): Promise<Cliente | null> {
+  try {
+    const { supabase } = await import("@/lib/supabase")
+    validateUUID(clienteId, "cliente_id")
+
+    const { data, error } = await supabase
+      .from("clientes")
+      .select("*")
+      .eq("id", clienteId)
+      .eq("user_id", userId)
+      .maybeSingle()
+
+    if (error) {
+      console.error("Erro ao carregar cliente por id:", error)
+      return null
+    }
+    if (!data) return null
+
+    return {
+      id: data.id,
+      obraId: data.obra_id,
+      userId: data.user_id,
+      nome: data.nome,
+      contratoValor: data.contrato_valor ? parseFloat(data.contrato_valor) : null,
+      contratoUrl: data.contrato_url || null,
+      observacoes: data.observacoes,
+      criadaEm: data.criada_em
+    }
+  } catch (error) {
+    console.error("Erro ao carregar cliente por id:", error)
+    return null
+  }
+}
+
 export async function updateClienteSupabase(
   clienteId: string,
   data: { nome?: string; contratoValor?: number | null; contratoUrl?: string | null; observacoes?: string | null }

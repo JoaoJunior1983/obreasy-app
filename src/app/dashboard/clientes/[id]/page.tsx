@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FileUpload } from "@/components/custom/FileUpload"
 import {
   getClientesSupabase,
+  getClienteByIdSupabase,
   updateClienteSupabase,
   getRecebimentosByClienteSupabase,
   saveRecebimentoSupabase,
@@ -136,26 +137,50 @@ export default function ClienteDetailPage() {
     queryFn: () => getRecebimentosByClienteSupabase(clienteId, user!.id),
   })
 
-  // Sync: cliente derivado dos clientes carregados
+  // Sync: cliente derivado dos clientes carregados, com fallback de fetch
+  // direto por id (protege contra cache stale da lista — ex: usuário recém
+  // criou o cliente em outra tela e a lista cached ainda não contém ele).
   useEffect(() => {
-    if (!clientesQuery) return
-    const c = clientesQuery.find((x) => x.id === clienteId)
-    if (!c) {
-      toast.error("Cliente não encontrado")
-      router.push("/dashboard/clientes")
-      return
+    if (!clientesQuery || !user?.id) return
+    let cancelled = false
+
+    const applyCliente = (c: Cliente) => {
+      if (cancelled) return
+      setCliente(c)
+      // Só rehidrata os campos de edição se o usuário NÃO está editando agora —
+      // evita perder digitação inflight caso a query seja invalidada externamente.
+      if (!editMode) {
+        setEditNome(c.nome)
+        setEditContratoValor(c.contratoValor ? c.contratoValor.toString() : "")
+        setEditContratoValorFmt(
+          c.contratoValor
+            ? c.contratoValor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            : "",
+        )
+        setEditObservacoes(c.observacoes || "")
+        setEditContratoAnexo(c.contratoUrl || null)
+      }
     }
-    setCliente(c)
-    setEditNome(c.nome)
-    setEditContratoValor(c.contratoValor ? c.contratoValor.toString() : "")
-    setEditContratoValorFmt(
-      c.contratoValor
-        ? c.contratoValor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-        : "",
-    )
-    setEditObservacoes(c.observacoes || "")
-    setEditContratoAnexo(c.contratoUrl || null)
-  }, [clientesQuery, clienteId, router])
+
+    const found = clientesQuery.find((x) => x.id === clienteId)
+    if (found) {
+      applyCliente(found)
+      return () => { cancelled = true }
+    }
+
+    // Fallback: fetch direto por id antes de desistir
+    getClienteByIdSupabase(clienteId, user.id).then((c) => {
+      if (cancelled) return
+      if (c) {
+        applyCliente(c)
+      } else {
+        toast.error("Cliente não encontrado")
+        router.push("/dashboard/clientes")
+      }
+    })
+
+    return () => { cancelled = true }
+  }, [clientesQuery, clienteId, router, user?.id])
 
   useEffect(() => {
     if (recebimentosQuery) setRecebimentos(recebimentosQuery)
@@ -189,6 +214,13 @@ export default function ClienteDetailPage() {
   const handleSalvarCliente = async () => {
     if (!editNome.trim()) { toast.error("Nome obrigatório"); return }
     setSalvandoCliente(true)
+
+    // Captura estado ANTES do save para detectar transição "ganhou valor de contrato"
+    const tinhaValorAntes = (cliente?.contratoValor ?? 0) > 0
+    const valorNovo = editContratoValor ? parseFloat(editContratoValor) : 0
+    const semRecebimentos = recebimentos.length === 0
+    const deveOferecerRecebimento = !tinhaValorAntes && valorNovo > 0 && semRecebimentos
+
     try {
       let contratoUrl: string | null | undefined = undefined
       if (editContratoFile) {
@@ -202,15 +234,26 @@ export default function ClienteDetailPage() {
 
       const ok = await updateClienteSupabase(clienteId, {
         nome: editNome.trim(),
-        contratoValor: editContratoValor ? parseFloat(editContratoValor) : null,
+        contratoValor: valorNovo > 0 ? valorNovo : null,
         contratoUrl,
         observacoes: editObservacoes.trim() || null
       })
       if (ok) {
-        toast.success("Cliente atualizado")
         setEditMode(false)
         setEditContratoFile(null)
-        carregarDados()
+        await carregarDados()
+
+        if (deveOferecerRecebimento) {
+          // Cliente acaba de ganhar valor de contrato e ainda não tem recebimentos:
+          // abre o form de novo recebimento automaticamente, igual ao fluxo de novo cliente.
+          toast.success("Contrato salvo! Lance o primeiro recebimento abaixo.")
+          setShowNovoRecebimento(true)
+          setTimeout(() => {
+            document.getElementById("novo-recebimento-form")?.scrollIntoView({ behavior: "smooth", block: "start" })
+          }, 200)
+        } else {
+          toast.success("Cliente atualizado")
+        }
       } else {
         toast.error("Erro ao atualizar cliente")
       }
