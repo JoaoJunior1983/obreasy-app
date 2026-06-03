@@ -285,6 +285,38 @@
     font-size: 16px; /* Previne zoom automático no iOS */
   }
 
+  /* iOS Safari: centralizar o texto interno do input[type="date"] verticalmente.
+     O shadow DOM (::-webkit-datetime-edit, ::-webkit-date-and-time-value) ignora
+     vertical-align e renderiza alinhado ao topo. WebKit bug #198959 (sem fix). */
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"] {
+    display: flex;
+    align-items: center;
+  }
+  input[type="date"]::-webkit-datetime-edit,
+  input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+  input[type="date"]::-webkit-datetime-edit-text,
+  input[type="date"]::-webkit-datetime-edit-year-field,
+  input[type="date"]::-webkit-datetime-edit-month-field,
+  input[type="date"]::-webkit-datetime-edit-day-field,
+  input[type="time"]::-webkit-datetime-edit,
+  input[type="datetime-local"]::-webkit-datetime-edit {
+    padding: 0;
+    line-height: 1;
+  }
+  input[type="date"]::-webkit-date-and-time-value,
+  input[type="time"]::-webkit-date-and-time-value,
+  input[type="datetime-local"]::-webkit-date-and-time-value {
+    min-height: 1.5em;
+    text-align: left;
+    margin: 0;
+  }
+  input[type="date"]::-webkit-inner-spin-button,
+  input[type="time"]::-webkit-inner-spin-button {
+    height: auto;
+  }
+
   /* Reduzir padding em containers para aproveitar espaço */
   .container {
     padding-left: 1rem;
