@@ -489,7 +489,7 @@ export default function ClienteDetailPage() {
                 <span className="text-xs font-bold text-white bg-green-500/20 border border-green-500/30 px-2 py-0.5 rounded-full">{cliente.nome}</span>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <div className="flex-1 min-w-0 space-y-1">
                   <span className="text-xs text-gray-400">Data</span>
                   <input type="date" value={recForm.data}
@@ -567,7 +567,7 @@ export default function ClienteDetailPage() {
                 {editandoRec?.id === rec.id ? (
                   // Form de edição inline
                   <div className="space-y-2">
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <div className="flex-1 min-w-0 space-y-1">
                         <span className="text-xs text-gray-400">Data</span>
                         <input type="date" value={editandoRec.data}
