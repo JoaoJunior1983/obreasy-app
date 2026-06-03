@@ -490,23 +490,23 @@ export default function ClienteDetailPage() {
               </div>
 
               <div className="flex gap-2">
-                <div className="flex-1 space-y-0.5">
-                  <span className="text-[10px] text-gray-400">Data</span>
+                <div className="flex-1 min-w-0 space-y-1">
+                  <span className="text-xs text-gray-400">Data</span>
                   <input type="date" value={recForm.data}
                     onChange={e => setRecForm(p => ({ ...p, data: e.target.value }))}
-                    className="w-full h-8 text-xs bg-[#1E293B] border border-[#334155] text-[#F8FAFC] rounded-lg px-2 focus:outline-none focus:border-[#3B82F6] transition-colors [&::-webkit-calendar-picker-indicator]:opacity-60" />
+                    className="w-full h-11 text-sm bg-[#1E293B] border border-[#334155] text-[#F8FAFC] rounded-lg px-2.5 focus:outline-none focus:border-[#3B82F6] transition-colors [&::-webkit-calendar-picker-indicator]:opacity-60" />
                 </div>
-                <div className="flex-1 space-y-0.5">
-                  <span className="text-[10px] text-gray-400">Valor</span>
+                <div className="flex-1 min-w-0 space-y-1">
+                  <span className="text-xs text-gray-400">Valor</span>
                   <div className="relative">
-                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[#94A3B8] text-xs">R$</span>
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#94A3B8] text-sm pointer-events-none">R$</span>
                     <Input type="text" placeholder="0,00" value={valorRecFmt}
                       onChange={e => {
                         const f = formatarMoeda(e.target.value)
                         setValorRecFmt(f)
                         setRecForm(p => ({ ...p, valor: removerFormatacao(f) > 0 ? removerFormatacao(f).toString() : "" }))
                       }}
-                      className="h-8 pl-7 text-xs bg-[#1E293B] border border-[#334155] text-[#F8FAFC] rounded-lg focus:border-[#3B82F6] transition-colors" />
+                      className="h-11 pl-9 text-sm bg-[#1E293B] border border-[#334155] text-[#F8FAFC] rounded-lg focus:border-[#3B82F6] transition-colors" />
                   </div>
                 </div>
               </div>
@@ -568,23 +568,23 @@ export default function ClienteDetailPage() {
                   // Form de edição inline
                   <div className="space-y-2">
                     <div className="flex gap-2">
-                      <div className="flex-1 space-y-0.5">
-                        <span className="text-[10px] text-gray-400">Data</span>
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <span className="text-xs text-gray-400">Data</span>
                         <input type="date" value={editandoRec.data}
                           onChange={e => setEditandoRec((p: any) => ({ ...p, data: e.target.value }))}
-                          className="w-full h-7 text-xs bg-[#1E293B] border border-[#334155] text-[#F8FAFC] rounded-lg px-2 focus:outline-none focus:border-[#3B82F6] [&::-webkit-calendar-picker-indicator]:opacity-60" />
+                          className="w-full h-11 text-sm bg-[#1E293B] border border-[#334155] text-[#F8FAFC] rounded-lg px-2.5 focus:outline-none focus:border-[#3B82F6] [&::-webkit-calendar-picker-indicator]:opacity-60" />
                       </div>
-                      <div className="flex-1 space-y-0.5">
-                        <span className="text-[10px] text-gray-400">Valor</span>
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <span className="text-xs text-gray-400">Valor</span>
                         <div className="relative">
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[#94A3B8] text-xs">R$</span>
+                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#94A3B8] text-sm pointer-events-none">R$</span>
                           <Input type="text" value={editRecFmt}
                             onChange={e => {
                               const f = formatarMoeda(e.target.value)
                               setEditRecFmt(f)
                               setEditandoRec((p: any) => ({ ...p, valor: removerFormatacao(f) }))
                             }}
-                            className="h-7 pl-7 text-xs bg-[#1E293B] border border-[#334155] text-[#F8FAFC] rounded-lg focus:border-[#3B82F6]" />
+                            className="h-11 pl-9 text-sm bg-[#1E293B] border border-[#334155] text-[#F8FAFC] rounded-lg focus:border-[#3B82F6]" />
                         </div>
                       </div>
                     </div>
