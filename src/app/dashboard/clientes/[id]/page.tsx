@@ -492,9 +492,12 @@ export default function ClienteDetailPage() {
               <div className="flex flex-col sm:flex-row gap-2">
                 <div className="flex-1 min-w-0 space-y-1">
                   <span className="text-xs text-gray-400">Data</span>
-                  <input type="date" value={recForm.data}
-                    onChange={e => setRecForm(p => ({ ...p, data: e.target.value }))}
-                    className="w-full h-11 text-sm bg-[#1E293B] border border-[#334155] text-[#F8FAFC] rounded-lg px-2.5 focus:outline-none focus:border-[#3B82F6] transition-colors [&::-webkit-calendar-picker-indicator]:opacity-60" />
+                  <div className="overflow-hidden rounded-lg border border-[#334155] bg-[#1E293B]">
+                    <input type="date" value={recForm.data}
+                      onChange={e => setRecForm(p => ({ ...p, data: e.target.value }))}
+                      className="w-full h-11 text-sm bg-transparent text-[#F8FAFC] px-2.5 focus:outline-none transition-colors [&::-webkit-calendar-picker-indicator]:opacity-60"
+                      style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'block', colorScheme: 'dark' }} />
+                  </div>
                 </div>
                 <div className="flex-1 min-w-0 space-y-1">
                   <span className="text-xs text-gray-400">Valor</span>
@@ -570,9 +573,12 @@ export default function ClienteDetailPage() {
                     <div className="flex flex-col sm:flex-row gap-2">
                       <div className="flex-1 min-w-0 space-y-1">
                         <span className="text-xs text-gray-400">Data</span>
-                        <input type="date" value={editandoRec.data}
-                          onChange={e => setEditandoRec((p: any) => ({ ...p, data: e.target.value }))}
-                          className="w-full h-11 text-sm bg-[#1E293B] border border-[#334155] text-[#F8FAFC] rounded-lg px-2.5 focus:outline-none focus:border-[#3B82F6] [&::-webkit-calendar-picker-indicator]:opacity-60" />
+                        <div className="overflow-hidden rounded-lg border border-[#334155] bg-[#1E293B]">
+                          <input type="date" value={editandoRec.data}
+                            onChange={e => setEditandoRec((p: any) => ({ ...p, data: e.target.value }))}
+                            className="w-full h-11 text-sm bg-transparent text-[#F8FAFC] px-2.5 focus:outline-none [&::-webkit-calendar-picker-indicator]:opacity-60"
+                            style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'block', colorScheme: 'dark' }} />
+                        </div>
                       </div>
                       <div className="flex-1 min-w-0 space-y-1">
                         <span className="text-xs text-gray-400">Valor</span>

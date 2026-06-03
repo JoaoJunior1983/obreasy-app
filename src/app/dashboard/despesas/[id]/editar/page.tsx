@@ -334,14 +334,17 @@ export default function EditarDespesaPage() {
                   <Calendar className="w-3.5 h-3.5 text-[#7eaaee]" />
                   Data *
                 </Label>
-                <Input
-                  id="data"
-                  type="date"
-                  value={formData.data}
-                  onChange={(e) => setFormData({ ...formData, data: e.target.value })}
-                  required
-                  className="h-9 w-full text-xs bg-[#1E293B] border border-[#334155] text-[#F8FAFC] rounded-lg focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F680] transition-colors [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                />
+                <div className="overflow-hidden rounded-lg border border-[#334155] bg-[#1E293B]">
+                  <Input
+                    id="data"
+                    type="date"
+                    value={formData.data}
+                    onChange={(e) => setFormData({ ...formData, data: e.target.value })}
+                    required
+                    className="h-9 w-full text-xs bg-transparent !border-0 text-[#F8FAFC] focus:ring-0 focus-visible:ring-0 transition-colors [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                    style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'block', colorScheme: 'dark' }}
+                  />
+                </div>
               </div>
               <div className="space-y-1 min-w-0">
                 <Label htmlFor="valor" className="text-xs text-gray-400 flex items-center gap-1.5">
