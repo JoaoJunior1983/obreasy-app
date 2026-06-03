@@ -342,7 +342,7 @@ export default function EditarDespesaPage() {
                     onChange={(e) => setFormData({ ...formData, data: e.target.value })}
                     required
                     className="h-9 w-full text-xs bg-transparent !border-0 text-[#F8FAFC] focus:ring-0 focus-visible:ring-0 transition-colors [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                    style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'block', colorScheme: 'dark' }}
+                    style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', colorScheme: 'dark' }}
                   />
                 </div>
               </div>

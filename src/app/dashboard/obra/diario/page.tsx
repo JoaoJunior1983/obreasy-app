@@ -509,7 +509,7 @@ export default function DiarioObraPage() {
 
               <div className="space-y-1.5">
                 <label className="block text-xs text-gray-500 font-medium">Data do registro</label>
-                <input type="date" value={addForm.data_registro} onChange={(e) => setAddForm({ ...addForm, data_registro: e.target.value })} style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: '0', boxSizing: 'border-box', display: 'block', height: '40px', padding: '0 12px', fontSize: '16px', lineHeight: '40px', color: 'white', background: '#2a2d35', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }} />
+                <input type="date" value={addForm.data_registro} onChange={(e) => setAddForm({ ...addForm, data_registro: e.target.value })} style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: '0', boxSizing: 'border-box', display: 'flex', alignItems: 'center', height: '40px', padding: '0 12px', fontSize: '16px', lineHeight: '40px', color: 'white', background: '#2a2d35', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }} />
               </div>
 
               <div className="space-y-1.5">
@@ -546,7 +546,7 @@ export default function DiarioObraPage() {
 
               <div className="space-y-1.5">
                 <label className="block text-xs text-gray-500 font-medium">Data</label>
-                <input type="date" value={editForm.data_registro} onChange={(e) => setEditForm({ ...editForm, data_registro: e.target.value })} style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: '0', boxSizing: 'border-box', display: 'block', height: '40px', padding: '0 12px', fontSize: '16px', lineHeight: '40px', color: 'white', background: '#2a2d35', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }} />
+                <input type="date" value={editForm.data_registro} onChange={(e) => setEditForm({ ...editForm, data_registro: e.target.value })} style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: '0', boxSizing: 'border-box', display: 'flex', alignItems: 'center', height: '40px', padding: '0 12px', fontSize: '16px', lineHeight: '40px', color: 'white', background: '#2a2d35', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }} />
               </div>
 
               <div className="space-y-1.5">

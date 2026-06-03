@@ -1491,7 +1491,7 @@ function ProfissionalDetalhePageContent() {
                       value={editForm.contrato.dataInicio}
                       onChange={(e) => handleContratoChange("dataInicio", e.target.value)}
                       className="flex-1 min-w-0 bg-[#1E293B] border border-[#334155] text-[#F8FAFC] text-xs h-9 px-2 rounded-md focus:outline-none focus:border-[#3B82F6] transition-colors [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                      style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'block' }}
+                      style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center' }}
                     />
                   </div>
                   <div className="flex items-center gap-2">
@@ -1502,7 +1502,7 @@ function ProfissionalDetalhePageContent() {
                       value={editForm.contrato.dataTermino}
                       onChange={(e) => handleContratoChange("dataTermino", e.target.value)}
                       className="flex-1 min-w-0 bg-[#1E293B] border border-[#334155] text-[#F8FAFC] text-xs h-9 px-2 rounded-md focus:outline-none focus:border-[#3B82F6] transition-colors [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                      style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'block' }}
+                      style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center' }}
                     />
                   </div>
                 </div>
@@ -1812,7 +1812,7 @@ function ProfissionalDetalhePageContent() {
                       value={novoPagamentoForm.data}
                       onChange={(e) => setNovoPagamentoForm({...novoPagamentoForm, data: e.target.value})}
                       className="w-full h-10 px-3 bg-transparent text-sm text-white focus:outline-none transition-colors appearance-none"
-                      style={{ WebkitAppearance: 'none', appearance: 'none', fontSize: '13px', lineHeight: '40px', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'block', colorScheme: 'dark' }}
+                      style={{ WebkitAppearance: 'none', appearance: 'none', fontSize: '13px', lineHeight: '40px', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', colorScheme: 'dark' }}
                     />
                   </div>
                 </div>
@@ -1927,7 +1927,7 @@ function ProfissionalDetalhePageContent() {
                       value={editarPagamentoForm.data}
                       onChange={(e) => setEditarPagamentoForm({...editarPagamentoForm, data: e.target.value})}
                       className="w-full h-10 px-3 bg-transparent text-sm text-white focus:outline-none focus:border-[#0B3064] transition-colors appearance-none"
-                      style={{ WebkitAppearance: 'none', appearance: 'none', fontSize: '13px', lineHeight: '40px', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'block', colorScheme: 'dark' }}
+                      style={{ WebkitAppearance: 'none', appearance: 'none', fontSize: '13px', lineHeight: '40px', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', colorScheme: 'dark' }}
                     />
                   </div>
                 </div>

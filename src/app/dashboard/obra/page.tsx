@@ -1532,13 +1532,13 @@ export default function DashboardObraPage() {
                   <div className="space-y-1.5 min-w-0">
                     <Label htmlFor="edit-dataInicio" className="text-xs text-gray-400">Início</Label>
                     <div className="overflow-hidden">
-                      <input id="edit-dataInicio" type="date" value={editFormData.dataInicio} onChange={(e) => setEditFormData({ ...editFormData, dataInicio: e.target.value })} style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: '0', maxWidth: '100%', boxSizing: 'border-box', display: 'block', height: '40px', padding: '0 8px', fontSize: '16px', lineHeight: '40px', color: 'white', background: '#2a2d35', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px' }} />
+                      <input id="edit-dataInicio" type="date" value={editFormData.dataInicio} onChange={(e) => setEditFormData({ ...editFormData, dataInicio: e.target.value })} style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: '0', maxWidth: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', height: '40px', padding: '0 8px', fontSize: '16px', lineHeight: '40px', color: 'white', background: '#2a2d35', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px' }} />
                     </div>
                   </div>
                   <div className="space-y-1.5 min-w-0">
                     <Label htmlFor="edit-dataTermino" className="text-xs text-gray-400">Término</Label>
                     <div className="overflow-hidden">
-                      <input id="edit-dataTermino" type="date" value={editFormData.dataTermino} onChange={(e) => setEditFormData({ ...editFormData, dataTermino: e.target.value })} style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: '0', maxWidth: '100%', boxSizing: 'border-box', display: 'block', height: '40px', padding: '0 8px', fontSize: '16px', lineHeight: '40px', color: 'white', background: '#2a2d35', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px' }} />
+                      <input id="edit-dataTermino" type="date" value={editFormData.dataTermino} onChange={(e) => setEditFormData({ ...editFormData, dataTermino: e.target.value })} style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: '0', maxWidth: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', height: '40px', padding: '0 8px', fontSize: '16px', lineHeight: '40px', color: 'white', background: '#2a2d35', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px' }} />
                     </div>
                   </div>
                 </div>
@@ -1763,7 +1763,7 @@ export default function DashboardObraPage() {
                       type="date"
                       value={recebimentoFormData.data}
                       onChange={(e) => setRecebimentoFormData({ ...recebimentoFormData, data: e.target.value })}
-                      style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: '0', maxWidth: '100%', boxSizing: 'border-box', display: 'block', height: '40px', padding: '0 8px', fontSize: '16px', lineHeight: '40px', color: 'white', background: '#2a2d35', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                      style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: '0', maxWidth: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', height: '40px', padding: '0 8px', fontSize: '16px', lineHeight: '40px', color: 'white', background: '#2a2d35', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
                     />
                   </div>
                 </div>
