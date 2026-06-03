@@ -496,7 +496,7 @@ export default function ClienteDetailPage() {
                     <input type="date" value={recForm.data}
                       onChange={e => setRecForm(p => ({ ...p, data: e.target.value }))}
                       className="w-full h-11 text-sm bg-transparent text-[#F8FAFC] px-2.5 focus:outline-none transition-colors [&::-webkit-calendar-picker-indicator]:opacity-60"
-                      style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'block', colorScheme: 'dark' }} />
+                      style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', colorScheme: 'dark' }} />
                   </div>
                 </div>
                 <div className="flex-1 min-w-0 space-y-1">
@@ -577,7 +577,7 @@ export default function ClienteDetailPage() {
                           <input type="date" value={editandoRec.data}
                             onChange={e => setEditandoRec((p: any) => ({ ...p, data: e.target.value }))}
                             className="w-full h-11 text-sm bg-transparent text-[#F8FAFC] px-2.5 focus:outline-none [&::-webkit-calendar-picker-indicator]:opacity-60"
-                            style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'block', colorScheme: 'dark' }} />
+                            style={{ WebkitAppearance: 'none', appearance: 'none', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', colorScheme: 'dark' }} />
                         </div>
                       </div>
                       <div className="flex-1 min-w-0 space-y-1">
