@@ -34,10 +34,16 @@ import {
   Trash2,
   Plus,
   HandCoins,
+  Play,
 } from "lucide-react"
 import { BGPattern } from "@/components/ui/bg-pattern"
 
 // ─── Data ────────────────────────────────────────────────────────────────────
+
+const TUTORIAL_VIDEO_URL =
+  "https://blietvjzchjrzbmkitha.supabase.co/storage/v1/object/public/images/lp/tutorial-obreasy.mp4"
+const TUTORIAL_POSTER_URL =
+  "https://blietvjzchjrzbmkitha.supabase.co/storage/v1/object/public/images/lp/tutorial-obreasy-poster.webp"
 
 const testimonials = [
   {
@@ -496,6 +502,13 @@ export default function NewLPPage() {
   })
   const [formSent, setFormSent] = useState(false)
   const [enviandoContato, setEnviandoContato] = useState(false)
+  const [tutorialStarted, setTutorialStarted] = useState(false)
+  const tutorialVideoRef = useRef<HTMLVideoElement | null>(null)
+
+  const handleTutorialPlay = () => {
+    setTutorialStarted(true)
+    tutorialVideoRef.current?.play()
+  }
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10)
     window.addEventListener("scroll", handleScroll)
@@ -658,9 +671,7 @@ export default function NewLPPage() {
       </StickySection>
 
       {/* ── Veja como funciona ── */}
-      <StickySection id="demo" zIndex={2} className="relative bg-[#1c1c1c] py-10 md:py-20 px-4 md:px-6" style={{'--background': 'white', boxShadow: '0 -6px 24px rgba(0,0,0,0.6)'} as React.CSSProperties}>
-        <div className="absolute inset-x-0 top-0 h-10 pointer-events-none z-10" style={{background: 'linear-gradient(to bottom, rgba(0,0,0,0.45), transparent)'}} />
-        <div className="absolute inset-x-0 bottom-0 h-10 pointer-events-none z-10" style={{background: 'linear-gradient(to top, rgba(0,0,0,0.45), transparent)'}} />
+      <StickySection id="demo" zIndex={2} className="relative bg-[#1c1c1c] py-10 md:py-20 px-4 md:px-6" style={{'--background': 'white'} as React.CSSProperties}>
         <BGPattern variant="grid" mask="fade-y" fill="rgba(255,255,255,0.012)" size={32} style={{ zIndex: 0 }} />
         <div className="max-w-[1100px] mx-auto relative z-[1]">
           <div className="mb-10 md:mb-16">
@@ -698,8 +709,102 @@ export default function NewLPPage() {
         </div>
       </StickySection>
 
+      {/* ── Tutorial em vídeo ── */}
+      <StickySection id="tutorial" zIndex={3} className="relative bg-[#141414] py-14 sm:py-20" style={{'--background': 'white'} as React.CSSProperties}>
+        <BGPattern variant="grid" mask="fade-y" fill="rgba(255,255,255,0.015)" size={32} style={{ zIndex: 0 }} />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-[1]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Texto + CTA */}
+            <div className="flex flex-col items-start">
+              <p className="text-xs font-bold text-[#7eaaee] uppercase tracking-widest mb-4">Tutorial</p>
+              <h2 className="text-3xl md:text-4xl font-black text-[#F2F2F2] mb-5 leading-tight">
+                Aprenda a usar o Obreasy em poucos minutos
+              </h2>
+              <p className="text-lg text-[#999999] font-light mb-8">
+                Assista ao tutorial completo, do cadastro da primeira obra ao controle de gastos,
+                pagamentos e relatórios.
+              </p>
+              <ul className="flex flex-col gap-5 mb-10">
+                {[
+                  "Crie sua primeira obra em menos de 1 minuto",
+                  "Registre despesas e pagamentos direto do canteiro",
+                  "Acompanhe orçamento, custo por m² e recebimentos em tempo real",
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-4">
+                    <div className="w-6 h-6 rounded-full bg-[#0B3064]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <CheckCircle2 className="w-4 h-4 text-[#7eaaee]" strokeWidth={2.5} />
+                    </div>
+                    <span className="text-[#F2F2F2] text-base md:text-lg font-light leading-relaxed">{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={handleCTA}
+                className="inline-flex items-center justify-center gap-1.5 px-5 py-3 sm:px-8 sm:py-4 rounded-md bg-[#0B3064] text-white font-bold text-sm sm:text-base whitespace-nowrap hover:bg-[#0a2a56] transition-colors shadow-lg shadow-[#0B3064]/30"
+              >
+                Testar grátis
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <span className="mt-3 text-sm text-[#999999]">Sem cartão de crédito • Cancele quando quiser</span>
+            </div>
+
+            {/* Vídeo em mockup 3D de celular */}
+            <div className="flex justify-center" style={{ perspective: '1400px' }}>
+              <div
+                className="relative w-[280px] sm:w-[360px] lg:w-[400px] rounded-[2.75rem] bg-gradient-to-b from-[#3d3d40] via-[#26262a] to-[#18181b] p-[10px] border border-white/[0.12] transition-transform duration-500 ease-out"
+                style={{
+                  transform: tutorialStarted ? 'none' : 'rotateY(-14deg) rotateX(5deg)',
+                  transformStyle: 'preserve-3d',
+                  boxShadow: '0 0 18px 2px rgba(11,48,100,0.25), 0 0 40px 4px rgba(11,48,100,0.12), 0 30px 60px -15px rgba(0,0,0,0.7)',
+                }}
+              >
+                {/* Botões laterais */}
+                <div className="absolute -right-[2px] top-28 w-[3px] h-16 rounded-r-md bg-[#3d3d40]" />
+                <div className="absolute -left-[2px] top-24 w-[3px] h-8 rounded-l-md bg-[#3d3d40]" />
+                <div className="absolute -left-[2px] top-36 w-[3px] h-12 rounded-l-md bg-[#3d3d40]" />
+                {/* Dynamic island */}
+                {!tutorialStarted && (
+                  <div className="absolute top-[22px] left-1/2 -translate-x-1/2 w-20 h-[16px] rounded-full bg-black z-10 pointer-events-none" />
+                )}
+                {/* Tela */}
+                <div className="relative w-full aspect-[9/16] rounded-[2.15rem] overflow-hidden bg-black">
+                  <video
+                    ref={tutorialVideoRef}
+                    src={TUTORIAL_VIDEO_URL}
+                    poster={TUTORIAL_POSTER_URL}
+                    controls={tutorialStarted}
+                    playsInline
+                    preload="none"
+                    aria-label="Vídeo tutorial do Obreasy"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  {!tutorialStarted && (
+                    <button
+                      type="button"
+                      onClick={handleTutorialPlay}
+                      aria-label="Assistir ao tutorial do Obreasy"
+                      className="group absolute inset-0 w-full h-full cursor-pointer"
+                    >
+                      <span className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-200" />
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        <span className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#0B3064] group-hover:bg-[#0a2a56] flex items-center justify-center shadow-lg shadow-[#0B3064]/40 transition-colors duration-200">
+                          <Play className="w-7 h-7 sm:w-8 sm:h-8 text-white ml-1" fill="white" />
+                        </span>
+                      </span>
+                      <span className="absolute bottom-4 right-4 px-3 py-1 rounded-full bg-black/60 backdrop-blur-sm text-xs text-[#F2F2F2] font-medium">
+                        3:41
+                      </span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </StickySection>
+
       {/* ── Como Funciona ── */}
-      <StickySection id="how" zIndex={3} className="relative bg-[#141414] py-14 sm:py-20" style={{'--background': 'white', boxShadow: '0 -6px 24px rgba(0,0,0,0.6)'} as React.CSSProperties}>
+      <StickySection id="how" zIndex={4} className="relative bg-[#141414] py-14 sm:py-20" style={{'--background': 'white'} as React.CSSProperties}>
         <BGPattern variant="grid" mask="fade-y" fill="rgba(255,255,255,0.015)" size={32} style={{ zIndex: 0 }} />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-[1]">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -826,9 +931,7 @@ export default function NewLPPage() {
       </StickySection>
 
       {/* ── Funcionalidades ── */}
-      <StickySection id="features" zIndex={4} className="relative bg-[#1c1c1c] py-14 sm:py-20" style={{'--background': 'white', boxShadow: '0 -6px 24px rgba(0,0,0,0.6)'} as React.CSSProperties}>
-        <div className="absolute inset-x-0 top-0 h-10 pointer-events-none z-10" style={{background: 'linear-gradient(to bottom, rgba(0,0,0,0.45), transparent)'}} />
-        <div className="absolute inset-x-0 bottom-0 h-10 pointer-events-none z-10" style={{background: 'linear-gradient(to top, rgba(0,0,0,0.45), transparent)'}} />
+      <StickySection id="features" zIndex={5} className="relative bg-[#1c1c1c] py-14 sm:py-20" style={{'--background': 'white'} as React.CSSProperties}>
         <BGPattern variant="grid" mask="fade-y" fill="rgba(255,255,255,0.012)" size={32} style={{ zIndex: 0 }} />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-[1]">
           <div className="text-center mb-14">
@@ -857,7 +960,7 @@ export default function NewLPPage() {
       </StickySection>
 
       {/* ── Depoimentos ── */}
-      <StickySection zIndex={5} className="relative bg-[#141414] py-14 sm:py-20" style={{'--background': 'white', boxShadow: '0 -6px 24px rgba(0,0,0,0.6)'} as React.CSSProperties}>
+      <StickySection zIndex={6} className="relative bg-[#141414] py-14 sm:py-20" style={{'--background': 'white'} as React.CSSProperties}>
         <BGPattern variant="grid" mask="fade-y" fill="rgba(255,255,255,0.015)" size={32} style={{ zIndex: 0 }} />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-[1]">
           <div className="text-center mb-14">
@@ -873,9 +976,7 @@ export default function NewLPPage() {
       </StickySection>
 
       {/* ── Planos ── */}
-      <StickySection id="plans" zIndex={6} className="relative bg-[#1c1c1c] py-14 sm:py-20" style={{'--background': 'white', boxShadow: '0 -6px 24px rgba(0,0,0,0.6)'} as React.CSSProperties}>
-        <div className="absolute inset-x-0 top-0 h-10 pointer-events-none z-10" style={{background: 'linear-gradient(to bottom, rgba(0,0,0,0.45), transparent)'}} />
-        <div className="absolute inset-x-0 bottom-0 h-10 pointer-events-none z-10" style={{background: 'linear-gradient(to top, rgba(0,0,0,0.45), transparent)'}} />
+      <StickySection id="plans" zIndex={7} className="relative bg-[#1c1c1c] py-14 sm:py-20" style={{'--background': 'white'} as React.CSSProperties}>
         <BGPattern variant="grid" mask="fade-y" fill="rgba(255,255,255,0.012)" size={32} style={{ zIndex: 0 }} />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-[1]">
           <div className="text-center mb-14">
@@ -957,7 +1058,7 @@ export default function NewLPPage() {
       </StickySection>
 
       {/* ── FAQ ── */}
-      <StickySection id="faq" zIndex={7} className="relative bg-[#141414] py-14 sm:py-20" style={{'--background': 'white', boxShadow: '0 -6px 24px rgba(0,0,0,0.6)'} as React.CSSProperties}>
+      <StickySection id="faq" zIndex={8} className="relative bg-[#141414] py-14 sm:py-20" style={{'--background': 'white'} as React.CSSProperties}>
         <BGPattern variant="grid" mask="fade-y" fill="rgba(255,255,255,0.015)" size={32} style={{ zIndex: 0 }} />
         <div className="max-w-3xl mx-auto px-4 sm:px-6 relative z-[1]">
           <div className="text-center mb-14">
@@ -977,7 +1078,7 @@ export default function NewLPPage() {
       </StickySection>
 
       {/* ── CTA Final ── */}
-      <StickySection zIndex={8} className="relative bg-[#141414] py-14 sm:py-20" style={{'--background': 'white', boxShadow: '0 -6px 24px rgba(0,0,0,0.6)'} as React.CSSProperties}>
+      <StickySection zIndex={9} className="relative bg-[#141414] py-14 sm:py-20" style={{'--background': 'white'} as React.CSSProperties}>
         <BGPattern variant="grid" mask="fade-y" fill="rgba(255,255,255,0.015)" size={32} style={{ zIndex: 0 }} />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center relative z-[1]">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#51ffa1]/20 bg-[#0B3064]/5 text-[#7eaaee] text-sm font-medium mb-6">
@@ -1015,9 +1116,7 @@ export default function NewLPPage() {
       </StickySection>
 
       {/* ── Contato ── */}
-      <StickySection id="contact" zIndex={9} className="relative bg-[#1c1c1c] py-14 sm:py-20" style={{'--background': 'white', boxShadow: '0 -6px 24px rgba(0,0,0,0.6)'} as React.CSSProperties}>
-        <div className="absolute inset-x-0 top-0 h-10 pointer-events-none z-10" style={{background: 'linear-gradient(to bottom, rgba(0,0,0,0.45), transparent)'}} />
-        <div className="absolute inset-x-0 bottom-0 h-10 pointer-events-none z-10" style={{background: 'linear-gradient(to top, rgba(0,0,0,0.45), transparent)'}} />
+      <StickySection id="contact" zIndex={10} className="relative bg-[#1c1c1c] py-14 sm:py-20" style={{'--background': 'white'} as React.CSSProperties}>
         <BGPattern variant="grid" mask="fade-y" fill="rgba(255,255,255,0.012)" size={32} style={{ zIndex: 0 }} />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-[1]">
           <div className="max-w-xl mx-auto">
@@ -1114,7 +1213,7 @@ export default function NewLPPage() {
       </StickySection>
 
       {/* ── Footer ── */}
-      <StickySection zIndex={10} className="relative bg-[#1c1c1c] border-t border-white/[0.08] py-14" style={{boxShadow: '0 -6px 24px rgba(0,0,0,0.6)'}}>
+      <StickySection zIndex={11} className="relative bg-[#1c1c1c] border-t border-white/[0.08] py-14">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row gap-10 mb-10">
             {/* Brand */}
