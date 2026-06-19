@@ -229,10 +229,10 @@ const nextConfig: NextConfig = {
             key: 'X-Frame-Options',
             value: 'ALLOWALL',
           },
-          // CSP para permitir iframe da plataforma Lasy
+          // CSP para permitir iframe da plataforma Lasy e WebView do Capacitor (iOS/Android)
           {
             key: 'Content-Security-Policy',
-            value: "frame-ancestors 'self' https://*.lasy.app https://*.lasy.ai https://lasy.app https://lasy.ai",
+            value: "frame-ancestors 'self' https://*.lasy.app https://*.lasy.ai https://lasy.app https://lasy.ai capacitor://localhost capacitor://* http://localhost",
           },
           // Headers CORS
           {

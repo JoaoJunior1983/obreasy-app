@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Obreasy</string>
+    <string name="title_activity_main">Obreasy</string>
+    <string name="package_name">br.com.obreasy.app</string>
+    <string name="custom_url_scheme">br.com.obreasy.app</string>
+</resources>

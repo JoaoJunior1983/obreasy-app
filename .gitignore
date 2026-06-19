@@ -59,3 +59,14 @@ test-results/
 
 # E2E — estado gerado pelo seed (ids da conta de teste)
 tests/e2e/.seed.json
+
+# Capacitor - generated native project build artifacts
+android/app/build/
+android/.gradle/
+android/build/
+ios/App/Pods/
+ios/App/App.xcworkspace/xcuserdata/
+ios/App/DerivedData/
+
+# Capacitor placeholder
+out/
