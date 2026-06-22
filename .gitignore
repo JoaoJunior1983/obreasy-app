@@ -70,3 +70,8 @@ ios/App/DerivedData/
 
 # Capacitor placeholder
 out/
+
+# Android signing (nunca versionar)
+obreasy-keystore.jks
+android/keystore.properties
+releases/

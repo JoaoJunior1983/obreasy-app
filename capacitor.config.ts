@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'br.com.obreasy.app',
+  appId: 'com.obreasy.app',
   appName: 'Obreasy',
   webDir: 'out',
   server: {
