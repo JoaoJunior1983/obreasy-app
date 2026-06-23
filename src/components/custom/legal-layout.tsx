@@ -1,16 +1,16 @@
 import Link from "next/link"
 import { ReactNode } from "react"
-import { ArrowLeft, FileText, Shield } from "lucide-react"
+import { ArrowLeft, FileText, LifeBuoy, Shield } from "lucide-react"
 
 interface LegalLayoutProps {
   title: string
   lastUpdated: string
-  icon?: "terms" | "privacy"
+  icon?: "terms" | "privacy" | "support"
   children: ReactNode
 }
 
 export default function LegalLayout({ title, lastUpdated, icon = "terms", children }: LegalLayoutProps) {
-  const Icon = icon === "privacy" ? Shield : FileText
+  const Icon = icon === "privacy" ? Shield : icon === "support" ? LifeBuoy : FileText
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0B3064] via-[#0a0a0a] to-[#0a0a0a] text-white">
@@ -24,6 +24,7 @@ export default function LegalLayout({ title, lastUpdated, icon = "terms", childr
             <span>OBREASY</span>
           </Link>
           <nav className="flex gap-3 sm:gap-4 text-xs sm:text-sm text-white/70">
+            <Link href="/suporte" className="hover:text-white transition-colors">Suporte</Link>
             <Link href="/termos" className="hover:text-white transition-colors">Termos</Link>
             <Link href="/privacidade" className="hover:text-white transition-colors">Privacidade</Link>
           </nav>

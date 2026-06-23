@@ -20,6 +20,11 @@ if [[ "$1" == "--preview" ]]; then
 else
   echo "→ Fazendo deploy para produção (build remoto na Vercel)..."
   vercel deploy --prod --yes
+
+  # Status "Production" no deploy novo não garante que www.obreasy.com.br migre sozinho.
+  # Se o domínio ficar preso em um deploy antigo, reassign manualmente:
+  # cd ~/Desktop/projetos/Programação/obreasy-app
+  # vercel alias set $(vercel ls --prod --yes 2>/dev/null | awk 'NR==5 {print $2}') www.obreasy.com.br
 fi
 
 echo ""
