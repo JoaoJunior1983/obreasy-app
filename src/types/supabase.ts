@@ -549,12 +549,16 @@ export type Database = {
           next_cycle_at: string | null
           overdue_since: string | null
           payment_method: string | null
+          payment_provider: string
           phone: string
           pix_expires_at: string | null
           plano: string | null
           plano_expira_em: string | null
           profile_type: string | null
+          revenuecat_app_user_id: string | null
+          revenuecat_product_id: string | null
           status: string | null
+          store_platform: string
           updated_at: string | null
         }
         Insert: {
@@ -578,12 +582,16 @@ export type Database = {
           next_cycle_at?: string | null
           overdue_since?: string | null
           payment_method?: string | null
+          payment_provider?: string
           phone: string
           pix_expires_at?: string | null
           plano?: string | null
           plano_expira_em?: string | null
           profile_type?: string | null
+          revenuecat_app_user_id?: string | null
+          revenuecat_product_id?: string | null
           status?: string | null
+          store_platform?: string
           updated_at?: string | null
         }
         Update: {
@@ -607,13 +615,47 @@ export type Database = {
           next_cycle_at?: string | null
           overdue_since?: string | null
           payment_method?: string | null
+          payment_provider?: string
           phone?: string
           pix_expires_at?: string | null
           plano?: string | null
           plano_expira_em?: string | null
           profile_type?: string | null
+          revenuecat_app_user_id?: string | null
+          revenuecat_product_id?: string | null
           status?: string | null
+          store_platform?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      revenuecat_webhook_logs: {
+        Row: {
+          id: string
+          event_id: string
+          event_type: string
+          app_user_id: string | null
+          raw_payload: Json | null
+          processed_at: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          event_id: string
+          event_type: string
+          app_user_id?: string | null
+          raw_payload?: Json | null
+          processed_at?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          event_id?: string
+          event_type?: string
+          app_user_id?: string | null
+          raw_payload?: Json | null
+          processed_at?: string | null
+          created_at?: string | null
         }
         Relationships: []
       }

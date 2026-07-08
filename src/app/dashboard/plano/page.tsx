@@ -10,6 +10,13 @@ import {
 import { PLANOS, type PlanoTipo } from "@/lib/plan"
 import { GURU_OFFERS, getOffer, getGracePeriodStatus, type GracePeriodStatus } from "@/lib/guru-plans"
 import { trackEvent, recordSubscriptionChange, updateLastActive } from "@/lib/track-event"
+import {
+  isNativeApp,
+  loginRevenueCatUser,
+  purchasePlano,
+  restorePurchases,
+  openManageSubscriptions,
+} from "@/lib/revenuecat-client"
 import { toast } from "sonner"
 
 const fmt = (v: number) =>
@@ -43,6 +50,16 @@ function PlanoPageInner() {
   const [selectedCycle, setSelectedCycle] = useState<Cycle>("annual")
   const [pixSelected, setPixSelected] = useState(false)
 
+  // App nativo (iOS/Android via Capacitor) → compra via RevenueCat (StoreKit/Play Billing).
+  // Na web, o checkout continua 100% via Guru.
+  const [isNative, setIsNative] = useState(false)
+  const [purchaseLoading, setPurchaseLoading] = useState(false)
+  const [restoreLoading, setRestoreLoading] = useState(false)
+
+  useEffect(() => {
+    isNativeApp().then(setIsNative)
+  }, [])
+
   const loadProfile = useCallback(async () => {
     const { supabase } = await import("@/lib/supabase")
     const { data: { user } } = await supabase.auth.getUser()
@@ -50,6 +67,7 @@ function PlanoPageInner() {
 
     setUserEmail(user.email || "")
     setUserId(user.id)
+    loginRevenueCatUser(user.id).catch(() => {})
 
     const { data: profile } = await supabase
       .from("user_profiles")
@@ -119,6 +137,14 @@ function PlanoPageInner() {
   })()
 
   const handleAbrirCancelamento = () => {
+    // Assinaturas via IAP (App Store/Play Store) só podem ser canceladas pela própria loja —
+    // não existe endpoint nosso para isso, então abrimos direto o gerenciamento nativo.
+    if (isNative) {
+      openManageSubscriptions().catch(() => {
+        toast.error("Não foi possível abrir o gerenciamento de assinatura.")
+      })
+      return
+    }
     setCancelModalStep("confirm")
     setCancelReason("")
   }
@@ -182,7 +208,32 @@ function PlanoPageInner() {
     return () => clearInterval(interval)
   }, [polling, loadProfile])
 
-  const handleAssinar = (targetPlano: "essencial" | "profissional", cycle: Cycle) => {
+  const handleAssinar = async (targetPlano: "essencial" | "profissional", cycle: Cycle) => {
+    trackEvent("subscription_started", { plano: targetPlano, cycle }).catch(() => {})
+    updateLastActive().catch(() => {})
+
+    // iOS/Android nativos: compra via RevenueCat (StoreKit/Play Billing) — obrigatório pela Apple.
+    if (isNative) {
+      setPurchaseLoading(true)
+      try {
+        const result = await purchasePlano(targetPlano, cycle)
+        if (result.cancelled) {
+          // usuário fechou a tela de compra, nada a fazer
+          return
+        }
+        if (!result.ok) {
+          toast.error(result.error || "Não foi possível concluir a compra.")
+          return
+        }
+        toast.success("Compra confirmada! Atualizando seu plano...")
+        setPolling(true)
+      } finally {
+        setPurchaseLoading(false)
+      }
+      return
+    }
+
+    // Web: checkout externo da Guru (cartão/Pix)
     const offer = getOffer(targetPlano, cycle)
     if (!offer) return
 
@@ -192,11 +243,23 @@ function PlanoPageInner() {
 
     const url = `${offer.guruCheckoutUrl}${params.toString() ? "?" + params.toString() : ""}`
 
-    trackEvent("subscription_started", { plano: targetPlano, cycle }).catch(() => {})
-    updateLastActive().catch(() => {})
-
     window.open(url, "_blank")
     setPolling(true)
+  }
+
+  const handleRestaurarCompras = async () => {
+    setRestoreLoading(true)
+    try {
+      const result = await restorePurchases()
+      if (!result.ok) {
+        toast.error(result.error || "Não encontramos compras para restaurar.")
+        return
+      }
+      toast.success("Compras restauradas! Atualizando seu plano...")
+      await loadProfile()
+    } finally {
+      setRestoreLoading(false)
+    }
   }
 
   const isActive = status === "active"
@@ -342,7 +405,7 @@ function PlanoPageInner() {
                   Forma de pagamento
                 </span>
                 <span className="text-gray-300 font-medium">
-                  {isTrial ? "—" : "Cartão / Pix"}
+                  {isTrial ? "—" : isNative ? "App Store / Google Play" : "Cartão / Pix"}
                 </span>
               </div>
             </div>
@@ -374,6 +437,24 @@ function PlanoPageInner() {
                 className="h-8 px-3 text-[11px] font-medium text-gray-500 hover:text-red-400 transition-colors"
               >
                 Cancelar assinatura
+              </button>
+            </div>
+          )}
+
+          {/* Restaurar compras — exigência da Apple para apps com assinatura via IAP */}
+          {isNative && (
+            <div className="px-4 py-2.5 border-t border-white/[0.06]">
+              <button
+                onClick={handleRestaurarCompras}
+                disabled={restoreLoading}
+                className="w-full h-8 text-[11px] font-medium text-gray-400 hover:text-[#7eaaee] transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+              >
+                {restoreLoading ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <ArrowLeftRight className="w-3 h-3" />
+                )}
+                Restaurar compras
               </button>
             </div>
           )}
@@ -464,8 +545,10 @@ function PlanoPageInner() {
                   ) : (
                     <button
                       onClick={() => handleAssinar("profissional", selectedCycle)}
-                      className="w-full py-3 rounded-xl bg-[#0B3064] text-white font-semibold text-sm hover:bg-[#082551] transition-all active:scale-95 shadow-lg shadow-[#0B3064]/20 mb-5"
+                      disabled={purchaseLoading}
+                      className="w-full py-3 rounded-xl bg-[#0B3064] text-white font-semibold text-sm hover:bg-[#082551] transition-all active:scale-95 shadow-lg shadow-[#0B3064]/20 mb-5 flex items-center justify-center gap-1.5 disabled:opacity-60"
                     >
+                      {purchaseLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                       Assinar Agora
                     </button>
                   )}
@@ -546,8 +629,10 @@ function PlanoPageInner() {
                   ) : (
                     <button
                       onClick={() => handleAssinar("essencial", selectedCycle)}
-                      className="w-full py-3 rounded-xl border border-white/[0.12] text-white font-semibold text-sm hover:bg-white/[0.05] transition-all active:scale-95 mb-5"
+                      disabled={purchaseLoading}
+                      className="w-full py-3 rounded-xl border border-white/[0.12] text-white font-semibold text-sm hover:bg-white/[0.05] transition-all active:scale-95 mb-5 flex items-center justify-center gap-1.5 disabled:opacity-60"
                     >
+                      {purchaseLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                       Assinar Agora
                     </button>
                   )}
@@ -587,11 +672,15 @@ function PlanoPageInner() {
               <Zap className="w-3.5 h-3.5 text-gray-500 flex-shrink-0 mt-0.5" />
               <div className="space-y-1">
                 <p className="text-[10px] text-gray-500 leading-relaxed">
-                  {selectedCycle === "monthly"
-                    ? "Cobrança mensal recorrente via cartão de crédito. Cancele quando quiser."
-                    : pixSelected
-                      ? "Pagamento único anual via Pix. Sem renovação automática."
-                      : "Cobrança anual recorrente via cartão de crédito com 15% de desconto."}
+                  {isNative
+                    ? selectedCycle === "monthly"
+                      ? "Cobrança mensal recorrente via sua conta App Store/Google Play. Cancele quando quiser."
+                      : "Cobrança anual recorrente via sua conta App Store/Google Play com 15% de desconto."
+                    : selectedCycle === "monthly"
+                      ? "Cobrança mensal recorrente via cartão de crédito. Cancele quando quiser."
+                      : pixSelected
+                        ? "Pagamento único anual via Pix. Sem renovação automática."
+                        : "Cobrança anual recorrente via cartão de crédito com 15% de desconto."}
                 </p>
                 <p className="text-[10px] text-gray-600">
                   Sem permanência mínima. Seus dados nunca são excluídos.
@@ -604,10 +693,21 @@ function PlanoPageInner() {
             <div className="flex items-start gap-2 bg-[#1f2228]/60 border border-white/[0.06] rounded-xl p-3">
               <Zap className="w-3.5 h-3.5 text-gray-500 flex-shrink-0 mt-0.5" />
               <p className="text-[10px] text-gray-500 leading-relaxed">
-                Para trocar a forma de pagamento ou alterar o cartão, entre em contato pelo{" "}
-                <button onClick={() => router.push("/dashboard/suporte")} className="text-[#7eaaee] underline underline-offset-2">
-                  suporte
-                </button>.
+                {isNative ? (
+                  <>
+                    Para trocar a forma de pagamento, gerencie diretamente pela sua conta{" "}
+                    <button onClick={() => openManageSubscriptions()} className="text-[#7eaaee] underline underline-offset-2">
+                      App Store / Google Play
+                    </button>.
+                  </>
+                ) : (
+                  <>
+                    Para trocar a forma de pagamento ou alterar o cartão, entre em contato pelo{" "}
+                    <button onClick={() => router.push("/dashboard/suporte")} className="text-[#7eaaee] underline underline-offset-2">
+                      suporte
+                    </button>.
+                  </>
+                )}
               </p>
             </div>
           )}
