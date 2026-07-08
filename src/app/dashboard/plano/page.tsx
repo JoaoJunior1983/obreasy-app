@@ -6,9 +6,10 @@ import {
   LayoutGrid, CheckCircle2, Zap, Building2, Crown,
   CreditCard, QrCode, ExternalLink, Loader2, AlertTriangle,
   Calendar, ArrowDownCircle, XCircle, ArrowRight, ArrowLeftRight,
+  Smartphone, Apple, CirclePlay,
 } from "lucide-react"
 import { PLANOS, type PlanoTipo } from "@/lib/plan"
-import { GURU_OFFERS, getOffer, getGracePeriodStatus, type GracePeriodStatus } from "@/lib/guru-plans"
+import { getGracePeriodStatus, type GracePeriodStatus } from "@/lib/guru-plans"
 import { trackEvent, recordSubscriptionChange, updateLastActive } from "@/lib/track-event"
 import {
   isNativeApp,
@@ -38,20 +39,18 @@ function PlanoPageInner() {
   const [cycleEndDate, setCycleEndDate] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [polling, setPolling] = useState(false)
-  const [userEmail, setUserEmail] = useState("")
-  const [userName, setUserName] = useState("")
   const [userId, setUserId] = useState("")
   const [cancelModalStep, setCancelModalStep] = useState<null | "confirm" | "retention" | "done">(null)
   const [cancelReason, setCancelReason] = useState("")
   const [cancelLoading, setCancelLoading] = useState(false)
   const [cancellationRequested, setCancellationRequested] = useState(false)
+  const [showDownloadAppModal, setShowDownloadAppModal] = useState(false)
 
   // Cycle & payment toggles
   const [selectedCycle, setSelectedCycle] = useState<Cycle>("annual")
-  const [pixSelected, setPixSelected] = useState(false)
 
   // App nativo (iOS/Android via Capacitor) → compra via RevenueCat (StoreKit/Play Billing).
-  // Na web, o checkout continua 100% via Guru.
+  // Na web, não há mais checkout: o usuário é direcionado a baixar o app e assinar por lá.
   const [isNative, setIsNative] = useState(false)
   const [purchaseLoading, setPurchaseLoading] = useState(false)
   const [restoreLoading, setRestoreLoading] = useState(false)
@@ -65,7 +64,6 @@ function PlanoPageInner() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push("/login"); return null }
 
-    setUserEmail(user.email || "")
     setUserId(user.id)
     loginRevenueCatUser(user.id).catch(() => {})
 
@@ -76,8 +74,6 @@ function PlanoPageInner() {
       .single()
 
     if (!profile) return null
-
-    setUserName([profile.first_name, profile.last_name].filter(Boolean).join(" "))
 
     const currentPlano: PlanoTipo =
       profile.profile_type === "builder" ? "profissional" :
@@ -233,18 +229,8 @@ function PlanoPageInner() {
       return
     }
 
-    // Web: checkout externo da Guru (cartão/Pix)
-    const offer = getOffer(targetPlano, cycle)
-    if (!offer) return
-
-    const params = new URLSearchParams()
-    if (userEmail) params.set("email", userEmail)
-    if (userName) params.set("name", userName)
-
-    const url = `${offer.guruCheckoutUrl}${params.toString() ? "?" + params.toString() : ""}`
-
-    window.open(url, "_blank")
-    setPolling(true)
+    // Web: não há mais checkout próprio — assinatura acontece só pelo app (App Store/Google Play).
+    setShowDownloadAppModal(true)
   }
 
   const handleRestaurarCompras = async () => {
@@ -472,7 +458,7 @@ function PlanoPageInner() {
             <div className="flex justify-center">
               <div className="inline-flex rounded-full p-1 border border-white/[0.08]" style={{ backgroundColor: "rgba(20,20,35,0.8)" }}>
                 <button
-                  onClick={() => { setSelectedCycle("monthly"); setPixSelected(false) }}
+                  onClick={() => setSelectedCycle("monthly")}
                   className={`px-5 sm:px-6 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 ${
                     selectedCycle === "monthly"
                       ? "bg-[#0B3064] text-white shadow-lg shadow-[#0B3064]/30"
@@ -676,11 +662,7 @@ function PlanoPageInner() {
                     ? selectedCycle === "monthly"
                       ? "Cobrança mensal recorrente via sua conta App Store/Google Play. Cancele quando quiser."
                       : "Cobrança anual recorrente via sua conta App Store/Google Play com 15% de desconto."
-                    : selectedCycle === "monthly"
-                      ? "Cobrança mensal recorrente via cartão de crédito. Cancele quando quiser."
-                      : pixSelected
-                        ? "Pagamento único anual via Pix. Sem renovação automática."
-                        : "Cobrança anual recorrente via cartão de crédito com 15% de desconto."}
+                    : "Assinaturas novas são feitas apenas pelo app iOS ou Android, via App Store/Google Play."}
                 </p>
                 <p className="text-[10px] text-gray-600">
                   Sem permanência mínima. Seus dados nunca são excluídos.
@@ -857,6 +839,40 @@ function PlanoPageInner() {
                 </button>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal: baixe o app para assinar ─────────────────────── */}
+      {showDownloadAppModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-[#1f2228] border border-white/[0.1] rounded-2xl shadow-2xl max-w-md w-full p-5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-[#0B3064]/20 border border-[#0B3064]/40 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Smartphone className="w-5 h-5 text-[#7eaaee]" />
+              </div>
+              <h3 className="text-lg font-bold text-white">Assine pelo app</h3>
+            </div>
+            <p className="text-sm text-gray-300 leading-relaxed mb-5">
+              Para garantir mais segurança, as assinaturas do Obreasy acontecem apenas pelo
+              aplicativo, direto pela App Store ou Google Play.
+            </p>
+            <div className="flex flex-col gap-2 mb-4">
+              <div className="w-full h-11 flex items-center justify-center gap-2 bg-white/[0.06] border border-white/[0.08] text-gray-300 rounded-lg text-sm font-medium">
+                <Apple className="w-4 h-4" />
+                App Store
+              </div>
+              <div className="w-full h-11 flex items-center justify-center gap-2 bg-white/[0.06] border border-white/[0.08] text-gray-300 rounded-lg text-sm font-medium">
+                <CirclePlay className="w-4 h-4" />
+                Google Play
+              </div>
+            </div>
+            <button
+              onClick={() => setShowDownloadAppModal(false)}
+              className="w-full h-10 bg-[#0B3064] hover:bg-[#082551] text-white rounded-lg text-sm font-semibold transition-colors"
+            >
+              Fechar
+            </button>
           </div>
         </div>
       )}

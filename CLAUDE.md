@@ -22,7 +22,7 @@ No test framework is configured.
 - **Framework**: Next.js 16 with App Router, React 19, TypeScript 5
 - **UI**: Shadcn/ui (new-york style) + Radix UI + Tailwind CSS v4 + Framer Motion
 - **Database & Auth**: Supabase (PostgreSQL + Auth with implicit flow)
-- **Payments**: Digital Manager Guru (subscription webhooks) + Stripe
+- **Payments**: RevenueCat (In-App Purchase via App Store/Google Play — only way to start a new subscription) + Digital Manager Guru (legacy web checkout, kept running only for subscribers who signed up before the IAP migration) + Stripe
 - **Email**: Resend (transactional emails)
 - **PDF**: jsPDF + jspdf-autotable
 - **Charts**: Recharts
@@ -55,7 +55,8 @@ src/
 ├── lib/                    # Utilities
 │   ├── supabase.ts         # Client-side Supabase singleton (lazy via Proxy)
 │   ├── supabase-server.ts  # Server-side Supabase client
-│   ├── guru-*.ts           # Guru subscription/plan management
+│   ├── guru-*.ts           # Legacy Guru subscription/plan management (existing web subscribers only, no new checkout)
+│   ├── revenuecat-*.ts     # RevenueCat client/webhook — the only path for new subscriptions (App Store/Google Play IAP)
 │   ├── alerts.ts, budget-*.ts  # Budget alert system
 │   └── utils.ts            # cn() helper (clsx + tailwind-merge)
 └── types/
@@ -67,7 +68,7 @@ src/
 - **Supabase client**: `src/lib/supabase.ts` exports a lazy-initialized singleton via Proxy. Use `import { supabase } from '@/lib/supabase'` on client, `supabase-server.ts` on server.
 - **Auth state**: Stored in both Supabase session and localStorage (`isAuthenticated`, `user`, `trialExpiraEm`, `activeObraId`). AuthProvider in `src/components/auth/AuthProvider.tsx` manages state.
 - **Email routing**: Contact form (`/api/contato`) sends to contato@obreasy.com.br; support form (`/api/suporte`) sends to suporte@obreasy.com.br. Both use Resend.
-- **Subscription webhooks**: `/api/webhooks/guru/subscription` and `/api/webhooks/guru/transaction` handle Guru webhook events, validated via `GURU_API_TOKEN`.
+- **Subscription webhooks**: `/api/webhooks/revenuecat` handles all new subscriptions (IAP via App Store/Google Play), validated via `REVENUECAT_WEBHOOK_AUTH`. `/api/webhooks/guru/subscription` and `/api/webhooks/guru/transaction` are legacy — they still process events for subscribers who checked out via Guru before the IAP migration, validated via `GURU_API_TOKEN`, but the app no longer offers a Guru checkout link to new customers (`/dashboard/plano` shows a "download the app" prompt on web instead).
 - **Iframe embedding**: The app is configured to be embedded in the Lasy platform (lasy.app/lasy.ai) via CSP frame-ancestors in `next.config.ts`.
 
 ## Environment Variables
@@ -76,7 +77,8 @@ Required for full functionality:
 - `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase (has hardcoded fallbacks)
 - `SUPABASE_SERVICE_ROLE_KEY` — Server-side Supabase operations
 - `RESEND_API_KEY` — Email sending
-- `GURU_API_TOKEN` — Webhook validation for subscription management
+- `GURU_API_TOKEN` — Legacy webhook validation, only needed for existing pre-IAP Guru subscribers
+- `NEXT_PUBLIC_REVENUECAT_IOS_KEY` / `NEXT_PUBLIC_REVENUECAT_ANDROID_KEY` / `REVENUECAT_WEBHOOK_AUTH` — RevenueCat IAP (see `REVENUECAT_SETUP.md`)
 
 ## Database
 
