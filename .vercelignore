@@ -1,0 +1,20 @@
+# Projetos nativos do Capacitor (iOS/Android) — não são necessários para o build web
+# e incluem artefatos pesados (Pods, DerivedData, Gradle cache, etc).
+ios/
+android/
+
+# Dependências e build outputs (Vercel reinstala/gera do zero)
+node_modules/
+.next/
+out/
+
+# Testes e relatórios de performance
+playwright-report/
+test-results/
+perf/reports/
+tests/
+
+# Diversos
+.git/
+*.log
+.DS_Store
