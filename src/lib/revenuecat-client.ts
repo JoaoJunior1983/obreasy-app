@@ -18,6 +18,23 @@ export async function isNativeApp(): Promise<boolean> {
 }
 
 /**
+ * Plataforma nativa atual ("ios" | "android"), ou null na web.
+ * Usado para não mencionar a loja errada (ex.: "Google Play" dentro do app iOS),
+ * o que a Apple pode marcar como referência indevida a outra loja.
+ */
+export async function getNativePlatform(): Promise<"ios" | "android" | null> {
+  if (typeof window === "undefined") return null
+  try {
+    const { Capacitor } = await import("@capacitor/core")
+    if (!Capacitor.isNativePlatform()) return null
+    const platform = Capacitor.getPlatform()
+    return platform === "ios" || platform === "android" ? platform : null
+  } catch {
+    return null
+  }
+}
+
+/**
  * Inicializa o SDK do RevenueCat. Só faz efeito em iOS/Android nativos —
  * na web é um no-op, o checkout continua 100% via Guru.
  */

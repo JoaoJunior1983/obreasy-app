@@ -13,6 +13,7 @@ import { getGracePeriodStatus, type GracePeriodStatus } from "@/lib/guru-plans"
 import { trackEvent, recordSubscriptionChange, updateLastActive } from "@/lib/track-event"
 import {
   isNativeApp,
+  getNativePlatform,
   loginRevenueCatUser,
   purchasePlano,
   restorePurchases,
@@ -52,12 +53,17 @@ function PlanoPageInner() {
   // App nativo (iOS/Android via Capacitor) → compra via RevenueCat (StoreKit/Play Billing).
   // Na web, não há mais checkout: o usuário é direcionado a baixar o app e assinar por lá.
   const [isNative, setIsNative] = useState(false)
+  const [nativePlatform, setNativePlatform] = useState<"ios" | "android" | null>(null)
   const [purchaseLoading, setPurchaseLoading] = useState(false)
   const [restoreLoading, setRestoreLoading] = useState(false)
 
   useEffect(() => {
     isNativeApp().then(setIsNative)
+    getNativePlatform().then(setNativePlatform)
   }, [])
+
+  // Nome da loja atual — nunca mencionar a loja do outro sistema operacional dentro do app.
+  const storeName = nativePlatform === "ios" ? "App Store" : nativePlatform === "android" ? "Google Play" : "App Store/Google Play"
 
   const loadProfile = useCallback(async () => {
     const { supabase } = await import("@/lib/supabase")
@@ -391,7 +397,7 @@ function PlanoPageInner() {
                   Forma de pagamento
                 </span>
                 <span className="text-gray-300 font-medium">
-                  {isTrial ? "—" : isNative ? "App Store / Google Play" : "Cartão / Pix"}
+                  {isTrial ? "—" : isNative ? storeName : "Cartão / Pix"}
                 </span>
               </div>
             </div>
@@ -660,14 +666,37 @@ function PlanoPageInner() {
                 <p className="text-[10px] text-gray-500 leading-relaxed">
                   {isNative
                     ? selectedCycle === "monthly"
-                      ? "Cobrança mensal recorrente via sua conta App Store/Google Play. Cancele quando quiser."
-                      : "Cobrança anual recorrente via sua conta App Store/Google Play com 15% de desconto."
+                      ? `Cobrança mensal recorrente via sua conta ${storeName}. Cancele quando quiser.`
+                      : `Cobrança anual recorrente via sua conta ${storeName} com 15% de desconto.`
                     : "Assinaturas novas são feitas apenas pelo app iOS ou Android, via App Store/Google Play."}
                 </p>
                 <p className="text-[10px] text-gray-600">
                   Sem permanência mínima. Seus dados nunca são excluídos.
                 </p>
               </div>
+            </div>
+
+            {/* Links legais — exigidos pela Apple (Guideline 3.1.2c) dentro do fluxo de compra */}
+            <div className="flex items-center justify-center gap-4 pt-1">
+              <a
+                href="/termos"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-[11px] text-gray-500 hover:text-[#7eaaee] underline underline-offset-2 transition-colors"
+              >
+                Termos de Uso
+                <ExternalLink className="w-3 h-3" />
+              </a>
+              <span className="text-gray-700">•</span>
+              <a
+                href="/privacidade"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-[11px] text-gray-500 hover:text-[#7eaaee] underline underline-offset-2 transition-colors"
+              >
+                Política de Privacidade
+                <ExternalLink className="w-3 h-3" />
+              </a>
             </div>
 
           {/* Manage subscription note (apenas para mudança de forma de pagamento) */}
@@ -679,7 +708,7 @@ function PlanoPageInner() {
                   <>
                     Para trocar a forma de pagamento, gerencie diretamente pela sua conta{" "}
                     <button onClick={() => openManageSubscriptions()} className="text-[#7eaaee] underline underline-offset-2">
-                      App Store / Google Play
+                      {storeName}
                     </button>.
                   </>
                 ) : (
