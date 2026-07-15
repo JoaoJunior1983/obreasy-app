@@ -75,6 +75,13 @@ const STORE_TO_PLATFORM: Record<string, string> = {
   GALAXY: "android",
 }
 
+// Eventos que legitimamente podem reduzir a data de acesso (fim de assinatura).
+// Qualquer outro tipo (RENEWAL, PRODUCT_CHANGE, etc.) nunca deve "voltar no tempo":
+// já vimos na prática o RevenueCat mandar PRODUCT_CHANGE com expiration_at_ms
+// desatualizado (do produto antigo), chegando depois de um RENEWAL correto e
+// sobrescrevendo a data certa com uma data já passada.
+const EVENTS_THAT_CAN_SHORTEN_ACCESS = new Set<RevenueCatEventType>(["EXPIRATION", "CANCELLATION"])
+
 // ─── Idempotency ───
 
 export async function isRevenueCatEventProcessed(
@@ -239,7 +246,27 @@ export async function handleRevenueCatWebhook(
   }
 
   const storePlatform = STORE_TO_PLATFORM[event.store ?? ""] ?? "ios"
-  const cycleEndDate = event.expiration_at_ms ? new Date(event.expiration_at_ms).toISOString() : null
+  let cycleEndDate = event.expiration_at_ms ? new Date(event.expiration_at_ms).toISOString() : null
+
+  // Guarda contra eventos fora de ordem / com datas obsoletas (ex.: PRODUCT_CHANGE
+  // carregando expiration_at_ms do produto anterior). Nunca deixamos a data de
+  // acesso regredir, exceto em eventos que legitimamente encerram a assinatura.
+  if (cycleEndDate && !EVENTS_THAT_CAN_SHORTEN_ACCESS.has(event.type)) {
+    const { data: currentProfile } = await supabase
+      .from("user_profiles")
+      .select("cycle_end_date")
+      .eq("id", userId)
+      .maybeSingle()
+
+    const currentCycleEndDate = currentProfile?.cycle_end_date as string | null
+    if (currentCycleEndDate && new Date(cycleEndDate) < new Date(currentCycleEndDate)) {
+      console.warn(
+        `[RevenueCat Webhook] Ignorando cycle_end_date regressivo do evento ${event.type} (${event.id}): ` +
+          `${cycleEndDate} < ${currentCycleEndDate}. Mantendo data existente.`
+      )
+      cycleEndDate = currentCycleEndDate
+    }
+  }
 
   await upsertRevenueCatSubscription(supabase, {
     userId,
