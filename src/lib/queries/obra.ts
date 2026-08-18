@@ -17,6 +17,8 @@ export interface ObraRow {
   dataInicio: string | null
   dataTermino: string | null
   criadaEm: string | null
+  status: "em_andamento" | "concluida"
+  concluidaEm: string | null
 }
 
 export function useObra(
@@ -51,6 +53,8 @@ export function useObra(
         dataInicio: o.data_inicio ?? null,
         dataTermino: o.data_termino ?? null,
         criadaEm: o.criada_em ?? null,
+        status: o.status === "concluida" ? "concluida" : "em_andamento",
+        concluidaEm: o.concluida_em ?? null,
       }
     },
   })

@@ -18,3 +18,15 @@ tests/
 .git/
 *.log
 .DS_Store
+
+# Segredos e artefatos que jamais devem ir no source do deploy
+.env
+.env.*
+secrets/
+releases/
+*.jks
+*.keystore
+*.apk
+*.aab
+*.png.bak
+Captura*.png

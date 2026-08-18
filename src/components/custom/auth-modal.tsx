@@ -231,7 +231,6 @@ export default function AuthModal({ onClose, hasQuizData = false, quizData, onSu
     setIsLoading(true)
     try {
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
-      console.log(siteUrl)
       await supabase.auth.resetPasswordForEmail(formData.email, {
         redirectTo: `${siteUrl}/reset-password`
       })

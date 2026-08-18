@@ -54,6 +54,8 @@ interface Obra {
   dataInicio?: string | null
   dataTermino?: string | null
   criadaEm: string
+  status?: "em_andamento" | "concluida"
+  concluidaEm?: string | null
 }
 
 interface Despesa {
@@ -127,6 +129,9 @@ export default function DashboardObraPage() {
   
   // Estados para edição e exclusão
   const [showActionsMenu, setShowActionsMenu] = useState(false)
+  const [showConcluirModal, setShowConcluirModal] = useState(false)
+  const [concluindoObra, setConcluindoObra] = useState(false)
+  const [prazoAvisoDismissed, setPrazoAvisoDismissed] = useState(true)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [editFormData, setEditFormData] = useState({
@@ -273,6 +278,16 @@ export default function DashboardObraPage() {
 
   // Sync queries → useStates locais (mantém compatibilidade com setters existentes em outros pontos)
   useEffect(() => { if (obraQuery) setObra(obraQuery) }, [obraQuery])
+
+  // Aviso "prazo atingido, deseja concluir?" — o "manter em andamento" é lembrado por obra
+  useEffect(() => {
+    if (!obra?.id) return
+    try {
+      setPrazoAvisoDismissed(localStorage.getItem(`obreasy:prazoAvisoDismiss:${obra.id}`) === "1")
+    } catch {
+      setPrazoAvisoDismissed(false)
+    }
+  }, [obra?.id])
   useEffect(() => { if (despesasQuery) setDespesas(despesasQuery) }, [despesasQuery])
   useEffect(() => { if (profissionaisQuery) setProfissionais(profissionaisQuery) }, [profissionaisQuery])
   useEffect(() => { if (pagamentosQuery) setPagamentos(pagamentosQuery) }, [pagamentosQuery])
@@ -868,6 +883,39 @@ export default function DashboardObraPage() {
     setShowDeleteModal(true)
   }
 
+  const handleOpenConcluirModal = () => {
+    setShowActionsMenu(false)
+    setShowConcluirModal(true)
+  }
+
+  // Concluir não apaga nada: a obra mantém todo o histórico (e segue editável),
+  // apenas ganha status "concluida", para de contar prazo e some dos avisos de atraso.
+  const handleAlterarStatusObra = async (novoStatus: "concluida" | "em_andamento") => {
+    if (!obra) return
+    setConcluindoObra(true)
+    try {
+      const { supabase } = await import("@/lib/supabase")
+      const concluidaEm = novoStatus === "concluida" ? new Date().toISOString() : null
+      const { error } = await supabase
+        .from("obras")
+        .update({ status: novoStatus, concluida_em: concluidaEm })
+        .eq("id", obra.id)
+      if (error) throw error
+
+      setObra({ ...obra, status: novoStatus, concluidaEm })
+      await queryClient.invalidateQueries({ queryKey: ["obra"] })
+      setShowConcluirModal(false)
+      toast.success(novoStatus === "concluida"
+        ? "Obra concluída! O histórico continua disponível em Minhas Obras."
+        : "Obra reaberta — voltou para Em andamento.")
+    } catch (e) {
+      console.error("Erro ao alterar status da obra:", e)
+      toast.error("Não foi possível atualizar a obra. Tente novamente.")
+    } finally {
+      setConcluindoObra(false)
+    }
+  }
+
   const handleConfirmDelete = () => {
     if (!obra) return
 
@@ -1115,7 +1163,10 @@ export default function DashboardObraPage() {
   })()
 
   const temPrazo = obra.dataInicio || obra.dataTermino
-  const prazoInfo = obra.dataTermino ? calcularDiasRestantes(obra.dataTermino) : null
+  const obraConcluida = obra.status === "concluida"
+  // Obra concluída não conta prazo nem gera aviso de atraso
+  const prazoInfo = !obraConcluida && obra.dataTermino ? calcularDiasRestantes(obra.dataTermino) : null
+  const mostrarAvisoPrazo = !obraConcluida && !!prazoInfo && prazoInfo.atrasado && !prazoAvisoDismissed
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] p-4 sm:p-6 pb-28">
@@ -1139,6 +1190,9 @@ export default function DashboardObraPage() {
                     ? ` · ${obra.localizacao.cidade}/${obra.localizacao.estado}`
                     : ""}
                   {obra.area ? ` · ${obra.area} m²` : ""}
+                  {obraConcluida && (
+                    <span className="text-emerald-400 font-medium"> · Concluída</span>
+                  )}
                   {prazoInfo && (
                     <span className="text-gray-500">
                       {prazoInfo.atrasado
@@ -1175,6 +1229,23 @@ export default function DashboardObraPage() {
                       <Pencil className="w-4 h-4" />
                       Editar obra
                     </button>
+                    {obraConcluida ? (
+                      <button
+                        onClick={() => { setShowActionsMenu(false); handleAlterarStatusObra("em_andamento") }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/[0.08] hover:text-white transition-colors"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        Reabrir obra
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleOpenConcluirModal}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-emerald-400 hover:bg-emerald-950/40 hover:text-emerald-300 transition-colors"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                        Concluir obra
+                      </button>
+                    )}
                     <button
                       onClick={handleOpenDeleteModal}
                       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-950/50 hover:text-red-300 transition-colors"
@@ -1189,6 +1260,36 @@ export default function DashboardObraPage() {
           </div>
 
         </div>
+
+        {/* Aviso: prazo atingido — sugerir conclusão */}
+        {mostrarAvisoPrazo && (
+          <div className="bg-emerald-950/40 border border-emerald-500/25 rounded-xl p-3.5 mb-5 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex items-start gap-2.5 flex-1 min-w-0">
+              <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-emerald-100/90 leading-relaxed">
+                Esta obra atingiu a data prevista de término. Deseja marcá-la como concluída?
+                O histórico continua disponível para consulta.
+              </p>
+            </div>
+            <div className="flex gap-2 flex-shrink-0">
+              <button
+                onClick={() => {
+                  setPrazoAvisoDismissed(true)
+                  try { localStorage.setItem(`obreasy:prazoAvisoDismiss:${obra.id}`, "1") } catch { /* ignore */ }
+                }}
+                className="px-3 py-1.5 text-[11px] font-medium text-gray-400 hover:text-gray-200 transition-colors"
+              >
+                Manter em andamento
+              </button>
+              <button
+                onClick={() => setShowConcluirModal(true)}
+                className="px-3 py-1.5 text-[11px] font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 rounded-lg transition-all"
+              >
+                Concluir obra
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Banner de Avisos Inteligentes de Orçamento */}
         {currentBudgetAlert && (
@@ -1559,6 +1660,41 @@ export default function DashboardObraPage() {
       )}
 
       {/* Modal de Exclusão */}
+      {showConcluirModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800/90 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-white/10">
+            <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4 ring-2 ring-emerald-500/30">
+              <CheckCircle className="w-6 h-6 text-emerald-400" />
+            </div>
+            <h2 className="text-lg font-bold text-white text-center mb-2">Concluir esta obra?</h2>
+            <p className="text-sm text-gray-400 text-center mb-1.5">
+              A obra <span className="text-white font-semibold">{obra.nome}</span> será marcada como
+              concluída: para de contar prazo e deixa de gerar avisos de atraso.
+            </p>
+            <p className="text-xs text-gray-500 text-center mb-6">
+              Nada é apagado — todo o histórico continua disponível para consulta e edição,
+              e você pode reabrir a obra quando quiser.
+            </p>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setShowConcluirModal(false)}
+                disabled={concluindoObra}
+                className="flex-1 h-10 bg-[#2a2d35] hover:bg-white/[0.13] text-gray-300 border border-white/[0.1] rounded-xl text-sm"
+              >
+                Voltar
+              </Button>
+              <Button
+                onClick={() => handleAlterarStatusObra("concluida")}
+                disabled={concluindoObra}
+                className="flex-1 h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold"
+              >
+                {concluindoObra ? "Concluindo..." : "Concluir obra"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-slate-800/90 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-white/10">

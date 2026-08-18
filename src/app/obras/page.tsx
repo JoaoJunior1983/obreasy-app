@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Building2, Plus, MapPin, TrendingUp, Wallet, PiggyBank, Home, Trash2, FileText, Pencil, Star, Users, HandCoins, Search, X, CreditCard, Calendar, ArrowUpDown, Filter } from "lucide-react"
+import { Building2, Plus, MapPin, TrendingUp, Wallet, PiggyBank, Home, Trash2, FileText, Pencil, Star, Users, HandCoins, Search, X, CreditCard, Calendar, ArrowUpDown, Filter, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -25,7 +25,9 @@ export default function ObrasPage() {
   const [obras, setObras] = useState<Obra[]>([])
   const [busca, setBusca] = useState("")
   const [ordem, setOrdem] = useState<"data" | "nome" | "orcamento" | "gasto">("data")
-  const [filtroTipo, setFiltroTipo] = useState<"todos" | "construcao" | "reforma">("todos")
+  const [filtroTipo, setFiltroTipo] = useState<"todos" | "construcao" | "reforma" | "concluidas">("todos")
+  const [obraToConcluir, setObraToConcluir] = useState<Obra | null>(null)
+  const [concluindoObraId, setConcluindoObraId] = useState<string | null>(null)
   const [materiaisObras, setMateriaisObras] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [deletingObraId, setDeletingObraId] = useState<string | null>(null)
@@ -235,11 +237,49 @@ export default function ObrasPage() {
   }
 
   const handleCriarObra = () => {
-    if (userProfile === "owner" && obras.length >= 1) {
+    // Obras concluídas não contam pro limite do plano (Essencial = 1 obra ativa)
+    const obrasAtivas = obras.filter(o => (o as any).status !== "concluida").length
+    if (userProfile === "owner" && obrasAtivas >= 1) {
       setShowUpgradeModal(true)
       return
     }
     router.push("/dashboard/criar-obra")
+  }
+
+  const handleConcluirRapido = (e: React.MouseEvent, obra: Obra) => {
+    e.stopPropagation()
+    setObraToConcluir(obra)
+  }
+
+  const handleConfirmarConcluir = async () => {
+    if (!obraToConcluir) return
+    const obra = obraToConcluir
+    const novoStatus = (obra as any).status === "concluida" ? "em_andamento" : "concluida"
+    setConcluindoObraId(obra.id)
+    try {
+      const { supabase } = await import("@/lib/supabase")
+      const concluidaEm = novoStatus === "concluida" ? new Date().toISOString() : null
+      const { error } = await supabase
+        .from("obras")
+        .update({ status: novoStatus, concluida_em: concluidaEm })
+        .eq("id", obra.id)
+      if (error) throw error
+      setObras(obras.map(o => o.id === obra.id
+        ? ({ ...o, status: novoStatus, concluida_em: concluidaEm } as any)
+        : o))
+      setObraToConcluir(null)
+      toast({
+        title: novoStatus === "concluida" ? "Obra concluída!" : "Obra reaberta",
+        description: novoStatus === "concluida"
+          ? "O histórico continua disponível para consulta."
+          : "A obra voltou para Em andamento.",
+      })
+    } catch (err) {
+      console.error("Erro ao alterar status da obra:", err)
+      toast({ title: "Erro", description: "Não foi possível atualizar a obra.", variant: "destructive" })
+    } finally {
+      setConcluindoObraId(null)
+    }
   }
 
   const handleOpenDeleteModal = (e: React.MouseEvent, obra: Obra) => {
@@ -680,7 +720,7 @@ export default function ObrasPage() {
         <div className="flex items-center gap-2 mb-8">
           {/* Filtro tipo */}
           <div className="flex items-center gap-0.5 bg-[#1f2228]/80 border border-white/[0.08] rounded-lg p-0.5 flex-shrink-0">
-            {(["todos", "construcao", "reforma"] as const).map(tipo => (
+            {(["todos", "construcao", "reforma", "concluidas"] as const).map(tipo => (
               <button
                 key={tipo}
                 onClick={() => setFiltroTipo(tipo)}
@@ -691,7 +731,7 @@ export default function ObrasPage() {
                     : "text-gray-400 hover:text-gray-200"
                 }`}
               >
-                {tipo === "todos" ? "Todos" : tipo === "construcao" ? "Construção" : "Reforma"}
+                {tipo === "todos" ? "Todos" : tipo === "construcao" ? "Construção" : tipo === "reforma" ? "Reforma" : "Concluídas"}
               </button>
             ))}
           </div>
@@ -717,7 +757,12 @@ export default function ObrasPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
           {obras
             .filter(obra => {
-              if (filtroTipo !== "todos" && obra.tipo !== filtroTipo) return false
+              const concluida = (obra as any).status === "concluida"
+              if (filtroTipo === "concluidas") {
+                if (!concluida) return false
+              } else if (filtroTipo !== "todos" && obra.tipo !== filtroTipo) {
+                return false
+              }
               if (!busca.trim()) return true
               const q = busca.toLowerCase()
               return (
@@ -731,6 +776,11 @@ export default function ObrasPage() {
               const bFav = obrasFavoritas.includes(b.id)
               if (aFav && !bFav) return -1
               if (!aFav && bFav) return 1
+              // Obras concluídas sempre depois das em andamento
+              const aConc = (a as any).status === "concluida"
+              const bConc = (b as any).status === "concluida"
+              if (aConc && !bConc) return 1
+              if (!aConc && bConc) return -1
               // Depois a ordenação escolhida
               if (ordem === "nome") return a.nome.localeCompare(b.nome)
               if (ordem === "orcamento") return ((b as any).orcamento ?? 0) - ((a as any).orcamento ?? 0)
@@ -791,6 +841,17 @@ export default function ObrasPage() {
                           <Pencil className="w-4 h-4 block" />
                         </button>
                         <button
+                          onClick={(e) => handleConcluirRapido(e, obra)}
+                          disabled={isDeleting || concluindoObraId === obra.id}
+                          style={{ padding: 0, margin: 0, minWidth: 0, minHeight: 0, lineHeight: 0, background: 'none', border: 'none' }}
+                          className={`no-min-height no-touch-padding rounded transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                            (obra as any).status === "concluida" ? "text-emerald-400" : "text-gray-400 hover:text-emerald-400"
+                          }`}
+                          title={(obra as any).status === "concluida" ? "Reabrir obra" : "Concluir obra"}
+                        >
+                          <CheckCircle2 className="w-4 h-4 block" />
+                        </button>
+                        <button
                           onClick={(e) => handleOpenDeleteModal(e, obra)}
                           disabled={isDeleting}
                           style={{ padding: 0, margin: 0, minWidth: 0, minHeight: 0, lineHeight: 0, background: 'none', border: 'none' }}
@@ -812,7 +873,14 @@ export default function ObrasPage() {
                         <p className="text-[10px] sm:text-sm text-gray-400 leading-tight">
                           {obra.tipo === "construcao" ? "Construção" : "Reforma"}
                         </p>
+                        {(obra as any).status === "concluida" && (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-semibold bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full">
+                            <CheckCircle2 className="w-2.5 h-2.5" />Concluída
+                          </span>
+                        )}
                         {(() => {
+                          // Obra concluída: sem contagem de dias nem aviso de atraso
+                          if ((obra as any).status === "concluida") return null
                           const dataTermino = (obra as any).data_termino
                           if (!dataTermino) return null
                           const hoje = new Date()
@@ -1075,7 +1143,12 @@ export default function ObrasPage() {
           })}
           {(() => {
             const obrasFiltradas = obras.filter(o => {
-              if (filtroTipo !== "todos" && o.tipo !== filtroTipo) return false
+              const concluida = (o as any).status === "concluida"
+              if (filtroTipo === "concluidas") {
+                if (!concluida) return false
+              } else if (filtroTipo !== "todos" && o.tipo !== filtroTipo) {
+                return false
+              }
               if (!busca.trim()) return true
               const q = busca.toLowerCase()
               return o.nome.toLowerCase().includes(q) || ((o as any).nome_cliente || (o as any).nomeCliente || "").toLowerCase().includes(q)
@@ -1091,6 +1164,44 @@ export default function ObrasPage() {
           })()}
         </div>
       </div>
+
+      {/* Modal confirmar concluir/reabrir obra */}
+      {obraToConcluir && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#1f2228] rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-white/[0.1]">
+            <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+            </div>
+            <h2 className="text-lg font-bold text-white text-center mb-2">
+              {(obraToConcluir as any).status === "concluida" ? "Reabrir esta obra?" : "Concluir esta obra?"}
+            </h2>
+            <p className="text-sm text-gray-400 text-center mb-6">
+              {(obraToConcluir as any).status === "concluida" ? (
+                <>A obra <span className="text-white font-semibold">{obraToConcluir.nome}</span> voltará para Em andamento.</>
+              ) : (
+                <>A obra <span className="text-white font-semibold">{obraToConcluir.nome}</span> será marcada como concluída.
+                Nada é apagado: o histórico continua disponível e você pode reabri-la quando quiser.</>
+              )}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setObraToConcluir(null)}
+                disabled={!!concluindoObraId}
+                className="flex-1 h-10 bg-[#2a2d35] hover:bg-white/[0.13] text-gray-300 border border-white/[0.1] rounded-xl text-sm"
+              >
+                Voltar
+              </Button>
+              <Button
+                onClick={handleConfirmarConcluir}
+                disabled={!!concluindoObraId}
+                className="flex-1 h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold"
+              >
+                {concluindoObraId ? "Salvando..." : (obraToConcluir as any).status === "concluida" ? "Reabrir" : "Concluir"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal upgrade — owner com limite atingido */}
       {showUpgradeModal && (

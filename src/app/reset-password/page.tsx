@@ -31,18 +31,43 @@ function ResetPasswordContent() {
 
     // getSession aguarda a inicialização interna do Supabase (incluindo detectSessionInUrl)
     // então é seguro chamar logo após registrar o listener
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
         setSessionReady(true)
         setChecking(false)
-      } else {
-        // Sem sessão e sem hash de recovery → link inválido
-        const hash = window.location.hash
-        if (!hash.includes("access_token")) {
-          setChecking(false)
-        }
-        // Se há hash, aguarda o evento PASSWORD_RECOVERY acima
+        return
       }
+
+      // Fluxo PKCE (?code=) — o cliente usa flow implícito, mas o Supabase pode
+      // gerar link com code dependendo da configuração/versão do template.
+      const params = new URLSearchParams(window.location.search)
+      const code = params.get("code")
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code)
+        if (!error) {
+          setSessionReady(true)
+        }
+        setChecking(false)
+        return
+      }
+
+      // Link com token_hash (template usando {{ .TokenHash }})
+      const tokenHash = params.get("token_hash")
+      if (tokenHash) {
+        const { error } = await supabase.auth.verifyOtp({ type: "recovery", token_hash: tokenHash })
+        if (!error) {
+          setSessionReady(true)
+        }
+        setChecking(false)
+        return
+      }
+
+      // Sem sessão e sem hash de recovery → link inválido
+      const hash = window.location.hash
+      if (!hash.includes("access_token")) {
+        setChecking(false)
+      }
+      // Se há hash, aguarda o evento PASSWORD_RECOVERY acima
     })
 
     return () => unsubscribe?.()

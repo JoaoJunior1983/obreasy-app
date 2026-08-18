@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { Clock, Zap, Rocket, AlertTriangle, CreditCard } from "lucide-react"
 import { getTrialStatus, getTrialDiasRestantes, type TrialStatus } from "@/lib/plan"
@@ -22,87 +22,127 @@ export default function TrialBanner() {
   const [dismissed, setDismissed] = useState(false)
   const [mounted, setMounted] = useState(false)
 
+  const checkStatus = useCallback(async () => {
+    try {
+      const { supabase } = await import("@/lib/supabase")
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      // Admins (equipe Obreasy/Lasy) têm acesso full, sem bloqueio de trial/pagamento
+      if (isAdminEmail(user.email)) {
+        localStorage.removeItem("trialExpiraEm")
+        setState({ type: "none" })
+        return
+      }
+
+      const { data } = await supabase
+        .from("user_profiles")
+        .select("plano_expira_em, plano, status, cycle_end_date, overdue_since, pix_expires_at, payment_method, profile_type")
+        .eq("id", user.id)
+        .single()
+
+      if (!data) return
+
+      // Espelha o perfil/plano do banco no localStorage: o webhook (RevenueCat/Guru)
+      // pode ter mudado profile_type/plano em outro dispositivo, e Header/criar-obra
+      // leem do localStorage.
+      try {
+        if (data.profile_type) {
+          const stored = JSON.parse(localStorage.getItem("user") || "{}")
+          if (stored && stored.profile !== data.profile_type) {
+            stored.profile = data.profile_type
+            localStorage.setItem("user", JSON.stringify(stored))
+          }
+        }
+        if (data.status === "active" && (data.plano === "profissional" || data.plano === "essencial")) {
+          localStorage.setItem("userPlan", data.plano)
+        }
+      } catch { /* ignore */ }
+
+      // Check for overdue / blocked FIRST (highest priority)
+      if (data.status === "overdue" || data.status === "cancelled" || data.status === "expired") {
+        const grace = getGracePeriodStatus(
+          data.cycle_end_date as string | null,
+          data.overdue_since as string | null
+        )
+        if (grace !== "ok") {
+          setState({ type: "overdue", graceStatus: grace })
+          return
+        }
+      }
+
+      // Check Pix annual expiration
+      if (data.payment_method === "pix" && data.pix_expires_at) {
+        const pixExpired = new Date(data.pix_expires_at as string) < new Date()
+        if (pixExpired) {
+          setState({ type: "overdue", graceStatus: "blocked" })
+          return
+        }
+      }
+
+      // Active paid plan — no banner
+      if (
+        data.status === "active" &&
+        (data.plano === "profissional" || data.plano === "essencial")
+      ) {
+        localStorage.removeItem("trialExpiraEm")
+        setState({ type: "none" })
+        return
+      }
+
+      // Trial logic (existing behavior)
+      let expira: string | null = data.plano_expira_em ?? null
+      if (!expira && data.plano === "trial") {
+        const trialFim = new Date(user.created_at)
+        trialFim.setDate(trialFim.getDate() + 7)
+        expira = trialFim.toISOString()
+      }
+
+      if (!expira) {
+        setState({ type: "none" })
+        return
+      }
+
+      localStorage.setItem("trialExpiraEm", expira)
+      const trialStatus = getTrialStatus(expira)
+      const diasRestantes = getTrialDiasRestantes(expira)
+
+      if (trialStatus === "none") {
+        setState({ type: "none" })
+      } else {
+        setState({ type: "trial", status: trialStatus, diasRestantes })
+      }
+    } catch {
+      // silent
+    }
+  }, [])
+
   useEffect(() => {
     setMounted(true)
-    ;(async () => {
-      try {
-        const { supabase } = await import("@/lib/supabase")
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
-
-        // Admins (equipe Obreasy/Lasy) têm acesso full, sem bloqueio de trial/pagamento
-        if (isAdminEmail(user.email)) {
-          localStorage.removeItem("trialExpiraEm")
-          setState({ type: "none" })
-          return
-        }
-
-        const { data } = await supabase
-          .from("user_profiles")
-          .select("plano_expira_em, plano, status, cycle_end_date, overdue_since, pix_expires_at, payment_method")
-          .eq("id", user.id)
-          .single()
-
-        if (!data) return
-
-        // Check for overdue / blocked FIRST (highest priority)
-        if (data.status === "overdue" || data.status === "cancelled" || data.status === "expired") {
-          const grace = getGracePeriodStatus(
-            data.cycle_end_date as string | null,
-            data.overdue_since as string | null
-          )
-          if (grace !== "ok") {
-            setState({ type: "overdue", graceStatus: grace })
-            return
-          }
-        }
-
-        // Check Pix annual expiration
-        if (data.payment_method === "pix" && data.pix_expires_at) {
-          const pixExpired = new Date(data.pix_expires_at as string) < new Date()
-          if (pixExpired) {
-            setState({ type: "overdue", graceStatus: "blocked" })
-            return
-          }
-        }
-
-        // Active paid plan — no banner
-        if (
-          data.status === "active" &&
-          (data.plano === "profissional" || data.plano === "essencial")
-        ) {
-          localStorage.removeItem("trialExpiraEm")
-          setState({ type: "none" })
-          return
-        }
-
-        // Trial logic (existing behavior)
-        let expira: string | null = data.plano_expira_em ?? null
-        if (!expira && data.plano === "trial") {
-          const trialFim = new Date(user.created_at)
-          trialFim.setDate(trialFim.getDate() + 7)
-          expira = trialFim.toISOString()
-        }
-
-        if (!expira) {
-          setState({ type: "none" })
-          return
-        }
-
-        localStorage.setItem("trialExpiraEm", expira)
-        const trialStatus = getTrialStatus(expira)
-        const diasRestantes = getTrialDiasRestantes(expira)
-
-        if (trialStatus === "none") {
-          setState({ type: "none" })
-        } else {
-          setState({ type: "trial", status: trialStatus, diasRestantes })
-        }
-      } catch {
-        // silent
-      }
-    })()
   }, [])
+
+  // Revalida no mount, a cada troca de rota, quando o app volta ao foco
+  // (ex.: usuário retorna da tela de compra da App Store/Google Play) e
+  // quando a tela de planos confirma uma assinatura. Sem isso o banner
+  // "garantir acesso" continuava aparecendo depois de assinar até um reload.
+  useEffect(() => {
+    checkStatus()
+  }, [checkStatus, pathname])
+
+  useEffect(() => {
+    const onFocus = () => checkStatus()
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") checkStatus()
+    }
+    window.addEventListener("focus", onFocus)
+    document.addEventListener("visibilitychange", onVisibility)
+    window.addEventListener("obreasy:plano-atualizado", onFocus)
+    return () => {
+      window.removeEventListener("focus", onFocus)
+      document.removeEventListener("visibilitychange", onVisibility)
+      window.removeEventListener("obreasy:plano-atualizado", onFocus)
+    }
+  }, [checkStatus])
 
   // Páginas que precisam continuar acessíveis mesmo com trial/assinatura vencida:
   // tela de planos (para o usuário poder regularizar) e as páginas de suporte/legais
@@ -140,6 +180,12 @@ export default function TrialBanner() {
               className="w-full bg-[#0B3064] hover:bg-[#082551] text-white font-semibold py-3 rounded-xl transition-colors"
             >
               Regularizar pagamento
+            </button>
+            <button
+              onClick={() => checkStatus()}
+              className="w-full mt-3 text-xs text-gray-500 hover:text-gray-300 transition-colors"
+            >
+              Já pagou? Toque aqui para atualizar seu acesso
             </button>
           </div>
         </div>
@@ -241,6 +287,12 @@ export default function TrialBanner() {
               className="w-full bg-[#0B3064] hover:bg-[#082551] text-white font-semibold py-3 rounded-xl transition-colors"
             >
               Ver planos e assinar
+            </button>
+            <button
+              onClick={() => checkStatus()}
+              className="w-full mt-3 text-xs text-gray-500 hover:text-gray-300 transition-colors"
+            >
+              Já assinou pelo aplicativo? Toque aqui para atualizar seu acesso
             </button>
           </div>
         </div>

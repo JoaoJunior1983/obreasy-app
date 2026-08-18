@@ -46,6 +46,7 @@ function PlanoPageInner() {
   const [cancelLoading, setCancelLoading] = useState(false)
   const [cancellationRequested, setCancellationRequested] = useState(false)
   const [showDownloadAppModal, setShowDownloadAppModal] = useState(false)
+  const [confirmEssencial, setConfirmEssencial] = useState<{ cycle: Cycle; obras: number } | null>(null)
 
   // Cycle & payment toggles
   const [selectedCycle, setSelectedCycle] = useState<Cycle>("annual")
@@ -81,10 +82,14 @@ function PlanoPageInner() {
 
     if (!profile) return null
 
+    // Com assinatura ativa, o plano contratado manda; o profile_type é só
+    // fallback para trial/sem assinatura (o webhook mantém os dois em sincronia).
     const currentPlano: PlanoTipo =
-      profile.profile_type === "builder" ? "profissional" :
-      profile.profile_type === "owner" ? "essencial" :
-      (profile.plano as PlanoTipo) || "essencial"
+      profile.status === "active" && (profile.plano === "profissional" || profile.plano === "essencial")
+        ? (profile.plano as PlanoTipo)
+        : profile.profile_type === "builder" ? "profissional" :
+          profile.profile_type === "owner" ? "essencial" :
+          (profile.plano as PlanoTipo) || "essencial"
 
     setPlano(currentPlano)
     setStatus(profile.status || "trial")
@@ -205,12 +210,26 @@ function PlanoPageInner() {
       if (profile?.status === "active") {
         setPolling(false)
         clearInterval(interval)
+        // Sincroniza o restante do app (TrialBanner, Header) sem exigir reload
+        try {
+          if (profile.plano === "profissional" || profile.plano === "essencial") {
+            localStorage.setItem("userPlan", profile.plano as string)
+            localStorage.removeItem("trialExpiraEm")
+          }
+          const stored = JSON.parse(localStorage.getItem("user") || "{}")
+          const novoPerfil = profile.plano === "profissional" ? "builder" : "owner"
+          if (stored && stored.profile !== novoPerfil) {
+            stored.profile = novoPerfil
+            localStorage.setItem("user", JSON.stringify(stored))
+          }
+        } catch { /* ignore */ }
+        window.dispatchEvent(new Event("obreasy:plano-atualizado"))
       }
     }, 5000)
     return () => clearInterval(interval)
   }, [polling, loadProfile])
 
-  const handleAssinar = async (targetPlano: "essencial" | "profissional", cycle: Cycle) => {
+  const iniciarCompra = async (targetPlano: "essencial" | "profissional", cycle: Cycle) => {
     trackEvent("subscription_started", { plano: targetPlano, cycle }).catch(() => {})
     updateLastActive().catch(() => {})
 
@@ -237,6 +256,29 @@ function PlanoPageInner() {
 
     // Web: não há mais checkout próprio — assinatura acontece só pelo app (App Store/Google Play).
     setShowDownloadAppModal(true)
+  }
+
+  const handleAssinar = async (targetPlano: "essencial" | "profissional", cycle: Cycle) => {
+    // O Essencial usa o perfil Dono da Obra e limita a 1 obra ativa. Se o usuário
+    // é Construtor ou já tem mais de uma obra em andamento, avisa antes da compra.
+    if (targetPlano === "essencial") {
+      try {
+        const { supabase } = await import("@/lib/supabase")
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const [{ data: profile }, { count }] = await Promise.all([
+            supabase.from("user_profiles").select("profile_type").eq("id", user.id).single(),
+            supabase.from("obras").select("id", { count: "exact", head: true })
+              .eq("user_id", user.id).neq("status", "concluida"),
+          ])
+          if (profile?.profile_type === "builder" || (count ?? 0) > 1) {
+            setConfirmEssencial({ cycle, obras: count ?? 0 })
+            return
+          }
+        }
+      } catch { /* em caso de erro na checagem, segue o fluxo normal */ }
+    }
+    await iniciarCompra(targetPlano, cycle)
   }
 
   const handleRestaurarCompras = async () => {
@@ -512,14 +554,14 @@ function PlanoPageInner() {
                       </>
                     ) : (
                       <>
-                        <span className="text-3xl sm:text-4xl font-extrabold text-[#7eaaee]">{fmtMensal(PLANOS.profissional.precoAnual)}</span>
-                        <span className="text-sm text-gray-500 ml-1">/mês</span>
+                        <span className="text-3xl sm:text-4xl font-extrabold text-[#7eaaee]">{fmt(PLANOS.profissional.precoAnual)}</span>
+                        <span className="text-sm text-gray-500 ml-1">/ano</span>
                       </>
                     )}
                   </div>
                   {selectedCycle === "annual" && (
                     <p className="text-[11px] text-gray-500 mb-1">
-                      cobrado <span className="text-white font-medium">{fmt(PLANOS.profissional.precoAnual)}</span>/ano
+                      Pagamento anual único, equivalente a <span className="text-white font-medium">{fmtMensal(PLANOS.profissional.precoAnual)}</span>/mês
                     </p>
                   )}
 
@@ -596,14 +638,14 @@ function PlanoPageInner() {
                       </>
                     ) : (
                       <>
-                        <span className="text-3xl sm:text-4xl font-extrabold text-white">{fmtMensal(PLANOS.essencial.precoAnual)}</span>
-                        <span className="text-sm text-gray-500 ml-1">/mês</span>
+                        <span className="text-3xl sm:text-4xl font-extrabold text-white">{fmt(PLANOS.essencial.precoAnual)}</span>
+                        <span className="text-sm text-gray-500 ml-1">/ano</span>
                       </>
                     )}
                   </div>
                   {selectedCycle === "annual" && (
                     <p className="text-[11px] text-gray-500 mb-1">
-                      cobrado <span className="text-white font-medium">{fmt(PLANOS.essencial.precoAnual)}</span>/ano
+                      Pagamento anual único, equivalente a <span className="text-white font-medium">{fmtMensal(PLANOS.essencial.precoAnual)}</span>/mês
                     </p>
                   )}
 
@@ -868,6 +910,49 @@ function PlanoPageInner() {
                 </button>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal: confirmação de mudança para o Essencial ───────── */}
+      {confirmEssencial && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-[#1f2228] border border-white/[0.1] rounded-2xl shadow-2xl max-w-md w-full p-5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-amber-500/15 border border-amber-500/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-amber-400" />
+              </div>
+              <h3 className="text-lg font-bold text-white">Mudança de perfil e limites</h3>
+            </div>
+            <p className="text-sm text-gray-300 leading-relaxed mb-1.5">
+              O plano Essencial usa o perfil <span className="font-semibold text-white">Dono da Obra</span> e
+              permite <span className="font-semibold text-white">1 obra ativa</span>.
+            </p>
+            <p className="text-xs text-gray-500 leading-relaxed mb-5">
+              {confirmEssencial.obras > 1
+                ? `Você tem ${confirmEssencial.obras} obras em andamento. Elas continuarão acessíveis, mas você não poderá criar novas obras enquanto tiver mais de uma ativa. `
+                : ""}
+              Seu perfil será ajustado e os recursos de Construtor/Profissional ficarão limitados.
+              Para manter múltiplas obras, escolha o plano Profissional.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setConfirmEssencial(null)}
+                className="flex-1 h-10 bg-[#2a2d35] hover:bg-white/[0.13] text-gray-200 border border-white/[0.1] rounded-lg text-sm font-medium transition-colors"
+              >
+                Voltar
+              </button>
+              <button
+                onClick={() => {
+                  const cycle = confirmEssencial.cycle
+                  setConfirmEssencial(null)
+                  iniciarCompra("essencial", cycle)
+                }}
+                className="flex-1 h-10 bg-[#0B3064] hover:bg-[#082551] text-white rounded-lg text-sm font-semibold transition-colors"
+              >
+                Entendi, continuar
+              </button>
+            </div>
           </div>
         </div>
       )}

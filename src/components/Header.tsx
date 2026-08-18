@@ -19,6 +19,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [espModal, setEspModal] = useState<"engenheiro" | "arquiteto" | null>(null)
   const [espForm, setEspForm] = useState({ assunto: "", descricao: "" })
+  const [espSucesso, setEspSucesso] = useState(false)
   const [enviandoEsp, setEnviandoEsp] = useState(false)
   const [onboardingStep, setOnboardingStep] = useState<0 | 1 | 2>(2) // 0=logo, 1=obra, 2=done
   const menuRef = useRef<HTMLDivElement>(null)
@@ -408,11 +409,28 @@ export default function Header() {
                   {espModal === "engenheiro" ? "Dúvidas técnicas sobre sua obra" : "Dúvidas sobre projeto e estética"}
                 </p>
               </div>
-              <button onClick={() => setEspModal(null)} className="text-gray-400 hover:text-white transition-colors">
+              <button onClick={() => { setEspModal(null); setEspSucesso(false) }} className="text-gray-400 hover:text-white transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
+            {espSucesso ? (
+              <div className="text-center py-4">
+                <div className="inline-flex items-center justify-center w-14 h-14 bg-emerald-500/15 rounded-full mb-4">
+                  <Send className="w-6 h-6 text-emerald-400" />
+                </div>
+                <p className="text-sm font-bold text-white mb-1.5">Mensagem enviada com sucesso!</p>
+                <p className="text-xs text-gray-400 leading-relaxed mb-5">
+                  Recebemos sua solicitação e retornaremos o mais breve possível no seu e-mail.
+                </p>
+                <button
+                  onClick={() => { setEspModal(null); setEspSucesso(false) }}
+                  className="w-full py-3 bg-[#0B3064] hover:bg-[#082551] text-white text-sm font-semibold rounded-xl transition-colors"
+                >
+                  Fechar
+                </button>
+              </div>
+            ) : (
             <form
               onSubmit={async (e) => {
                 e.preventDefault()
@@ -425,8 +443,8 @@ export default function Header() {
                     body: JSON.stringify({ email: userEmail, mensagem: espForm.descricao, assunto: espForm.assunto, tipo }),
                   })
                   if (!res.ok) throw new Error()
-                  setEspModal(null)
                   setEspForm({ assunto: "", descricao: "" })
+                  setEspSucesso(true)
                 } catch {
                   alert("Erro ao enviar mensagem. Tente novamente.")
                 } finally {
@@ -473,6 +491,7 @@ export default function Header() {
                 {enviandoEsp ? "Enviando..." : "Enviar mensagem"}
               </button>
             </form>
+            )}
           </div>
         </div>
       )}

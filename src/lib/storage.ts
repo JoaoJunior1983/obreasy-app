@@ -86,6 +86,8 @@ export interface Obra {
   dataInicio?: string | null
   dataTermino?: string | null
   criadaEm: string
+  status?: "em_andamento" | "concluida"
+  concluidaEm?: string | null
 }
 
 export interface Profissional {
@@ -365,6 +367,8 @@ export async function getActiveObraFromSupabase(): Promise<Obra | null> {
       dataInicio: obraData.data_inicio || null,
       dataTermino: obraData.data_termino || null,
       criadaEm: obraData.criada_em,
+      status: obraData.status || "em_andamento",
+      concluidaEm: obraData.concluida_em || null,
     } as Obra
   } catch (error) {
     console.error("Erro ao obter obra ativa do Supabase:", error)

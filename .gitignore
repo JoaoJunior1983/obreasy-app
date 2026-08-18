@@ -75,3 +75,11 @@ out/
 obreasy-keystore.jks
 android/keystore.properties
 releases/
+
+# Segredos
+.env
+.env.*
+!.env.example
+secrets/
+*.jks
+*.keystore

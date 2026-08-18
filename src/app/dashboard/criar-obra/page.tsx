@@ -165,16 +165,32 @@ export default function CriarObraPage() {
 
       console.log("✅ [CRIAR-OBRA] Usuário autenticado:", user.id)
 
-      // Verificar limite de obras — apenas perfil "owner" tem limite de 1 obra
-      if (userProfile === "owner") {
-        const { data: obrasExistentes } = await supabase
-          .from("obras")
-          .select("id")
-          .eq("user_id", user.id)
-        if ((obrasExistentes ?? []).length >= 1) {
-          setShowBloqueioPlano(true)
-          setLoading(false)
-          return
+      // Verificar limite de obras pelo plano CONTRATADO (fonte: banco, não localStorage —
+      // o webhook de assinatura pode ter mudado plano/perfil em outro dispositivo).
+      // Essencial/Dono da Obra = 1 obra ativa; obras concluídas não contam.
+      {
+        const { data: perfilDB } = await supabase
+          .from("user_profiles")
+          .select("profile_type, plano, status")
+          .eq("id", user.id)
+          .single()
+
+        const assinaturaAtiva = perfilDB?.status === "active"
+        const planoEssencial = assinaturaAtiva
+          ? perfilDB?.plano !== "profissional"
+          : perfilDB?.profile_type === "owner"
+
+        if (planoEssencial) {
+          const { count } = await supabase
+            .from("obras")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .neq("status", "concluida")
+          if ((count ?? 0) >= 1) {
+            setShowBloqueioPlano(true)
+            setLoading(false)
+            return
+          }
         }
       }
 

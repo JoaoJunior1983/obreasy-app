@@ -205,6 +205,8 @@ export type Database = {
           nome: string
           nome_cliente: string | null
           orcamento: number | null
+          status: string
+          concluida_em: string | null
           tipo: string
           updated_at: string | null
           user_id: string
@@ -222,6 +224,8 @@ export type Database = {
           nome: string
           nome_cliente?: string | null
           orcamento?: number | null
+          status?: string
+          concluida_em?: string | null
           tipo: string
           updated_at?: string | null
           user_id: string
@@ -239,6 +243,8 @@ export type Database = {
           nome?: string
           nome_cliente?: string | null
           orcamento?: number | null
+          status?: string
+          concluida_em?: string | null
           tipo?: string
           updated_at?: string | null
           user_id?: string
