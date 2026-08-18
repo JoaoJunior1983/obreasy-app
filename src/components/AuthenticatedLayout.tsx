@@ -43,6 +43,16 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
       "/suporte",
     ]
 
+    // Link de recuperação de senha que caiu na home/login (fallback do Supabase
+    // ou token já usado): manda pro /reset-password preservando o hash, senão o
+    // usuário autenticado é jogado pro dashboard e o overlay de trial encobre tudo.
+    const urlHash = typeof window !== "undefined" ? window.location.hash : ""
+    if ((pathname === "/" || pathname === "/login") &&
+        (urlHash.includes("type=recovery") || urlHash.includes("error_code=otp_expired"))) {
+      window.location.replace(`/reset-password${urlHash}`)
+      return
+    }
+
     // Proteção adicional: Se estiver na landing/login mas autenticado, redirecionar
     if ((pathname === "/" || pathname === "/login") && isAuthenticated === "true") {
       router.replace("/dashboard")

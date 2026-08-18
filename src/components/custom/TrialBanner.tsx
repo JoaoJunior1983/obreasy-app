@@ -147,7 +147,7 @@ export default function TrialBanner() {
   // Páginas que precisam continuar acessíveis mesmo com trial/assinatura vencida:
   // tela de planos (para o usuário poder regularizar) e as páginas de suporte/legais
   // (Termos, Privacidade, Suporte), exigidas pela Apple independentemente da assinatura.
-  const alwaysAccessibleRoutes = ["/dashboard/plano", "/dashboard/suporte", "/privacidade", "/termos", "/suporte"]
+  const alwaysAccessibleRoutes = ["/dashboard/plano", "/dashboard/suporte", "/privacidade", "/termos", "/suporte", "/reset-password", "/login", "/"]
 
   if (!mounted) return null
   if (state.type === "none") return null
