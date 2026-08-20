@@ -967,9 +967,13 @@ function PlanoPageInner() {
               </div>
               <h3 className="text-lg font-bold text-white">Assine pelo app</h3>
             </div>
-            <p className="text-sm text-gray-300 leading-relaxed mb-5">
-              Para garantir mais segurança, as assinaturas do Obreasy acontecem apenas pelo
-              aplicativo, direto pela App Store ou Google Play.
+            <p className="text-sm text-gray-300 leading-relaxed mb-2">
+              Para contratar seu plano Obreasy, baixe ou abra o aplicativo no celular e faça
+              sua assinatura com segurança pela App Store ou Google Play.
+            </p>
+            <p className="text-sm text-gray-400 leading-relaxed mb-5">
+              Após a assinatura, seu plano será ativado automaticamente e você poderá utilizar
+              o Obreasy normalmente tanto no celular quanto no desktop.
             </p>
             <div className="flex flex-col gap-2 mb-4">
               <div className="w-full h-11 flex items-center justify-center gap-2 bg-white/[0.06] border border-white/[0.08] text-gray-300 rounded-lg text-sm font-medium">
