@@ -1,7 +1,7 @@
 {
-  "name": "OBREASY - Gestão de Obras",
+  "name": "Obreasy - Controle e Gestão de Obras",
   "short_name": "OBREASY",
-  "description": "Controle completo da sua obra - Gestão financeira, profissionais e relatórios",
+  "description": "Acompanhe orçamento, gastos, profissionais e diário da obra num só lugar.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0f",
@@ -9,22 +9,22 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "https://blietvjzchjrzbmkitha.supabase.co/storage/v1/object/public/images/WhatsApp%20Image%202026-02-09%20at%2009.46.17.jpeg",
+      "src": "/icon-192x192.svg",
       "sizes": "192x192",
-      "type": "image/jpeg",
-      "purpose": "any maskable"
+      "type": "image/svg+xml",
+      "purpose": "any"
     },
     {
-      "src": "https://blietvjzchjrzbmkitha.supabase.co/storage/v1/object/public/images/WhatsApp%20Image%202026-02-09%20at%2009.46.17.jpeg",
+      "src": "/icon-512x512.svg",
       "sizes": "512x512",
-      "type": "image/jpeg",
-      "purpose": "any maskable"
+      "type": "image/svg+xml",
+      "purpose": "any"
     },
     {
-      "src": "https://blietvjzchjrzbmkitha.supabase.co/storage/v1/object/public/images/WhatsApp%20Image%202026-02-09%20at%2009.46.17.jpeg",
+      "src": "/icon.svg",
       "sizes": "any",
-      "type": "image/jpeg",
-      "purpose": "any maskable"
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
   ],
   "screenshots": [
@@ -44,14 +44,14 @@
       "short_name": "Despesa",
       "description": "Registrar nova despesa",
       "url": "/dashboard/despesas/nova",
-      "icons": [{ "src": "https://blietvjzchjrzbmkitha.supabase.co/storage/v1/object/public/images/WhatsApp%20Image%202026-02-09%20at%2009.46.17.jpeg", "sizes": "any" }]
+      "icons": [{ "src": "/icon-192x192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
     },
     {
       "name": "Dashboard",
       "short_name": "Dashboard",
       "description": "Ver dashboard da obra",
       "url": "/dashboard",
-      "icons": [{ "src": "https://blietvjzchjrzbmkitha.supabase.co/storage/v1/object/public/images/WhatsApp%20Image%202026-02-09%20at%2009.46.17.jpeg", "sizes": "any" }]
+      "icons": [{ "src": "/icon-192x192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
     }
   ]
 }
