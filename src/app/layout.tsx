@@ -8,6 +8,7 @@ import { Toaster as UIToaster } from "@/components/ui/toaster";
 import AuthenticatedLayout from "@/components/AuthenticatedLayout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import QueryProvider from "@/components/QueryProvider";
+import { SITE_URL } from "@/lib/site-url";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,7 +26,6 @@ const inter = Inter({
   weight: ["400", "500", "600", "700"],
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.obreasy.com.br";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

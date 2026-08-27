@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next"
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.obreasy.com.br"
+import { SITE_URL } from "@/lib/site-url"
 
 // Antes deste arquivo o /robots.txt caía na página 404 do app (que serve noindex),
 // então nenhum buscador tinha instrução de rastreamento.

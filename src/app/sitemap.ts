@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next"
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.obreasy.com.br"
+import { SITE_URL } from "@/lib/site-url"
 
 // Só entram páginas públicas e indexáveis: as telas do app ficam atrás de login
 // e não têm valor de busca.
