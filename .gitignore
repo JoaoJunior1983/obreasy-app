@@ -83,3 +83,5 @@ releases/
 secrets/
 *.jks
 *.keystore
+secrets/ios-signing/
+out/
