@@ -25,10 +25,52 @@ const inter = Inter({
   weight: ["400", "500", "600", "700"],
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.obreasy.com.br";
+
 export const metadata: Metadata = {
-  title: "OBREASY",
-  description: "Controle completo da sua obra - Gestão financeira, profissionais e relatórios em tempo real",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Obreasy | Aplicativo de Controle e Gestão de Obras",
+    template: "%s | Obreasy",
+  },
+  description:
+    "Aplicativo para controle e gestão de obras. Acompanhe orçamento, gastos, profissionais e diário da obra num só lugar, pelo celular ou pelo computador.",
+  keywords: [
+    "aplicativo para controle de obras",
+    "controle de obras",
+    "gestão de obras",
+    "controle de gastos de obra",
+    "aplicativo para reforma",
+    "software de gestão de obras",
+    "diário de obra",
+    "orçamento de obra",
+  ],
+  applicationName: "Obreasy",
+  category: "business",
   manifest: "/manifest.json",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: SITE_URL,
+    siteName: "Obreasy",
+    title: "Obreasy | Aplicativo de Controle e Gestão de Obras",
+    description:
+      "Acompanhe orçamento, gastos, profissionais e diário da obra num só lugar, pelo celular ou pelo computador.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Obreasy | Aplicativo de Controle e Gestão de Obras",
+    description:
+      "Acompanhe orçamento, gastos, profissionais e diário da obra num só lugar, pelo celular ou pelo computador.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -40,16 +82,76 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
-  icons: {
-    icon: [
-      { url: "https://blietvjzchjrzbmkitha.supabase.co/storage/v1/object/public/images/WhatsApp%20Image%202026-02-09%20at%2009.46.17.jpeg", type: "image/jpeg" },
-      { url: "https://blietvjzchjrzbmkitha.supabase.co/storage/v1/object/public/images/WhatsApp%20Image%202026-02-09%20at%2009.46.17.jpeg", sizes: "192x192", type: "image/jpeg" },
-      { url: "https://blietvjzchjrzbmkitha.supabase.co/storage/v1/object/public/images/WhatsApp%20Image%202026-02-09%20at%2009.46.17.jpeg", sizes: "512x512", type: "image/jpeg" },
-    ],
-    apple: [
-      { url: "https://blietvjzchjrzbmkitha.supabase.co/storage/v1/object/public/images/WhatsApp%20Image%202026-02-09%20at%2009.46.17.jpeg", type: "image/jpeg" },
-    ],
-  },
+  // Sem override aqui, o Next serve icon.tsx / apple-icon.tsx (PNG gerado no
+  // próprio domínio). Antes apontava para um JPEG solto no bucket do Supabase.
+};
+
+// Dados estruturados no HTML servido pelo servidor, não injetados por JS: o
+// Google processa com atraso o que só aparece depois da hidratação.
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "@id": `${SITE_URL}/#app`,
+      name: "Obreasy",
+      applicationCategory: "BusinessApplication",
+      applicationSubCategory: "Gestão de Obras",
+      operatingSystem: "iOS, Android, Web",
+      inLanguage: "pt-BR",
+      url: SITE_URL,
+      description:
+        "Aplicativo para controle e gestão de obras. Acompanhe orçamento, gastos, profissionais e diário da obra num só lugar.",
+      featureList: [
+        "Controle de orçamento e gastos da obra",
+        "Gestão de profissionais e pagamentos",
+        "Diário de obra com fotos",
+        "Relatórios em PDF",
+        "Custo por metro quadrado",
+        "Controle de recebimentos",
+      ],
+      offers: [
+        {
+          "@type": "Offer",
+          name: "Essencial",
+          price: "29.90",
+          priceCurrency: "BRL",
+          category: "subscription",
+          url: `${SITE_URL}/dashboard/plano`,
+        },
+        {
+          "@type": "Offer",
+          name: "Profissional",
+          price: "49.90",
+          priceCurrency: "BRL",
+          category: "subscription",
+          url: `${SITE_URL}/dashboard/plano`,
+        },
+      ],
+      publisher: { "@id": `${SITE_URL}/#organization` },
+    },
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
+      name: "Obreasy",
+      url: SITE_URL,
+      email: "suporte@obreasy.com.br",
+      contactPoint: {
+        "@type": "ContactPoint",
+        contactType: "customer support",
+        email: "suporte@obreasy.com.br",
+        availableLanguage: "Portuguese",
+      },
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      url: SITE_URL,
+      name: "Obreasy",
+      inLanguage: "pt-BR",
+      publisher: { "@id": `${SITE_URL}/#organization` },
+    },
+  ],
 };
 
 export const viewport = {
@@ -75,7 +177,10 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="OBREASY" />
-        <link rel="apple-touch-icon" href="https://blietvjzchjrzbmkitha.supabase.co/storage/v1/object/public/images/WhatsApp%20Image%202026-02-09%20at%2009.46.17.jpeg" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+        />
         <Script id="register-sw" strategy="afterInteractive">
           {`
             if ('serviceWorker' in navigator) {
