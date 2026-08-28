@@ -83,3 +83,20 @@ Required for full functionality:
 ## Database
 
 Schema is defined via Supabase migrations in `/supabase/` and `/migrations/`. Types are auto-generated in `src/types/supabase.ts`. Key tables: `obras`, `clientes`, `despesas`, `profissionais`, `pagamentos`, `diario_obra`, `comprovantes_pagamentos`, `admin_trials`, `user_profiles`.
+
+<!-- wa-link:start -->
+WhatsApp deste projeto: `obreasy-lasy-ai` (João Junior — Obreasy). Consulte o histórico via MCP `whatsapp-collector` usando esse slug. Pra acompanhar ativamente, use `acompanhar_chat`. Detalhes em `.claude/whatsapp.json`.
+
+No Zarpa o projeto é `Bu9wBHSBT7JnCtDb6MrlmX55CXHtaQwH`, na organização LasyAI (`fncbjbP973IbIXdYZbOgOCxZVouaK4ja`), já vinculado a esse mesmo slug — `projeto_do_grupo` traduz um no outro.
+<!-- wa-link:end -->
+
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
