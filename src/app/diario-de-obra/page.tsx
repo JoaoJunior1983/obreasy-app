@@ -28,6 +28,10 @@ export const metadata: Metadata = {
   },
 }
 
+// Data de publicação fixa: se viesse de new Date(), toda build reescreveria a
+// data e o Google leria a página como recém-alterada sem que nada mudasse.
+const PUBLICADO_EM = "2026-08-28"
+
 const FAQ = [
   {
     pergunta: "O diário de obra é obrigatório?",
@@ -101,6 +105,12 @@ export default function DiarioDeObraPage() {
           "Guia do diário de obra: para que serve, o que registrar todo dia, modelo pronto e como fazer pelo celular.",
         inLanguage: "pt-BR",
         mainEntityOfPage: `${SITE_URL}/diario-de-obra`,
+        // author, image e as datas não são obrigatórios, mas o teste de
+        // resultados aprimorados os cobra como recomendados.
+        image: [`${SITE_URL}/opengraph-image`],
+        datePublished: PUBLICADO_EM,
+        dateModified: PUBLICADO_EM,
+        author: { "@id": `${SITE_URL}/#organization` },
         publisher: { "@id": `${SITE_URL}/#organization` },
       },
       {
