@@ -8,6 +8,7 @@ import { Toaster as UIToaster } from "@/components/ui/toaster";
 import AuthenticatedLayout from "@/components/AuthenticatedLayout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import QueryProvider from "@/components/QueryProvider";
+import GoogleAnalytics from "@/components/custom/GoogleAnalytics";
 import { SITE_URL } from "@/lib/site-url";
 
 const geistSans = Geist({
@@ -171,6 +172,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
+        <GoogleAnalytics />
         <Script src="/lasy-bridge.js" strategy="lazyOnload" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#0B3064" />
