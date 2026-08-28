@@ -85,3 +85,4 @@ secrets/
 *.keystore
 secrets/ios-signing/
 out/
+__pycache__/

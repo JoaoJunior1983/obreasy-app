@@ -2,8 +2,15 @@ import { chromium } from "playwright"
 import fs from "fs"
 
 const OUT = process.argv[2] || "/tmp/shots"
-const EMAIL = "demo.screenshots@obreasy.com.br"
-const PASS = "DemoObreasy2026!"
+// Conta demo usada so para capturar as telas da loja. Credencial fica no
+// arquivo de ambiente (SHOTS_EMAIL / SHOTS_PASS) — este script e versionado
+// e vai para o repositorio do cliente.
+const EMAIL = process.env.SHOTS_EMAIL
+const PASS = process.env.SHOTS_PASS
+if (!EMAIL || !PASS) {
+  console.error("Defina SHOTS_EMAIL e SHOTS_PASS antes de rodar a captura.")
+  process.exit(1)
+}
 const BASE = "https://www.obreasy.com.br"
 
 fs.mkdirSync(OUT, { recursive: true })
