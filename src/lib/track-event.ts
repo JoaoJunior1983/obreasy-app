@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase"
+import { enviarEventoGA } from "@/lib/ga"
 
 export type EventType =
   | "signup"
@@ -16,6 +17,10 @@ export async function trackEvent(
   eventType: EventType,
   metadata?: Record<string, unknown>
 ): Promise<void> {
+  // Fora do try do Supabase de propósito: se a gravação no banco falhar, a
+  // medição do funil no GA não deve cair junto.
+  enviarEventoGA(eventType, metadata)
+
   try {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
@@ -45,6 +50,9 @@ export async function trackFirstEvent(
       .eq("event_type", eventType)
 
     if ((count ?? 0) > 0) return
+
+    // Só aqui: o evento é "primeira vez", então repetir no GA falsearia o funil.
+    enviarEventoGA(eventType, metadata)
 
     await (supabase as any).from("user_events").insert({
       user_id: user.id,

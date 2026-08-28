@@ -9,6 +9,9 @@ interface SeoPageLayoutProps {
   subtitulo: string
   /** Rótulo curto acima do H1 (categoria do conteúdo). */
   chapeu: string
+  /** Chamada final. Muda por página: quem busca orçamento não quer ouvir de diário. */
+  ctaTitulo: string
+  ctaTexto: string
   children: ReactNode
 }
 
@@ -19,7 +22,7 @@ interface SeoPageLayoutProps {
  * chegar no HTML servido, não depois da hidratação. Nada aqui pode virar
  * "use client" sem custo direto de indexação.
  */
-export default function SeoPageLayout({ titulo, subtitulo, chapeu, children }: SeoPageLayoutProps) {
+export default function SeoPageLayout({ titulo, subtitulo, chapeu, ctaTitulo, ctaTexto, children }: SeoPageLayoutProps) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0B3064] via-[#0a0a0a] to-[#0a0a0a] text-white">
       <header className="sticky top-0 z-20 bg-[#0B3064]/60 backdrop-blur-md border-b border-white/10">
@@ -54,13 +57,8 @@ export default function SeoPageLayout({ titulo, subtitulo, chapeu, children }: S
         </div>
 
         <aside className="mt-14 rounded-2xl border border-[#7eaaee]/25 bg-[#7eaaee]/[0.07] p-6 sm:p-8">
-          <h2 className="text-xl sm:text-2xl font-bold text-white">
-            Faça o diário da sua obra pelo celular
-          </h2>
-          <p className="mt-3 text-white/75">
-            O Obreasy registra o dia da obra com foto, guarda o histórico organizado por data e
-            gera o relatório em PDF para enviar ao cliente. Teste sem custo.
-          </p>
+          <h2 className="text-xl sm:text-2xl font-bold text-white">{ctaTitulo}</h2>
+          <p className="mt-3 text-white/75">{ctaTexto}</p>
           <Link
             href="/cadastro"
             className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#7eaaee] px-5 py-3 text-sm font-semibold text-[#0B3064] transition-colors hover:bg-white"

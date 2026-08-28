@@ -9,6 +9,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: `${SITE_URL}/`, lastModified: agora, changeFrequency: "weekly", priority: 1 },
     { url: `${SITE_URL}/diario-de-obra`, lastModified: agora, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${SITE_URL}/orcamento-de-obra`, lastModified: agora, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${SITE_URL}/controle-de-obras`, lastModified: agora, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${SITE_URL}/gestao-de-obras`, lastModified: agora, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${SITE_URL}/app`, lastModified: agora, changeFrequency: "monthly", priority: 0.9 },
     { url: `${SITE_URL}/cadastro`, lastModified: agora, changeFrequency: "monthly", priority: 0.8 },
     { url: `${SITE_URL}/login`, lastModified: agora, changeFrequency: "monthly", priority: 0.5 },
     { url: `${SITE_URL}/suporte`, lastModified: agora, changeFrequency: "monthly", priority: 0.4 },

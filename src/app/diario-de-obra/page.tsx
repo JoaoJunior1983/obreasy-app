@@ -142,6 +142,8 @@ export default function DiarioDeObraPage() {
         chapeu="Guia prático"
         titulo="Diário de obra: o que é, o que registrar e modelo pronto"
         subtitulo="O diário é o documento que conta, dia a dia, o que aconteceu na obra. É ele que responde por você quando alguém pergunta por que o prazo esticou — desde que tenha sido preenchido do jeito certo."
+        ctaTitulo="Faça o diário da sua obra pelo celular"
+        ctaTexto="O Obreasy registra o dia da obra com foto, guarda o histórico organizado por data e gera o relatório em PDF para enviar ao cliente. Teste sem custo."
       >
         <section>
           <h2 className="text-2xl font-bold text-white">O que é o diário de obra</h2>
